@@ -1,0 +1,6 @@
+
+
+execute <print "we read from the standard input stream">;
+execute <read from stream "string">;
+execute <print "now we write the result">;
+execute <print <the read from stream result "string">>;

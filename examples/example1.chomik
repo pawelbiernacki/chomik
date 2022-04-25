@@ -1,0 +1,53 @@
+ 
+type place={Krakow,Warszawa,Wroclaw,Poznan,Gdansk},
+    person={Conan, Gotrek, Gwaigilion},
+    
+    action={doing_nothing, 
+            going_to_(X:place),
+            telling_(Y:person)_(X:information),
+            asking_(X:person)_to_do_(Y:action),
+            asking_(X:person)_whether_(Y:information),
+            attacking_(X:person)},
+    
+    information={(X:person)_is_in_(Y:place),
+                (X:person)_is_(Y:action),
+                (X:person)_thinks_(Y:information),
+                (X:person)_has_told_(Y:person)_(Z:information),
+                (X:person)_has_attacked_(Y:person)},
+                
+    operation={adding_(X:float)_to_(Y:float)},    
+    my_range = 1..100
+    ;
+
+                
+variable (X:person) money:integer;  # instead of class attributes we have variables
+variable (X:person) say_hallo:code; # code is a built-in type
+variable (X:place) (Y:place) is_connected:boolean;  # it is possible to create attributes for tuples (like (X,Y) in this case)
+
+expand(1);
+
+include "example10.chomik"
+
+
+let variable (X:person) money = value integer 10;  # every person has initially 10
+
+
+# this assigns to a variable Conan_say_hello a code literal. Such variables can be executed.
+let variable Conan say_hello = value code
+    {
+    execute <print "hello">;
+    execute <print "I am Conan">;
+    execute <print "I have" <Conan money> "money" >;
+    };
+
+    
+execute <Conan say_hello>;  # no loop - say hello for Conan
+execute <(X:person) say_hello>;   # implicit loop - say hello for all persons
+
+let variable (X:place) (Y:place) is_connected = value boolean false;
+let variable Krakow Warszawa is_connected = value boolean true;
+let variable Krakow Wroclaw is_connected = value boolean true;
+let variable Wroclaw Poznan is_connected = value boolean true;
+let variable Warszawa Gdansk is_connected = value boolean true;
+
+execute <print "result for " (X:place) "and" (Y:place) "equals" <(X:place) (Y:place) is_connected>>;   # print all connections from X to Y

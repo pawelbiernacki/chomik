@@ -1,0 +1,34 @@
+
+# this example parses correctly but does not work properly yet!!!
+
+execute <get>;  # by default it reads from the standard input
+variable x:string;
+let variable x = <the result of get type_string>;
+
+
+let variable the get next character source = <x>;
+let variable the get next character offset = value integer 0;
+
+
+variable get_string_length:code;
+
+let variable the result of get_string_length=value integer 0;   # init the result variable
+
+variable condition_body_1 (X:boolean):code;
+
+let variable condition_body_1 false = value code 
+    { 
+    let variable get_string_length (X:integer) =value code {}; 
+    let variable the result of get_string_length = <the get next character offset>; 
+    };
+    
+let variable condition_body_1 true = value code { execute <increment the get next character offset>; };
+
+let variable get_string_length (X:integer) =value code 
+{ 
+    execute <get next character is available>;  # built in function, result true or false
+    execute <condition_body_1 <the result of get next character is available>>;        
+};
+
+execute <get_string_length (X:integer)>;
+

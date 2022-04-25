@@ -1,0 +1,21 @@
+/**
+\page downloading_chomik_tarball Downloading chomik tarball.
+
+\htmlonly
+<p>
+You may download the chomik tarball from <a href="../resources/code/chomik-0.0.4.tar.gz">chomik-0.0.4.tar.gz</a>. 
+</p>
+\endhtmlonly
+
+chomik tarball can be unpacked with the command:
+\code
+gunzip chomik-0.0.4.tar.gz
+\endcode
+
+It will produce a file chomik-0.0.4.tar, that should be untared with the command:
+\code
+tar -xvf chomik-0.0.4.tar
+\endcode
+
+*/
+ 

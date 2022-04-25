@@ -1,0 +1,10 @@
+
+execute <print "hello1">;    # now we print to the standard output
+
+
+execute <create new output filestream "t.txt">;
+let variable the print target stream index = <the created stream index>;
+execute <print "hello2">;    # now we print to the file t.txt
+
+let variable the print target stream index = value integer 0;     # now we switch to the standard output
+execute <print "hello3">;    # now we print to the standard output

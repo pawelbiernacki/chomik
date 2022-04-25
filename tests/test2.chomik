@@ -1,0 +1,4 @@
+#!/usr/local/bin/chomik
+
+execute <print "Hello, world">;
+

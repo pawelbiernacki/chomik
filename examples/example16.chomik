@@ -1,0 +1,19 @@
+
+
+# here we create a stringstream and print to it
+# then we use "get from stream result" to read its result
+ 
+execute <create new output stringstream>;
+let variable the print target stream index = <the created stream index>;
+let variable the print separator = value string "";     
+let variable the print end of line = value string "";
+execute <print "alpha" "beta" 1 2 3>;    # now we print to the string stream
+
+
+let variable the get from stream result stream index = <the created stream index>;
+execute <get from stream result>;
+
+
+let variable the print target stream index = value integer 0; # reset to print to the standard output
+let variable the print end of line = value string "\n";
+execute <print <the get from stream result>>;

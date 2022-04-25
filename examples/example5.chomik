@@ -1,0 +1,14 @@
+
+type coordinate=0..5, inner=1..4;
+
+variable a (X:coordinate) (Y:coordinate):boolean;  # it is possible to create attributes for tuples (like (X,Y) in this case)
+    
+expand(1);  # here we expand the types and variables
+
+let variable a (X:coordinate) (Y:coordinate) = value boolean false;
+let variable a (X:inner) (Y:inner) = value boolean true;
+
+execute <print "a" (X:coordinate) "," (Y:coordinate) "=" <a (X:coordinate) (Y:coordinate)>>;  
+
+
+

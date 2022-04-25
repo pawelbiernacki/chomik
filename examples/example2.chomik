@@ -1,0 +1,61 @@
+
+type place={Krakow,Warszawa,Wroclaw,Poznan,Gdansk},
+    person={Conan, Gotrek, Gwaigilion}; 
+
+expand(1);    
+    
+    
+variable (X:person)_money:integer;                          # instead of class attributes we have variables, integer is a built-in type
+variable (X:person)_name:string;                            # string is a built-in type
+variable (X:place)_is_connected_with_(Y:place):boolean;     # they can be defined for tuples
+variable (X:person)_say_hallo:code;                         # code is a built-in type
+
+let variable (X:person)_money = value integer 10;           # every person has initially 10 - this assignment works like a loop over all persons
+
+let variable (X:person)_is_in_(Y:place) = value boolean false;      # for each tuple (X,Y) belonging to persons and places respectively we assign the variables with false
+
+let variable Conan _say_hello = value code                  # some variables may be of type code - the code can be executed, 
+                                                            # the variable value can be changed to other code when needed
+    {
+    execute <print "Hello\n">;                              # here we use the built-in variable print
+    };
+
+# there are no parameters passed to a function, the enum or integer or double or string values are part of the variable name instead 
+let variable (X:person)_set_money_(Y:integer) = value code
+    {
+        let variable (X:person)_money = value integer [(Y:integer)];
+    };
+    
+    
+# here we activate the variable Conan _set_money_ 100 which is of type code and assigns 100 to the Conan's money variable.
+execute <Conan _set_money_ 100>;
+
+
+# there is no conditional instruction, instead we define a family of variables:
+variable on_condition1_is_(X:boolean):code;
+
+let variable on_condition1_is_ false = value code
+{
+    execute <print "condition1 is false!\n">;
+};
+
+let variable on_condition1_is_ true = value code
+{
+    execute <print "condition1 is true!\n">;
+};
+
+let variable r1=value boolean true;
+let variable r2=value boolean false;
+
+execute <on_condition1_is_ <r1>>;
+
+# analogically we do complex conditions for multiple variables:
+
+variable on_condition2_is_ (X:boolean) _and_ (Y:boolean): code;
+
+let variable on_condition2_is_ (X:boolean) _and_ (Y:boolean) = value code { execute <print "condition2 is not fullfilled">; };
+let variable on_condition2_is_ true _and_ true = value code { execute <print "condition2 is fullfilled">; };
+
+execute <on_condition2_is_ <r1> _and_ <r2>>;     # this code will print "condition2 is fullfilled" if and only if r1 has value true and r2 has value true
+
+

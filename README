@@ -1,0 +1,20 @@
+
+
+Experimental programming language.
+
+It consists of the five commands:
+- type definition
+- variable declaration
+- expand command
+- assignment
+- execution
+
+Got used to the stack, passing parameters to functions, loops, classes, inheritence and the likes?
+Forget it.
+In chomik there are only families of variables. There are no loops - all iterations are implicit.
+Code is nothing else but a built-in type. An infinite family of variables of type code is what we know as procedure.
+
+Chomik allows polimorphism without the need of creating a class hierarchy.
+
+The package contains also sdl_chomik, which is an example how to use the libchomik library in your own C++ projects.
+The sdl_chomik is a chomik extension based on the SDL2 library.

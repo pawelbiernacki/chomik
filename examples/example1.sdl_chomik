@@ -1,0 +1,176 @@
+#
+# This is a program for sdl_chomik, which is a derivate of the chomik programming language
+#
+execute <create new image "../image/title_screen.png">;
+variable title screen image index: integer;
+let variable title screen image index = <the created image index>;
+
+execute <create new image "../image/pink_monkey.png">;
+variable pink monkey image index: integer;
+let variable pink monkey image index = <the created image index>;
+
+execute <create new image "../image/blue_monkey.png">;
+variable blue monkey image index: integer;
+let variable blue monkey image index = <the created image index>;
+
+execute <create new image "../image/chomik.png">;
+variable chomik image index: integer;
+let variable chomik image index = <the created image index>;
+
+
+type range_of_blue_monkeys = 1..10;
+expand(1);
+
+variable blue monkey (N:range_of_blue_monkeys) x:integer;
+variable blue monkey (N:range_of_blue_monkeys) y:integer;
+
+let variable blue monkey (N:range_of_blue_monkeys) y = value integer 0;
+
+execute <create new input random number stream "integer" 0 800>;
+let variable random horizontal coordinate stream index=<the created stream index>;
+
+execute <create new input random number stream "integer" 0 500>;
+let variable random vertical coordinate stream index=<the created stream index>;
+
+
+execute value code
+{
+    let variable the read from stream source stream index = <random horizontal coordinate stream index>;
+    execute <read from stream "integer">;
+    let variable blue monkey (N:range_of_blue_monkeys) x = <the read from stream result "integer">;
+    let variable the read from stream source stream index = <random horizontal coordinate stream index>;
+    execute <read from stream "integer">;
+    let variable blue monkey (N:range_of_blue_monkeys) y = <the read from stream result "integer">;
+};
+
+
+
+variable monkey x:integer, monkey y:integer, monkey dx:integer, monkey dy: integer;
+
+let variable monkey x = value integer 400;
+let variable monkey y = value integer 500;
+
+let variable monkey dx = value integer 0;
+let variable monkey dy = value integer 0;
+
+
+variable show_blue_monkeys: code;
+let variable show_blue_monkeys=value code
+{
+    execute <show image <blue monkey image index> <blue monkey (N:range_of_blue_monkeys) x> <blue monkey (N:range_of_blue_monkeys) y>>;    
+};
+
+variable monkey_to_reset:integer;
+variable reset_blue_monkey_on_greater (X:compare_result):code;
+
+let variable reset_blue_monkey_on_greater greater = value code 
+{    
+    let variable blue monkey <monkey_to_reset> y = value integer -64;
+    #execute <print "reset blue monkey" <monkey_to_reset>>;
+    
+    let variable the read from stream source stream index = <random horizontal coordinate stream index>;
+    execute <read from stream "integer">;
+    let variable blue monkey <monkey_to_reset> x = <the read from stream result "integer">;    
+};
+
+
+
+variable reset_blue_monkey_if_needed: code;
+let variable reset_blue_monkey_if_needed = value code
+{
+    #execute <print "blue monkey" <monkey_to_reset> "y equals " <blue monkey <monkey_to_reset> y>>;
+    execute <compare "integer" <blue monkey <monkey_to_reset> y> 600>;
+    execute <reset_blue_monkey_on_greater <the compare result>>;
+};
+
+
+variable move_all_blue_monkeys: code;
+let variable move_all_blue_monkeys =value code
+{
+    execute value code { execute <move_blue_monkey (N:range_of_blue_monkeys)>; };
+};
+
+
+let variable move_blue_monkey (N:range_of_blue_monkeys)=value code
+{
+    #execute <print "move blue monkey" (N:range_of_blue_monkeys)>;
+    let variable monkey_to_reset = value integer [(N:range_of_blue_monkeys)];
+    execute <add "integer" <blue monkey <monkey_to_reset> y> 3>;
+    let variable blue monkey <monkey_to_reset> y = <the add result "integer">;    
+    execute <reset_blue_monkey_if_needed>;
+};
+
+
+variable slow_down_monkey_x_on_comparison (X:compare_result):code;
+let variable slow_down_monkey_x_on_comparison greater=value code
+{
+    execute <substract "integer" <monkey dx> 1>;
+    let variable monkey dx=<the substract result "integer">;
+};
+
+let variable slow_down_monkey_x_on_comparison lower=value code
+{
+    execute <add "integer" <monkey dx> 1>;
+    let variable monkey dx=<the add result "integer">;
+};
+
+variable slow_down_monkey_y_on_comparison (X:compare_result):code;
+let variable slow_down_monkey_y_on_comparison greater=value code
+{
+    execute <substract "integer" <monkey dy> 1>;
+    let variable monkey dy=<the substract result "integer">;
+};
+
+let variable slow_down_monkey_y_on_comparison lower=value code
+{
+    execute <add "integer" <monkey dy> 1>;
+    let variable monkey dy=<the add result "integer">;
+};
+
+
+variable move_pink_monkey:code;
+let variable move_pink_monkey=value code
+{
+    execute <add "integer" <monkey x> <monkey dx>>;
+    let variable monkey x=<the add result "integer">;
+    execute <compare "integer" <monkey dx> 0>;
+    execute <slow_down_monkey_x_on_comparison <the compare result>>;
+
+    execute <add "integer" <monkey y> <monkey dy>>;
+    let variable monkey y=<the add result "integer">;
+    execute <compare "integer" <monkey dy> 0>;
+    execute <slow_down_monkey_y_on_comparison <the compare result>>;    
+};
+
+
+let variable on key left = value code
+{
+    let variable monkey dx = value integer -10;
+};
+
+let variable on key right = value code
+{
+    let variable monkey dx = value integer 10;
+};
+
+let variable on key up = value code
+{
+    let variable monkey dy = value integer -10;
+};
+
+let variable on key down = value code
+{
+    let variable monkey dy = value integer 10;
+};
+
+let variable sdl loop body = value code 
+{ 
+    execute <show image <title screen image index> 0 0>;     
+    execute <show_blue_monkeys>;    
+    execute <show image <pink monkey image index> <monkey x> <monkey y>>;
+    execute <show image <chomik image index> 0 0>;
+    execute <move_all_blue_monkeys>;
+    execute <move_pink_monkey>;
+};
+
+execute <sdl loop>;

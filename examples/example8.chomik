@@ -1,0 +1,5 @@
+ 
+variable show values (X:integer) (Y:integer): code;
+
+let variable show values (X:integer) (Y:integer) = value code { execute <print "coordinates" (X:integer) (Y:integer)>; };
+

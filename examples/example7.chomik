@@ -1,0 +1,8 @@
+
+type person={Conan, Gotrek, Gwaigilion};
+expand(1);
+
+variable (X:person) money:integer;
+
+let variable (X:person) money = value integer 10;  # every person has initially 10
+

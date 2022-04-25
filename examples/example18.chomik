@@ -1,0 +1,20 @@
+
+# here we create a stringstream and read from it 5 words
+
+type my_range=1..5;
+expand(1);
+ 
+execute <create new input stringstream "hallo it is a text">;
+let variable the read from stream source stream index = <the created stream index>;
+
+
+variable read_and_print:code;
+
+let variable read_and_print (X:my_range) = value code { 
+    execute <print "we read from stream">;
+    execute <read from stream "string">;
+    execute <print "now we write the result">;
+    execute <print <the read from stream result "string">>;
+    };
+ 
+execute <read_and_print (X:my_range)>;

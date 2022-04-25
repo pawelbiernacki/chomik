@@ -1,0 +1,12 @@
+
+
+# in this example we create a file of a name stored in a variable
+# and we write to it
+
+variable my_variable: string;
+let variable my_variable=value string "t2.txt";
+
+execute <create new output filestream <my_variable>>;
+let variable the print target stream index = <the created stream index>;
+execute <print "hello2">;    # now we print to the file t2.txt
+ 

@@ -1,0 +1,208 @@
+#
+# This is a simple text game written in Chomik
+#
+#
+
+ 
+type place={Krakow,Warszawa,Wroclaw,Poznan,Gdansk},
+    person={I, Conan, Gotrek, Gwaigilion},
+    monster={dragon,orc,goblin,zombie,skeleton},
+    feature={strength, intelligence},
+    feature_value=0..10,
+    adventure_number=1..5,
+    range_of_stars=1..100;                
+expand(1);
+
+
+execute <create new input random number stream "integer" 1 5>;
+variable dice stream index:integer;
+let variable dice stream index = <the created stream index>;
+
+variable (X:person) (Y:feature):feature_value;
+
+# initially everyone has strength 2:
+let variable (X:person) strength=value integer 2;
+
+# initially everyone has intelligence 3:
+let variable (X:person) intelligence=value integer 3;
+
+variable (X:person) experience:integer;
+let variable (X:person) experience = value integer 0;   # these variables are not "features"
+
+variable where is (X:person):place;
+let variable where is (X:person)= value place Krakow;
+
+variable chosen_city: place;
+
+variable map_random_number_to_city (X:integer): code;
+let variable map_random_number_to_city 1= value code { let variable chosen_city = value place Krakow;};
+let variable map_random_number_to_city 2= value code { let variable chosen_city = value place Warszawa;};
+let variable map_random_number_to_city 3= value code { let variable chosen_city = value place Wroclaw;};
+let variable map_random_number_to_city 4= value code { let variable chosen_city = value place Poznan;};
+let variable map_random_number_to_city 5= value code { let variable chosen_city = value place Gdansk;};
+
+variable chosen_monster: monster;
+
+variable map_random_number_to_monster (X:integer): code;
+let variable map_random_number_to_monster 1= value code { let variable chosen_monster = value place dragon;};
+let variable map_random_number_to_monster 2= value code { let variable chosen_monster = value place orc;};
+let variable map_random_number_to_monster 3= value code { let variable chosen_monster = value place goblin;};
+let variable map_random_number_to_monster 4= value code { let variable chosen_monster = value place zombie;};
+let variable map_random_number_to_monster 5= value code { let variable chosen_monster = value place skeleton;};
+
+variable (X:monster) strength:integer;
+let variable dragon strength=value integer 5;
+let variable orc strength=value integer 3;
+let variable goblin strength=value integer 1;
+let variable zombie strength=value integer 0;
+let variable skeleton strength=value integer 1;
+
+
+let variable the read from stream source stream index = <dice stream index>;
+execute <read from stream "integer">;
+
+execute <map_random_number_to_city <the read from stream result "integer">>;
+
+let variable where is I = <chosen_city>;
+
+
+
+variable (X:person) name:string;
+let variable (X:person) name=value string [(X:person)] ;    
+# I do not quite like this [] syntax - it extracts a string literal from enum, maybe I will replace the square brackets with something else...
+
+
+variable (X:place) is connected with (Y:place):boolean;
+let variable (X:place) is connected with (Y:place)=value boolean false;
+
+let variable Krakow is connected with Warszawa=value boolean true;
+let variable Warszawa is connected with Krakow=value boolean true;
+
+let variable Krakow is connected with Wroclaw=value boolean true;
+let variable Wroclaw is connected with Krakow=value boolean true;
+
+let variable Wroclaw is connected with Poznan=value boolean true;
+let variable Poznan is connected with Wroclaw=value boolean true;
+
+let variable Warszawa is connected with Poznan=value boolean true;
+let variable Poznan is connected with Warszawa=value boolean true;
+
+let variable Warszawa is connected with Gdansk=value boolean true;
+let variable Gdansk is connected with Warszawa=value boolean true;
+
+
+
+variable print_your_characters_features:code;
+let variable print_your_characters_features = value code 
+{ 
+    execute <print "************************">;
+    execute <print "My name is" <I name>>; 
+    execute <print "I am in" <where is I>>;
+    execute <print (X:feature) equals <I (X:feature)>>;     
+    execute <print "My experience is" <I experience>>;
+    execute <print "************************">;
+};
+
+
+variable print_menu:code;
+let variable print_menu=value code
+{
+    execute <print "KR - goto Krakow">;
+    execute <print "WA - goto Warszawa">;
+    execute <print "WR - goto Wroclaw">;
+    execute <print "PO - goto Poznan">;
+    execute <print "GD - goto Gdansk">;
+};
+
+variable (X:person) decision:string;
+let variable I decision=value string "";
+
+variable get_decision:code;
+let variable get_decision=value code
+{
+    execute <print "What is your decision?">;
+    let variable the read from stream source stream index = value integer 2;    # standard input stream
+    execute <read from stream "string">;
+    let variable I decision=<the read from stream result "string">;
+};
+
+variable (X:person) target city:place;
+let variable (X:person) target city = value place Krakow;
+
+
+
+variable map_players_decision_to_the_target_city (X:string):code;
+let variable map_players_decision_to_the_target_city "KR" = value code { let variable I target city=value place Krakow; };
+let variable map_players_decision_to_the_target_city "WA" = value code { let variable I target city=value place Warszawa; };
+let variable map_players_decision_to_the_target_city "WR" = value code { let variable I target city=value place Wroclaw; };
+let variable map_players_decision_to_the_target_city "PO" = value code { let variable I target city=value place Poznan; };
+let variable map_players_decision_to_the_target_city "GD" = value code { let variable I target city=value place Gdansk; };
+
+
+variable do_the_players_decision (correct:boolean): code;
+
+let variable do_the_players_decision false=value code { execute <print "You cannot do it!">; };
+let variable do_the_players_decision true=value code { execute <print "You can do it!">; let variable where is I=<I target city>;};
+
+variable print_a_star:code;
+let variable print_a_star=value code { execute <print "*">; };
+
+
+let variable the print separator=value string "";
+let variable the print end of line=value string "";
+
+execute value code { execute<print_a_star>; let variable dummy (X:range_of_stars)=value integer 0; };   # this is a not so elegant way to force an iteration, I admit
+
+let variable the print separator=value string " ";
+let variable the print end of line=value string "\n";
+execute <print>;
+
+execute <print "Welcome to the Crazy Hamster, the first game written in Chomik!">;
+execute <print "The Crazy Hamster is an RPG text game by Pawel Biernacki (email: pawel.f.biernacki@gmail.com)">;
+
+
+execute <print "Enter your character's name:">;
+let variable the read from stream source stream index = value integer 2;
+execute <read from stream "string">;
+let variable I name = <the read from stream result "string">;
+execute <print "Your name is" <I name>>;
+
+variable die_if_your_strength_was_lower (X:compare_result):code;
+let variable die_if_your_strength_was_lower (X:compare_result) = value code {};
+let variable die_if_your_strength_was_lower lower = value code
+{
+    execute <print "You die!">;
+    let variable play_an_adventure=value code {};
+};
+
+variable play_an_adventure: code;
+
+let variable play_an_adventure=value code
+{
+    execute <print_your_characters_features>;
+    execute <print_menu>;
+    execute <get_decision>;
+    execute <map_players_decision_to_the_target_city <I decision>>;
+    execute <print "Your target is" <I target city>>;
+    execute <do_the_players_decision <<where is I> is connected with <I target city>>>;
+    
+    let variable the read from stream source stream index = <dice stream index>;
+    execute <read from stream "integer">;
+    execute <map_random_number_to_monster <the read from stream result "integer">>;
+    execute <print "You encounter a" <chosen_monster>>;    
+    execute <print "Its strength is " <<chosen_monster> strength>>;
+    
+    execute <compare "integer" <I strength> <<chosen_monster> strength>>;
+    execute <print "Your strength is" <the compare result>>;
+    execute <die_if_your_strength_was_lower <the compare result>>;  # here we exit from the loop
+};
+
+variable run_all_adventures (X:adventure_number):code;
+let variable run_all_adventures (X:adventure_number)=
+value code {
+    execute <print "adventure" (X:adventure_number)>;
+    execute <play_an_adventure>;    
+};
+
+execute <run_all_adventures (X:adventure_number)>;
+

@@ -1,0 +1,26 @@
+
+
+variable width:integer, height:integer;
+
+
+let variable width = value integer 10;
+let variable height = value integer 10;
+
+execute <print "give width:">;
+execute <read width>;
+
+execute <print "give height:">;
+execute <read height>;
+
+
+type width_range = 1..<width>, height_range = 1..<height>;
+
+expand(2);
+
+variable field_(X:width_range)_(Y:1..<height>)_is_land:boolean;
+
+let variable field_(X:width_range)_(Y:1..<height>)_is_land = value boolean true;
+
+
+variable x:string;
+let variable x = value string "hey";

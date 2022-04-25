@@ -1,0 +1,7 @@
+
+# we can execute the code values (literals):    
+# loop is implicit
+execute value code { execute <print "hello, we can execute code values.">; execute <print "we can also iterate " (A:boolean) (B:boolean)>; };
+
+# here we execute a code literal without any loops
+execute value code { execute <print "hello, this is a simple code execution.">; };

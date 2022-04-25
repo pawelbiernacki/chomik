@@ -1,0 +1,25 @@
+
+
+
+# here we create a stringstream and print to it
+# then we use "get from stream result" to read its result
+ 
+execute <create new output stringstream>;
+let variable the print target stream index = <the created stream index>;
+let variable the print separator = value string "_";     
+let variable the print end of line = value string "";
+
+type my_range=1..3;
+expand(1);
+
+execute <print "alpha" "beta" (R:my_range)>;    # now we print to the string stream with an implicit loop
+
+
+let variable the get from stream result stream index = <the created stream index>;
+execute <get from stream result>;
+
+
+let variable the print target stream index = value integer 0; # reset to print to the standard output
+let variable the print end of line = value string "\n";
+execute <print <the get from stream result>>;
+ 

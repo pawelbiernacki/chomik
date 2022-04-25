@@ -1,0 +1,34 @@
+
+
+# polimorphism in chomik ;)))
+
+type person={Conan, Gotrek, Gwaigilion};
+expand(1);
+
+variable (X:person) money:integer;  # instead of class attributes we have variables
+variable (X:person) say hello:code; # code is a built-in type
+
+let variable (X:person) money = value integer 10;  # every person has initially 10
+
+let variable (X:person) say hello = value code
+    {
+    execute <print "hello">;
+    execute <print (X:person) " can iterate " (A:boolean) (B:boolean)>;
+    };
+
+let variable Conan say hello = value code
+    {
+    execute <print "hello">;
+    execute <print "I am Conan">;
+    execute <print "I have" <Conan money> "money" >;
+    execute <print "I can also iterate " (A:boolean) (B:boolean)>;
+    };
+
+
+execute <print "first we call Conan say hello directly">;    
+
+execute <Conan say hello>;  # no loop - say hello for Conan
+
+execute <print "now let us try the polimorphic call:">;
+
+execute <(X:person) say hello>;   # implicit loop - say hello for all persons

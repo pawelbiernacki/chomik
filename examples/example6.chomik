@@ -1,0 +1,12 @@
+
+
+# this example parses correctly but does not work properly yet!!!
+
+variable a (X:0..10) (Y:0..10):boolean;  # it is possible to create attributes for tuples (like (X,Y) in this case)
+    
+expand(1);
+
+let variable a (X:0..10) (Y:0..10) = value boolean false;
+
+execute <print "a " (X:0..10) "," (Y:0..10) " = " <a (X:0..10) (Y:0..10)>>;   # 
+

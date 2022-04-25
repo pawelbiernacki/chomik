@@ -1,0 +1,9 @@
+
+
+execute <create new input random number stream "integer" 1 6>;
+let variable the read from stream source stream index = <the created stream index>;
+
+execute <print "we read from stream">;
+execute <read from stream "integer">;
+execute <print "now we write the result">;
+execute <print "the result is" <the read from stream result "integer">>;

@@ -1,0 +1,8 @@
+
+execute <print "the first message">;
+
+execute <print "now let us include something">;
+
+include "example11.chomik"
+
+execute <print "hello, I am back">;
