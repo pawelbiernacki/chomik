@@ -1,0 +1,12 @@
+
+
+# double expand - it is not a problem any more
+
+type alpha={a,b,c};
+
+expand(1);
+expand(1);  # we may call it twice (or even many times), the type alpha will be inserted only once
+
+
+execute <print memory report>;
+

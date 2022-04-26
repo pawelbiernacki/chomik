@@ -1217,6 +1217,7 @@ void chomik::machine::expand(int i)
 {
     std::vector<std::shared_ptr<type_definition>> temporary_vector_of_type_definitions;
     std::vector<std::shared_ptr<type_instance>> temporary_vector_of_type_instances;
+    std::vector<bool> temporary_vector_of_flags_type_is_new;
     
     for (auto & j: vector_of_type_definiton_statements)
     {
@@ -1231,7 +1232,10 @@ void chomik::machine::expand(int i)
                 std::shared_ptr<type_instance> y2{y};   // here we keep the second pointer to the same object, but the first one will be stored in the temporary vector only
             
                 temporary_vector_of_type_instances.push_back(std::move(y));
-                add_type_instance(std::move(y2));
+                temporary_vector_of_flags_type_is_new.push_back(!get_type_instance_is_known(k->get_name()));
+                
+                if (!get_type_instance_is_known(k->get_name()))  // we may call "expand()" several times, this should not be a problem
+                    add_type_instance(std::move(y2));
             }
             else
             {            
@@ -1239,7 +1243,10 @@ void chomik::machine::expand(int i)
                 std::shared_ptr<type_instance> y2{y};   // here we keep the second pointer to the same object, but the first one will be stored in the temporary vector only
             
                 temporary_vector_of_type_instances.push_back(std::move(y));
-                add_type_instance(std::move(y2));
+                temporary_vector_of_flags_type_is_new.push_back(!get_type_instance_is_known(k->get_name()));
+                
+                if (!get_type_instance_is_known(k->get_name()))  // we may call "expand()" several times, this should not be a problem
+                    add_type_instance(std::move(y2));
             }
         }
     }
@@ -1249,7 +1256,9 @@ void chomik::machine::expand(int i)
         int l=0;
         for (auto & j: temporary_vector_of_type_definitions)
         {
-            j->expand(*this, k, temporary_vector_of_type_instances[l++]);
+            if (temporary_vector_of_flags_type_is_new[l])   // skip the types that are already known
+                j->expand(*this, k, temporary_vector_of_type_instances[l]);
+            l++;
         }
     }
 
