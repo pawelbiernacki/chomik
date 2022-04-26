@@ -13,7 +13,7 @@ void * chomik_create_generic_name(void * const l);
 void * chomik_create_type_definition(const char * const type_name, void * type_definition_body);
 void * chomik_create_list_of_type_definitions(void * const td, void * const l);
 void * chomik_create_list_of_generic_names(void * const first_name, void * const other_names);
-void * chomik_create_type_definition_body_vector_of_names(void * const l);
+void * chomik_create_type_definition_body_enum(void * const l);
 void * chomik_create_type_definition_statement(void * const l, unsigned new_line_number);
 void * chomik_create_name_item_float(double d);
 void * chomik_create_name_item_string(const char * const s);
@@ -97,7 +97,7 @@ nonempty_list_of_type_definitions: type_definition ',' nonempty_list_of_type_def
 
 type_definition: T_IDENTIFIER '=' type_definition_body { $$ = chomik_create_type_definition($1, $3); free($1); /* no need to destroy $3 !!! */ }
 
-type_definition_body: '{' nonempty_list_of_names '}' { $$=chomik_create_type_definition_body_vector_of_names($2); chomik_destroy_list_of_names($2); } 
+type_definition_body: '{' nonempty_list_of_names '}' { $$=chomik_create_type_definition_body_enum($2); chomik_destroy_list_of_names($2); } 
             | range { $$=chomik_create_type_definition_body_range($1); /* no need to destroy $1 !!! */ }
 
 nonempty_list_of_names: name ',' nonempty_list_of_names { $$ = chomik_create_list_of_generic_names($1, $3); /* no need to destroy $1 !!! */ chomik_destroy_list_of_names($3); } 

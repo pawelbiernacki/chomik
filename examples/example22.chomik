@@ -1,0 +1,25 @@
+
+#
+# here we have recursive enumerations (my idea)
+# for example some actions depend on informations and some informations depend on actions
+#
+
+type place={Krakow,Warszawa,Wroclaw,Poznan,Gdansk},
+    person={Conan, Gotrek, Gwaigilion},
+    
+    action={doing_nothing, 
+            going_to_(X:place),
+            telling_(Y:person)_(X:information),
+            asking_(X:person)_to_do_(Y:action),
+            asking_(X:person)_whether_(Y:information),
+            attacking_(X:person)},
+    
+    information={(X:person)_is_in_(Y:place),
+                (X:person)_is_(Y:action),
+                (X:person)_thinks_(Y:information),
+                (X:person)_has_told_(Y:person)_(Z:information),
+                (X:person)_has_attacked_(Y:person)};
+
+expand(2);
+
+execute <print (X:information)>;

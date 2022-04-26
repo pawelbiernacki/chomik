@@ -51,7 +51,7 @@ void chomik::type_definition::report(std::ostream & s) const
     s << "";
 }
 
-void chomik::type_definition_body_vector_of_names::report(std::ostream & s) const
+void chomik::type_definition_body_enum::report(std::ostream & s) const
 {
     bool first = true;
     s << '{';
@@ -181,3 +181,14 @@ void chomik::generator::report(std::ostream & s) const
         }
     }
 }
+
+void chomik::description_of_a_cartesian_product::report(std::ostream & s) const
+{
+    s << "cartesian product\n";
+}
+
+void chomik::assignment_event::report(std::ostream & s) const
+{
+    s << "assignment_event\n";
+}
+ 

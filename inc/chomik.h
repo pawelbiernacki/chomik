@@ -1,3 +1,6 @@
+#ifndef CHOMIK_H
+#define CHOMIK_H
+
 #include <vector>
 #include <map>
 #include <memory>
@@ -319,7 +322,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual int get_value(machine & m, generator & g) const = 0;
+        virtual int get_value(machine & m) const = 0;
 
         virtual void add_placeholders_to_generator(generator & g) const {}    
         
@@ -338,7 +341,7 @@ namespace chomik
             s << b;
         }
         
-        virtual int get_value(machine & m, generator & g) const override
+        virtual int get_value(machine & m) const override
         {
             return b;
         }
@@ -364,7 +367,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;
 
-        virtual int get_value(machine & m, generator & g) const override;
+        virtual int get_value(machine & m) const override;
         
         virtual void add_placeholders_to_generator(generator & g) const override;
                 
@@ -397,13 +400,13 @@ namespace chomik
             max_boundary->report(s);
         }
         
-        int get_min_value(machine & m, generator & g) const
+        int get_min_value(machine & m) const
         {
-            return min_boundary->get_value(m, g);
+            return min_boundary->get_value(m);
         }
-        int get_max_value(machine & m, generator & g) const
+        int get_max_value(machine & m) const
         {
-            return max_boundary->get_value(m, g);
+            return max_boundary->get_value(m);
         }
         
         void add_placeholders_to_generator(generator & g) const
@@ -447,13 +450,13 @@ namespace chomik
             return true;
         }
         
-        int get_min_value(machine & m, generator & g) const
+        int get_min_value(machine & m) const
         {
-            return r->get_min_value(m, g);
+            return r->get_min_value(m);
         }
-        int get_max_value(machine & m, generator & g) const
+        int get_max_value(machine & m) const
         {
-            return r->get_max_value(m, g);
+            return r->get_max_value(m);
         }
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m) const override 
@@ -467,7 +470,7 @@ namespace chomik
         virtual std::string get_type_name(machine & m, generator & g) const override
         {
             std::stringstream s;
-            s << get_min_value(m, g) << ".." << get_max_value(m, g);
+            s << get_min_value(m) << ".." << get_max_value(m);
             return s.str();
         }
 
@@ -484,6 +487,8 @@ namespace chomik
         
     class machine;
     class replacing_policy;
+    class type_instance;
+    class type_definition;
     
     /**
      * This class is a base class for all statements in the chomik programming language.
@@ -492,6 +497,9 @@ namespace chomik
     {    
     protected:
         unsigned line_number;
+        
+        static const std::vector<std::shared_ptr<type_definition>> dummy;
+        
     public:
         enum class statement_type { NONE, TYPE_DEFINITION, VARIABLE_DEFINITION, ASSIGNMENT, EXECUTE, EXPAND };
         
@@ -513,6 +521,9 @@ namespace chomik
         virtual void make_copy_with_replacements(machine & m, generator & g, const replacing_policy & p, std::shared_ptr<statement> & s) const = 0;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const = 0;
+                
+        
+        virtual const std::vector<std::shared_ptr<type_definition>> & get_vector_of_type_definitions() const { return dummy; }
     };    
 
     /**
@@ -778,6 +789,7 @@ namespace chomik
     };
     
     class type_definition_body;
+    
     class type_definition
     {
     private:
@@ -791,9 +803,15 @@ namespace chomik
                 
         void report(std::ostream & s) const;
         
-        void expand(machine & m, int depth) const;
+        void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const;
         
         void add_placeholders_to_generator(generator & g) const;
+        
+        const std::string & get_name() const { return name; }
+        
+        bool get_is_range() const;
+        
+        type_definition_body& get_body() { return *body; }
     };
     class type_instance;
     
@@ -805,9 +823,15 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual void expand(machine & m, int depth, const std::string & n) const = 0;
+        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const = 0;
         
         virtual void add_placeholders_to_generator(generator & g) const = 0;
+        
+        virtual bool get_is_range() const = 0;
+        
+        virtual int get_min_value(machine & m) const { return 0; }
+        
+        virtual int get_max_value(machine & m) const { return 0; }
     };
 
     class type_definition_body_range: public type_definition_body
@@ -825,12 +849,20 @@ namespace chomik
             r->report(s);
         }
         
-        virtual void expand(machine & m, int depth, const std::string & n) const override;
+        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const override;
         
         virtual void add_placeholders_to_generator(generator & g) const
         {
             r->add_placeholders_to_generator(g);
         }
+        
+        virtual bool get_is_range() const 
+        {
+            return true;
+        }
+        virtual int get_min_value(machine & m) const { return r->get_min_value(m); }
+        
+        virtual int get_max_value(machine & m) const { return r->get_max_value(m); }
     };
     
     class list_of_generic_names;
@@ -878,6 +910,7 @@ namespace chomik
         generator(const generic_name & gn, const std::string & filename, unsigned new_line_number);
         generator(const generic_range & gr, const std::string & filename, unsigned new_line_number);
         generator(const generic_value & gv, const std::string & filename, unsigned new_line_number);
+        generator(const std::string & filename, unsigned new_line_number);
         
         bool get_has_placeholder(const std::string & p) const
         {
@@ -947,18 +980,26 @@ namespace chomik
         bool get_terminated() const;
     };
     
-    class type_definition_body_vector_of_names: public type_definition_body
+    class type_definition_body_enum: public type_definition_body
     {
     private:
         std::vector<std::shared_ptr<generic_name>> vector_of_names;
     public:
-        type_definition_body_vector_of_names(list_of_generic_names * const l);
+        /**
+         * This constructor does not own the first parameter, it should be destroyed by the parser!
+         */
+        type_definition_body_enum(list_of_generic_names * const l);
                 
         virtual void report(std::ostream & s) const override;
         
-        virtual void expand(machine & m, int depth, const std::string & n) const override;
+        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const override;
         
         virtual void add_placeholders_to_generator(generator & g) const override;
+        
+        virtual bool get_is_range() const 
+        {
+            return false;
+        }
     };
     
     class list_of_type_definitions
@@ -1024,7 +1065,7 @@ namespace chomik
         std::vector<std::shared_ptr<type_definition>> vector_of_type_definitions;
     public:
         /**
-         * This constructor does not own the first parameter.
+         * This constructor does not own the first parameter. It must be destroyed by the parser!
          */
         type_definition_statement(list_of_type_definitions * const l, unsigned new_line_number): statement{new_line_number}
         {
@@ -1058,6 +1099,8 @@ namespace chomik
         {
             // TODO - implement
         }
+        
+        virtual const std::vector<std::shared_ptr<type_definition>> & get_vector_of_type_definitions() const override { return vector_of_type_definitions; }
     };
     
     class variable_definition
@@ -1921,7 +1964,9 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual void add_type_instance_enum_value(const signature & n) {}
+        virtual void add_type_instance_enum_value(const signature & n, unsigned new_level=1) {}
+        
+        virtual void add_type_instance_enum_value(const std::string & n, unsigned new_level=1) {}
         
         virtual std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator get_first_iterator_for_enum() const { return dummy; }
         virtual std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator get_last_iterator_for_enum() const { return dummy; }
@@ -1939,8 +1984,9 @@ namespace chomik
     {
     private:
         const std::string name;
+        const unsigned level;
     public:
-        type_instance_enum_value(const std::string & n): name{n} {}
+        type_instance_enum_value(const std::string & n, unsigned new_level): name{n}, level{new_level} {}
         
         const std::string & get_name() const { return name; }
     };
@@ -1952,10 +1998,15 @@ namespace chomik
     public:
         type_instance_enum(const std::string & n): type_instance{n} {}
         
-        virtual void add_type_instance_enum_value(const signature & n) override
+        virtual void add_type_instance_enum_value(const signature & n, unsigned new_level) override
         {
-            vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n.get_string_representation()));
+            vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n.get_string_representation(), new_level));
         }                
+        
+        virtual void add_type_instance_enum_value(const std::string & n, unsigned int new_level) override
+        {
+            vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n, new_level));
+        }
         
         virtual void report(std::ostream & s) const override;
         
@@ -2514,3 +2565,7 @@ std::ostream & operator<<(std::ostream & s, const chomik::signature & x);
 std::ostream & operator<<(std::ostream & s, const chomik::signature_item & x);
 std::ostream & operator<<(std::ostream & s, const chomik::statement & x);
 std::ostream & operator<<(std::ostream & s, const chomik::generic_type & x);
+std::ostream & operator<<(std::ostream & s, const chomik::type_definition_body & x);
+std::ostream & operator<<(std::ostream & s, const chomik::type_definition & x);
+
+#endif

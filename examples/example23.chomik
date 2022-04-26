@@ -1,0 +1,15 @@
+
+
+#
+# here we check whether the ranges work (including those with variable boundaries)
+#
+
+variable limit:integer;
+
+let variable limit=value integer 10;
+
+
+type my_range=5..<limit>, second_range=1..20;
+expand(1);
+
+execute <print memory report>;  # this is a built-in special function printing the memory out

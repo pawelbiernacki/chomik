@@ -64,9 +64,9 @@ extern "C" void chomik_destroy_name(void * const l)
     delete static_cast<chomik::generic_name*>(l);
 }
 
-extern "C" void * chomik_create_type_definition_body_vector_of_names(void * const l)
+extern "C" void * chomik_create_type_definition_body_enum(void * const l)
 {
-    return new chomik::type_definition_body_vector_of_names(static_cast<chomik::list_of_generic_names*>(l));
+    return new chomik::type_definition_body_enum(static_cast<chomik::list_of_generic_names*>(l));
 }
 
 extern "C" void * chomik_create_list_of_type_definitions(void * const td, void * const l)

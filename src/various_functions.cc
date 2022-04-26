@@ -8,6 +8,18 @@
 #define DEBUG(X)
 #endif
 
+std::ostream & operator<<(std::ostream & s, const chomik::type_definition & x)
+{
+    x.report(s);
+    return s;
+}
+
+std::ostream & operator<<(std::ostream & s, const chomik::type_definition_body & x)
+{
+    x.report(s);
+    return s;
+}
+
 std::ostream & operator<<(std::ostream & s, const chomik::generic_type & x)
 {
     x.report(s);
@@ -81,7 +93,7 @@ const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
-
+const std::vector<std::shared_ptr<chomik::type_definition>> chomik::statement::dummy;
 
 void chomik::assignment_statement::get_copy(std::shared_ptr<statement> & target) const
 {
@@ -695,19 +707,29 @@ void chomik::signature::execute_predefined_print(machine & m) const
             
             std::string end_of_line = m.get_variable_with_value(the_print_end_of_line).get_value_string();
             
-            generic_stream& gs{m.get_stream(index)};                        
-            bool first = true;
-            for (auto & i: vector_of_items)
+            generic_stream& gs{m.get_stream(index)};
+            
+            if (vector_of_items.size() == 3 
+                && vector_of_items[1]->get_it_is_identifier("memory")
+                && vector_of_items[2]->get_it_is_identifier("report"))
             {
-                if (first)
+                m.report(gs.get_output_stream());
+            }
+            else
+            {            
+                bool first = true;
+                for (auto & i: vector_of_items)
                 {
-                    first = false;
-                    continue;
-                }
-                i->print(gs.get_output_stream());
-                gs.get_output_stream() << separator;
-            }    
-            gs.get_output_stream() << end_of_line;
+                    if (first)
+                    {
+                        first = false;
+                        continue;
+                    }
+                    i->print(gs.get_output_stream());
+                    gs.get_output_stream() << separator;
+                }    
+                gs.get_output_stream() << end_of_line;
+            }
         }    
 }
 
@@ -1181,35 +1203,63 @@ void chomik::generic_literal_placeholder::add_placeholders_to_generator(generato
 {
 }
 
-
-
 void chomik::type_definition_statement::expand(machine & m, int depth) const
 {
-    for (auto & i: vector_of_type_definitions)
-    {
-        /*
-        std::cout << "expanding type definition\n";
-        i->report(std::cout);
-        std::cout << "\n";
-        */
-        i->expand(m, depth);
-    }
-    
-    //std::cout << "done expanding\n";
-    
 }
+
+bool chomik::type_definition::get_is_range() const
+{
+    return body->get_is_range();
+}
+
 
 void chomik::machine::expand(int i)
 {
+    std::vector<std::shared_ptr<type_definition>> temporary_vector_of_type_definitions;
+    std::vector<std::shared_ptr<type_instance>> temporary_vector_of_type_instances;
+    
     for (auto & j: vector_of_type_definiton_statements)
     {
-        j->expand(*this, i);
+        for (auto & k: j->get_vector_of_type_definitions())
+        {
+            std::shared_ptr<type_definition> x{k};
+            temporary_vector_of_type_definitions.push_back(std::move(x));
+            
+            if (k->get_is_range())
+            {
+                std::shared_ptr<type_instance> y{std::make_shared<type_instance_range>(k->get_name(), k->get_body().get_min_value(*this), k->get_body().get_max_value(*this))};
+                std::shared_ptr<type_instance> y2{y};   // here we keep the second pointer to the same object, but the first one will be stored in the temporary vector only
+            
+                temporary_vector_of_type_instances.push_back(std::move(y));
+                add_type_instance(std::move(y2));
+            }
+            else
+            {            
+                std::shared_ptr<type_instance> y{std::make_shared<type_instance_enum>(k->get_name())};
+                std::shared_ptr<type_instance> y2{y};   // here we keep the second pointer to the same object, but the first one will be stored in the temporary vector only
+            
+                temporary_vector_of_type_instances.push_back(std::move(y));
+                add_type_instance(std::move(y2));
+            }
+        }
     }
     
-    for (auto & j: vector_of_variable_definition_statements)
-    {
-        j->expand(*this, i);
-    }    
+    for (int k=1; k<=i; k++)
+    {   
+        int l=0;
+        for (auto & j: temporary_vector_of_type_definitions)
+        {
+            j->expand(*this, k, temporary_vector_of_type_instances[l++]);
+        }
+    }
+
+    for (int k=1; k<=i; k++)
+    {    
+        for (auto & j: vector_of_variable_definition_statements)
+        {
+            j->expand(*this, k);
+        }    
+    }
 }
 
 
@@ -1266,13 +1316,10 @@ void chomik::variable_definition_statement::expand(machine & m, int depth) const
     }
 }
 
-void chomik::type_definition::expand(machine & m, int depth) const
+void chomik::type_definition::expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const
 {
-    //std::cout << "expanding type " << name << " for depth " << depth << "\n";      
-    //body->report(std::cout);
-    //std::cout << "\n";
-    
-    body->expand(m, depth, name);    
+    DEBUG("expanding type " << name << " for depth " << depth << " - " << *body);          
+    body->expand(m, depth, name, e);    
 }
 
 void chomik::generic_range_boundary_variable_value::add_placeholders_to_generator(generator & g) const
@@ -1284,7 +1331,7 @@ void chomik::generic_range_boundary_variable_value::add_placeholders_to_generato
 }
 
 
-void chomik::type_definition_body_range::expand(machine & m, int depth, const std::string & n) const
+void chomik::type_definition_body_range::expand(machine & m, int depth, const std::string & n, std::shared_ptr<chomik::type_instance>& e) const
 {    
     if (predefined_types::get_type_is_predefined(n))
     {
@@ -1300,8 +1347,8 @@ void chomik::type_definition_body_range::expand(machine & m, int depth, const st
     {
         if (depth == 1)
         {
-            std::shared_ptr<type_instance> e=std::make_shared<type_instance_range>(n, r->get_min_value(m, g), r->get_max_value(m, g));
-            m.add_type_instance(std::move(e));
+            //std::shared_ptr<type_instance> e=std::make_shared<type_instance_range>(n, r->get_min_value(m, g), r->get_max_value(m, g));
+            //m.add_type_instance(std::move(e));
         }
     }
 }
@@ -1403,7 +1450,7 @@ void chomik::variable_definition_statement::add_placeholders_to_generator(genera
     }
 }
 
-void chomik::type_definition_body_vector_of_names::add_placeholders_to_generator(generator & g) const
+void chomik::type_definition_body_enum::add_placeholders_to_generator(generator & g) const
 {
     for (auto & i: vector_of_names)
     {
@@ -1424,6 +1471,10 @@ chomik::generator::generator(const generic_range & gr, const std::string & filen
 chomik::generator::generator(const generic_value & gv, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
 {
     gv.add_placeholders_to_generator(*this);
+}
+
+chomik::generator::generator(const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
+{
 }
 
 chomik::generator::generator(const generic_name & gn, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
@@ -1464,26 +1515,19 @@ void chomik::generator::add_placeholder(const std::string & p, std::shared_ptr<g
 }
 
 
-void chomik::type_definition_body_vector_of_names::expand(machine & m, int depth, const std::string & n) const
-{    
+void chomik::type_definition_body_enum::expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const
+{   
+    std::vector<std::string> temporary_vector_of_type_instance_enums;
+    
     if (predefined_types::get_type_is_predefined(n))
     {
         throw std::runtime_error("this type is predefinied");
     }        
     
-    std::shared_ptr<type_instance> e=std::make_shared<type_instance_enum>(n);
-    
     for (auto & i: vector_of_names)
     {    
         generator g{*i, __FILE__, __LINE__};
     
-        /*
-        std::cout << "for name ";
-        i->report(std::cout);
-        std::cout << " got a generator ";
-        g.report(std::cout);
-        std::cout << "\n";
-        */
         if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
         {
         }
@@ -1491,9 +1535,9 @@ void chomik::type_definition_body_vector_of_names::expand(machine & m, int depth
         if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
         {
             if (depth == 1)
-            {                                
-                signature x(*i, m, g);
-                e->add_type_instance_enum_value(x);
+            {
+                signature x{*i, m, g};
+                e->add_type_instance_enum_value(x, depth);
             }
         }        
         else
@@ -1503,17 +1547,21 @@ void chomik::type_definition_body_vector_of_names::expand(machine & m, int depth
             {
                 if (g.get_is_valid())
                 {
-                    /*
-                    std::cout << "got a generator ";
-                    g.report(std::cout);
-                    std::cout << "\n";
-                    */
+                    DEBUG("for " << *this << " got a generator " << g);
+                    
+                    signature x{*i, m, g};
+                    temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
                 }
-            }            
+            }
         }        
     }
     
-    m.add_type_instance(std::move(e));
+    
+    for (auto & i: temporary_vector_of_type_instance_enums)
+    {
+        e->add_type_instance_enum_value(i, depth);
+    }
+    
 }
 
 
@@ -1711,8 +1759,8 @@ chomik::variable_value_name_item::variable_value_name_item(list_of_generic_name_
     // does not own the first parameter!
 }
 
-chomik::type_definition_body_vector_of_names::type_definition_body_vector_of_names(list_of_generic_names * const l)
-{
+chomik::type_definition_body_enum::type_definition_body_enum(list_of_generic_names * const l)
+{            
     if (l)
     {
         for (auto & i: l->get_vector_of_names())
@@ -1752,8 +1800,9 @@ chomik::generic_name::generic_name(list_of_generic_name_items * const l)
 }
 
 
-int chomik::generic_range_boundary_variable_value::get_value(machine & m, generator & g) const
+int chomik::generic_range_boundary_variable_value::get_value(machine & m) const
 {        
+    generator g(__FILE__, __LINE__);
     signature x = signature(*name, m, g);
     return m.get_variable_value_integer(x);
 }
@@ -1796,13 +1845,3 @@ std::string chomik::generic_value_variable_value::get_actual_text_representation
     return "unknown";
 }
 
-void chomik::description_of_a_cartesian_product::report(std::ostream & s) const
-{
-    s << "cartesian product\n";
-}
-
-void chomik::assignment_event::report(std::ostream & s) const
-{
-    s << "assignment_event\n";
-}
- 
