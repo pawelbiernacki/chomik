@@ -264,7 +264,44 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
     // TODO - make the family of variables
     
     DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << g);
+
+    auto d{std::make_unique<description_of_a_cartesian_product>(g)};
+    auto t{std::make_unique<generic_name>(*name)};
     
+    
+    if (value->get_is_literal())
+    {    
+        // we distinguish two cases - either a code with placeholders or (the second case) - any literal (float, integer, enum) or a code without placeholders
+        if (value->get_is_code_with_placeholders(m, g))
+        {        
+            std::unique_ptr<generic_literal> v;
+            value->get_literal_copy(v);
+            auto s{std::make_unique<assignment_source_code_pattern>(std::move(v))};
+            auto a{std::make_unique<assignment_event>(std::move(t), std::move(d), std::move(s))};
+            DEBUG("code line number " << line_number << ": an assignment " << *a);        
+            
+            m.add_assignment_event(std::move(a));
+        }   
+        else
+        {
+            std::unique_ptr<generic_literal> v;
+            value->get_literal_copy(v);
+            auto s{std::make_unique<assignment_source_literal_value>(std::move(v), v->get_actual_memory_representation_type(m, g))};
+            auto a{std::make_unique<assignment_event>(std::move(t), std::move(d), std::move(s))};
+            DEBUG("code line number " << line_number << ": an assignment " << *a);        
+            
+            m.add_assignment_event(std::move(a));
+        }    
+    }
+    else
+    {
+        // it must be therefore a variable value
+        auto s{std::make_unique<assignment_source_variable_value>()};
+        auto a{std::make_unique<assignment_event>(std::move(t), std::move(d), std::move(s))};
+        DEBUG("code line number " << line_number << ": an assignment " << *a);        
+        
+        m.add_assignment_event(std::move(a));
+    }
 }
 
 void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const statement> && i) const

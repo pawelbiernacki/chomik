@@ -264,6 +264,8 @@ namespace chomik
         
         virtual std::string get_type_name(machine & m, generator & g) const = 0;
         
+        virtual std::string get_low_level_type_name() const = 0;
+        
         virtual void get_copy(std::shared_ptr<generic_type> & target) const = 0;
         
         virtual void get_copy(std::unique_ptr<generic_type> & target) const = 0;
@@ -281,6 +283,11 @@ namespace chomik
         generic_type_named(const std::string & n): name{n} {}
         
         virtual std::string get_type_name(machine & m, generator & g) const override
+        {
+            return name;
+        }
+        
+        virtual std::string get_low_level_type_name() const override 
         {
             return name;
         }
@@ -310,9 +317,7 @@ namespace chomik
         {
             target = std::make_unique<generic_type_named>(name);
         }
-    };
-    
-    class machine;
+    };        
 
     
     class generic_range_boundary
@@ -473,6 +478,10 @@ namespace chomik
             s << get_min_value(m) << ".." << get_max_value(m);
             return s.str();
         }
+        virtual std::string get_low_level_type_name() const override 
+        {
+            return "integer";
+        }
 
         virtual void get_copy(std::shared_ptr<generic_type> & target) const override
         {
@@ -484,8 +493,7 @@ namespace chomik
             target = std::make_unique<generic_type_range>(*r);
         }        
     };
-        
-    class machine;
+            
     class replacing_policy;
     class type_instance;
     class type_definition;
@@ -884,6 +892,8 @@ namespace chomik
         }
         
         generic_type& get_placeholder_type() { return *placeholder_type; }
+        
+        const generic_type& get_placeholder_type() const { return *placeholder_type; }
     };    
     
     class generic_value;
@@ -911,6 +921,9 @@ namespace chomik
         generator(const generic_range & gr, const std::string & filename, unsigned new_line_number);
         generator(const generic_value & gv, const std::string & filename, unsigned new_line_number);
         generator(const std::string & filename, unsigned new_line_number);
+        
+        
+        const std::vector<std::shared_ptr<generator_placeholder>> & get_vector_of_placeholders() const { return vector_of_placeholders; }
         
         bool get_has_placeholder(const std::string & p) const
         {
@@ -1235,6 +1248,8 @@ namespace chomik
         
         virtual bool replace_known_placeholders_with_their_values() const override { return true; }
     };
+
+    class generic_literal;
     
     /**
      * This is a base class for various values (integers, floats, strings, enums, code).
@@ -1267,9 +1282,19 @@ namespace chomik
         virtual void make_copy_with_replacements(machine & m, generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const = 0;
         
         virtual void get_copy(std::unique_ptr<generic_value> & target) const = 0;
+        
+        virtual void get_literal_copy(std::unique_ptr<generic_literal> & target) const {}
+        
+        virtual bool get_is_code_with_placeholders(machine & m, generator & g) const { return false; }
+        
+        virtual bool get_is_literal() const { return false; }
                 
     };
     
+    
+    /**
+     * This class is used when we want to represent a value of a variable (in chomik the <> construct).
+     */
     class generic_value_variable_value: public generic_value
     {
     private:
@@ -1324,8 +1349,13 @@ namespace chomik
         }
         
         virtual void make_copy_with_replacements(machine & m, generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
+                
     };
     
+    
+    /**
+     * This class represents the literals of all built-in types and user defined enums.
+     */
     class generic_literal
     {
     public:
@@ -1455,6 +1485,13 @@ namespace chomik
             target = std::make_unique<generic_value_literal>(std::move(i));
         }
         virtual void make_copy_with_replacements(machine & m, generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
+        
+        virtual bool get_is_literal() const override { return true; }
+        
+        virtual void get_literal_copy(std::unique_ptr<generic_literal> & target) const 
+        {
+            literal->get_copy(target);
+        }
     };    
     
     template <typename TYPE, int REPRESENTATION_TYPE>
@@ -2038,10 +2075,35 @@ namespace chomik
         virtual type_instance_mode get_mode() const { return type_instance_mode::INTEGER; }
     };
     
+    /**
+     * This class is used in the description_of_a_cartesian_product.
+     */
+    class cartesian_product_dimension
+    {
+    private:
+        const std::string placeholder;
+        const std::string type_name;
+        const bool is_finite;           // some of the dimensions can be finite
+    public:
+        cartesian_product_dimension(const std::string & p, const std::string & t, bool f): placeholder{p}, type_name{t}, is_finite{f} {}
+        virtual ~cartesian_product_dimension() {}
+        
+        void report(std::ostream & s) const;
+    };
+    
+    /**
+     * This class is used for infinite or very large cartesian products.
+     */
     class description_of_a_cartesian_product
     {
     private:
-    public:        
+        std::vector<std::unique_ptr<cartesian_product_dimension>> vector_of_dimensions;
+    public:
+        description_of_a_cartesian_product(const generator & g);
+        void add_dimension(std::unique_ptr<cartesian_product_dimension> && d)
+        {
+            vector_of_dimensions.push_back(std::move(d));
+        }
         void report(std::ostream & s) const;
     };    
     
@@ -2049,8 +2111,64 @@ namespace chomik
     class family_of_variables
     {
     private:        
-        
+        std::unique_ptr<description_of_a_cartesian_product> my_cartesian_product;
     public:
+        family_of_variables(std::unique_ptr<description_of_a_cartesian_product> && d): my_cartesian_product{std::move(d)} {}
+        virtual ~family_of_variables() {}
+    };
+    
+    
+    class assignment_source
+    {
+    private:
+    public:
+        virtual ~assignment_source() {}
+        virtual void report(std::ostream & s) const = 0;
+        
+        virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const 
+        { return variable_with_value::actual_memory_representation_type::NONE; }
+    };
+    
+    /**
+     * This class is used as an assignment source when a literal of type integer, float or any enum is used.
+     * It might also be used for code without placeholders.
+     */
+    class assignment_source_literal_value: public assignment_source
+    {
+    private:
+        std::unique_ptr<generic_literal> my_value;
+        const variable_with_value::actual_memory_representation_type actual_type;
+    public:
+        assignment_source_literal_value(std::unique_ptr<generic_literal> && v, variable_with_value::actual_memory_representation_type t): 
+            my_value{std::move(v)}, actual_type{t} {}
+        virtual void report(std::ostream & s) const override;
+        
+        virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override { return actual_type; }
+    };
+    
+    /**
+     * This class is used as an assignment source when a code is assigned.
+     */
+    class assignment_source_code_pattern: public assignment_source
+    {
+    private:
+        std::unique_ptr<generic_literal> my_value;
+    public:
+        assignment_source_code_pattern(std::unique_ptr<generic_literal> && v): my_value{std::move(v)} {}
+        virtual void report(std::ostream & s) const override;
+        
+        virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override 
+        { return variable_with_value::actual_memory_representation_type::CODE; }
+    };
+    
+    class assignment_source_variable_value: public assignment_source
+    {
+    private:
+    public:
+        assignment_source_variable_value() {}
+        virtual void report(std::ostream & s) const override;
+        
+        // TODO - identify the variable family and implement variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override;
     };
     
     
@@ -2060,10 +2178,21 @@ namespace chomik
     class assignment_event
     {
     private:
+        std::unique_ptr<generic_name> my_assignment_target;
         std::unique_ptr<description_of_a_cartesian_product> my_cartesian_product;
+        std::unique_ptr<assignment_source> my_assignment_source;
+        
     public:
-        assignment_event(std::unique_ptr<description_of_a_cartesian_product> && p): my_cartesian_product{std::move(p)} {}
-        void report(std::ostream & s) const;
+        assignment_event(std::unique_ptr<generic_name> && t, 
+                         std::unique_ptr<description_of_a_cartesian_product> && p,
+                         std::unique_ptr<assignment_source> && s): 
+            my_assignment_target{std::move(t)},
+            my_cartesian_product{std::move(p)},
+            my_assignment_source{std::move(s)} {}
+        virtual ~assignment_event() {}  // this may be not necessary
+        void report(std::ostream & s) const;        
+        bool get_match(const signature & s, const machine & m, const generator & g) const;
+        const assignment_source& get_source() const { return *my_assignment_source; }
     };
     
     
@@ -2354,6 +2483,9 @@ namespace chomik
         
     public:
         
+        const std::vector<std::unique_ptr<assignment_event>> & get_vector_of_assignment_events() const { return vector_of_assignment_events; }
+        
+        
         void add_stream(std::unique_ptr<generic_stream> && s)
         {
             vector_of_streams.push_back(std::move(s));
@@ -2567,5 +2699,7 @@ std::ostream & operator<<(std::ostream & s, const chomik::statement & x);
 std::ostream & operator<<(std::ostream & s, const chomik::generic_type & x);
 std::ostream & operator<<(std::ostream & s, const chomik::type_definition_body & x);
 std::ostream & operator<<(std::ostream & s, const chomik::type_definition & x);
+std::ostream & operator<<(std::ostream & s, const chomik::assignment_event & x);
+std::ostream & operator<<(std::ostream & s, const chomik::assignment_source & x);
 
 #endif

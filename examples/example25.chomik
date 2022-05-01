@@ -1,0 +1,14 @@
+
+
+# here we create an infinite family of variables and we make an assignment
+# this assignment is stored in the memory on a list of assignment events
+ 
+variable some_variable_of_mine (X:integer) with (Y:float):integer;
+
+let variable some_variable_of_mine (X:integer) with (Y:float)=value integer 100;
+
+let variable some_variable_of_mine (X:integer) with 2.5=value integer 253;
+
+execute <print <some_variable_of_mine 10 with 2.5>>;    # this should print 253
+execute <print <some_variable_of_mine 20 with 3.0>>;    # this should print 100
+

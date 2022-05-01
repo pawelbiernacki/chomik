@@ -8,6 +8,18 @@
 #define DEBUG(X)
 #endif
 
+std::ostream & operator<<(std::ostream & s, const chomik::assignment_source & x)
+{
+    x.report(s);
+    return s;
+}
+
+std::ostream & operator<<(std::ostream & s, const chomik::assignment_event & x)
+{
+    x.report(s);
+    return s;
+}
+
 std::ostream & operator<<(std::ostream & s, const chomik::type_definition & x)
 {
     x.report(s);
@@ -387,6 +399,17 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
     
 }
 
+
+bool chomik::assignment_event::get_match(const signature & s, const machine & m, const generator & g) const
+{
+    DEBUG("checking whether it is matching the signature " << s);
+    
+    // TODO: actually check whether the signature is matching
+    
+    return true;
+}
+
+
 void chomik::variable_value_name_item::add_content_to_signature(signature & target, machine & m, generator & g) const
 {
     signature x{*name, m, g};
@@ -415,6 +438,45 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                 // TODO - implement it
                 break;
         }
+    }
+    else
+    {
+        // iterate backwards through the assignment events - try to identify the first assignment for this variable
+        DEBUG("iterate backwards through the assignment events (there are " << m.get_vector_of_assignment_events().size() << " of them)");
+        
+        for (int i=m.get_vector_of_assignment_events().size()-1; i>=0; i--)
+        {
+            const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
+            DEBUG("found " << *a);
+            
+            if (a->get_match(x, m, g))
+            {
+                DEBUG("it is matching our signature !!!");
+                                
+                switch (a->get_source().get_actual_memory_representation_type())
+                {
+                    case variable_with_value::actual_memory_representation_type::INTEGER:
+                        target.add_content(std::make_shared<simple_value_integer_signature_item>(123)); // TODO - replace constants with the literal value
+                        break;
+                        
+                    case variable_with_value::actual_memory_representation_type::FLOAT:
+                        target.add_content(std::make_shared<simple_value_float_signature_item>(123.456));
+                        break;
+                        
+                    case variable_with_value::actual_memory_representation_type::STRING:
+                        target.add_content(std::make_shared<simple_value_string_signature_item>("hallo"));
+                        break;
+                        
+                    case variable_with_value::actual_memory_representation_type::ENUM:
+                        break;
+                                            
+                    case variable_with_value::actual_memory_representation_type::CODE:
+                        break;
+                }
+                
+                break;
+            }            
+        }                
     }
     
 }
@@ -1826,6 +1888,14 @@ void chomik::program::add_statement(std::shared_ptr<statement> && s)
     my_code.add_statement(std::move(s));
 }
 
+chomik::description_of_a_cartesian_product::description_of_a_cartesian_product(const generator & g)
+{
+    for (auto & a: g.get_vector_of_placeholders())
+    {
+        vector_of_dimensions.push_back(std::make_unique<cartesian_product_dimension>(a->get_name(), a->get_placeholder_type().get_low_level_type_name(), 
+                                                                                     a->get_placeholder_type().get_is_finite()));        
+    }
+}
 
 std::string chomik::generic_value_variable_value::get_actual_text_representation(machine & m, generator & g) const
 {

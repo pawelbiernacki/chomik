@@ -184,11 +184,38 @@ void chomik::generator::report(std::ostream & s) const
 
 void chomik::description_of_a_cartesian_product::report(std::ostream & s) const
 {
-    s << "cartesian product\n";
+    s << "cartesian product ";    
+    for (auto & a: vector_of_dimensions)
+    {
+        a->report(s);
+        s << " ";
+    }
+    s << " ";
 }
 
 void chomik::assignment_event::report(std::ostream & s) const
 {
-    s << "assignment_event\n";
+    s << "assignment_event " << *my_assignment_target << " for ";
+    my_cartesian_product->report(s);    
+    s << " with " << *my_assignment_source;
+}
+
+void chomik::cartesian_product_dimension::report(std::ostream & s) const
+{
+    s << placeholder << ":" << type_name;
 }
  
+void chomik::assignment_source_literal_value::report(std::ostream & s) const
+{
+    s << "literal";
+}
+
+void chomik::assignment_source_code_pattern::report(std::ostream & s) const
+{
+    s << "code pattern";
+}
+
+void chomik::assignment_source_variable_value::report(std::ostream & s) const
+{
+    s << "variable value";
+}
