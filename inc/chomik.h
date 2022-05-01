@@ -112,6 +112,57 @@ namespace chomik
     };
     
     /**
+     * This is a small helper class used for matching signatures.
+     */
+    class matching_protocol
+    {
+    private:
+        bool successful;
+        std::map<std::string, int> map_placeholder_names_to_integer;
+        std::map<std::string, double> map_placeholder_names_to_float;
+        std::map<std::string, std::string> map_placeholder_names_to_string;
+        std::map<std::string, std::string> map_placeholder_names_to_identifier;
+        std::map<std::string, bool> map_placeholder_names_to_flag_has_been_bound;
+    public:
+        matching_protocol(): successful{true} {}
+        bool get_is_placeholder_bound_as_integer(const std::string & p) const { return map_placeholder_names_to_integer.find(p)!=map_placeholder_names_to_integer.end(); }
+        bool get_is_placeholder_bound_as_float(const std::string & p) const { return map_placeholder_names_to_float.find(p)!=map_placeholder_names_to_float.end(); }
+        bool get_is_placeholder_bound_as_string(const std::string & p) const { return map_placeholder_names_to_string.find(p)!=map_placeholder_names_to_string.end(); }
+        bool get_is_placeholder_bound_as_identifier(const std::string & p) const { return map_placeholder_names_to_identifier.find(p)!=map_placeholder_names_to_identifier.end(); }
+        int get_placeholder_value_integer(const std::string & p) const { return map_placeholder_names_to_integer.at(p); }
+        double get_placeholder_value_float(const std::string & p) const { return map_placeholder_names_to_float.at(p); }
+        std::string get_placeholder_value_string(const std::string & p) const { return map_placeholder_names_to_string.at(p); }
+        std::string get_placeholder_value_identifier(const std::string & p) const { return map_placeholder_names_to_identifier.at(p); }
+        
+        void bind_placeholder_as_integer(const std::string & p, int v) 
+        { 
+            auto [it, s] = map_placeholder_names_to_integer.insert(std::pair(p,v));
+            if (!s) throw std::runtime_error("failed to bind a placeholder");
+        }
+        void bind_placeholder_as_float(const std::string & p, double v) 
+        { 
+            auto [it, s] = map_placeholder_names_to_float.insert(std::pair(p,v));
+            if (!s) throw std::runtime_error("failed to bind a placeholder");
+        }
+        void bind_placeholder_as_string(const std::string & p, std::string v) 
+        { 
+            auto [it, s] = map_placeholder_names_to_string.insert(std::pair(p,v));
+            if (!s) throw std::runtime_error("failed to bind a placeholder");
+        }
+        void bind_placeholder_as_identifier(const std::string & p, std::string v) 
+        { 
+            auto [it, s] = map_placeholder_names_to_identifier.insert(std::pair(p,v));
+            if (!s) throw std::runtime_error("failed to bind a placeholder");
+        }        
+        bool get_is_successful() const { return successful; }
+        
+    };
+    
+    class generic_name_item;
+    class machine;
+    class generator;
+    
+    /**
      * This is a base class for all items of a signature class.
      */
     class signature_item
@@ -138,6 +189,7 @@ namespace chomik
         
         virtual std::string get_value_string() const { return ""; }
 
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const = 0;
     };
     
     /**
@@ -163,6 +215,8 @@ namespace chomik
         simple_value_integer_signature_item(const int v): simple_value_signature_item<int>(v) {}
         virtual bool get_it_is_integer() const override { return true; }
         virtual int get_value_integer() const override { return value; }
+        
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const override;
     };
 
     class simple_value_float_signature_item: public simple_value_signature_item<double>
@@ -171,6 +225,8 @@ namespace chomik
         simple_value_float_signature_item(const double v): simple_value_signature_item<double>(v) {}
         virtual bool get_it_is_float() const override { return true; }
         virtual double get_value_float() const override { return value; }
+        
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const override;        
     };
     
     /**
@@ -193,6 +249,8 @@ namespace chomik
         virtual bool get_it_is_string() const override { return true; }
         
         virtual std::string get_value_string() const override { return value; }
+        
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const override;        
     };
     
     
@@ -207,6 +265,8 @@ namespace chomik
         virtual bool get_is_predefined() const override { return predefined_variables::get_variable_is_predefined(value); }
         
         virtual bool get_it_is_identifier(const std::string & pattern) const { return value == pattern; }
+        
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const override;        
     };
     
     class generic_name;
@@ -555,6 +615,23 @@ namespace chomik
         virtual void get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const = 0;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const = 0;
+        
+        virtual bool get_is_identifier() const { return false; }
+        
+        virtual bool get_is_integer() const { return false; }
+        
+        virtual bool get_is_float() const { return false; }
+        
+        virtual bool get_is_string() const { return false; }
+        
+        virtual bool get_is_placeholder() const { return false; }
+        
+        virtual std::string get_placeholder_name() const { return ""; }
+        
+        virtual bool get_match_integer(int v) const { return false; }
+        virtual bool get_match_float(double v) const { return false; }
+        virtual bool get_match_string(const std::string & v) const { return false; }
+        virtual bool get_match_identifier(const std::string & v) const { return false; }
     };
     
     class identifier_name_item: public generic_name_item
@@ -588,6 +665,10 @@ namespace chomik
         {
             gni = std::make_shared<identifier_name_item>(identifier);
         }
+        
+        virtual bool get_is_identifier() const override { return true; }
+        
+        virtual bool get_match_identifier(const std::string & v) const { return identifier==v; }
     };
     
     class placeholder_name_item: public generic_name_item
@@ -628,6 +709,9 @@ namespace chomik
             gni = std::make_shared<placeholder_name_item>(placeholder, *type_name);
         }
         
+        virtual bool get_is_placeholder() const override { return true; }
+        
+        virtual std::string get_placeholder_name() const { return placeholder; }
     };
     
     class list_of_generic_name_items;
@@ -743,6 +827,9 @@ namespace chomik
             gni = std::make_shared<name_item_integer>(my_value);
         }                
         
+        virtual bool get_is_integer() const override { return true; }
+        
+        virtual bool get_match_integer(int v) const override { return my_value == v; }
     };
 
 
@@ -768,6 +855,10 @@ namespace chomik
         {
             gni = std::make_shared<name_item_float>(my_value);
         }                
+        
+        virtual bool get_is_float() const override { return true; }
+        
+        virtual bool get_match_float(double v) const override { return my_value == v; }  // comparing doubles for equality is questionable
     };
     
     class name_item_string: public simple_name_item<std::string>
@@ -794,6 +885,10 @@ namespace chomik
         {
             gni = std::make_shared<name_item_string>(my_value);
         }        
+        
+        virtual bool get_is_string() const override { return true; }
+        
+        virtual bool get_match_string(const std::string & v) const override { return my_value == v; }
     };
     
     class type_definition_body;
@@ -2127,11 +2222,17 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const 
         { return variable_with_value::actual_memory_representation_type::NONE; }
+        
+        virtual int get_actual_integer_value(machine & m, generator & g) const { return 0; }
+        virtual double get_actual_float_value(machine & m, generator & g) const { return 0.0; }
+        virtual std::string get_actual_string_value(machine & m, generator & g) const { return ""; }
+        virtual std::string get_actual_identifier_value(machine & m, generator & g) const { return ""; }
     };
     
     /**
      * This class is used as an assignment source when a literal of type integer, float or any enum is used.
      * It might also be used for code without placeholders.
+     * Maybe it's cleaner not to use it for code at all.
      */
     class assignment_source_literal_value: public assignment_source
     {
@@ -2144,6 +2245,11 @@ namespace chomik
         virtual void report(std::ostream & s) const override;
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override { return actual_type; }
+        
+        virtual int get_actual_integer_value(machine & m, generator & g) const override { return my_value->get_actual_integer_value(m, g); }
+        virtual double get_actual_float_value(machine & m, generator & g) const override { return my_value->get_actual_float_value(m, g); }
+        virtual std::string get_actual_string_value(machine & m, generator & g) const override { return my_value->get_actual_string_value(m, g); }
+        virtual std::string get_actual_identifier_value(machine & m, generator & g) const override { return my_value->get_actual_enum_value(m, g); }        
     };
     
     /**

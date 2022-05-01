@@ -380,7 +380,7 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
                 break;
                 
             case variable_with_value::actual_memory_representation_type::FLOAT:
-                target.add_content(std::make_shared<simple_value_signature_item<double>>(g.get_placeholder_value_float(placeholder)));
+                target.add_content(std::make_shared<simple_value_float_signature_item>(g.get_placeholder_value_float(placeholder)));
                 break;
 
             case variable_with_value::actual_memory_representation_type::STRING:
@@ -400,13 +400,125 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
 }
 
 
+bool chomik::simple_value_integer_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+{
+    if (gni.get_is_integer())
+    {
+        return gni.get_match_integer(value);
+    }
+    else
+    if (gni.get_is_placeholder())
+    {
+        if (target.get_is_placeholder_bound_as_integer(gni.get_placeholder_name()))             // this is necessary since we might use the same placeholder twice
+        {
+            return value == target.get_placeholder_value_integer(gni.get_placeholder_name());
+        }
+        else
+        {
+            target.bind_placeholder_as_integer(gni.get_placeholder_name(), value);
+            return target.get_is_successful();
+        }
+    }    
+    return false;
+}
+
+
+bool chomik::simple_value_float_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+{
+    if (gni.get_is_float())
+    {
+        return gni.get_match_float(value);
+    }
+    else
+    if (gni.get_is_placeholder())
+    {
+        if (target.get_is_placeholder_bound_as_float(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
+        {
+            return value == target.get_placeholder_value_float(gni.get_placeholder_name());   
+        }
+        else
+        {
+            target.bind_placeholder_as_float(gni.get_placeholder_name(), value);
+            return target.get_is_successful();
+        }
+    }    
+    return false;
+}
+
+
+bool chomik::simple_value_string_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+{
+    if (gni.get_is_string())
+    {
+        return gni.get_match_string(value);
+    }
+    else
+    if (gni.get_is_placeholder())
+    {
+        if (target.get_is_placeholder_bound_as_string(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
+        {
+            return value == target.get_placeholder_value_string(gni.get_placeholder_name());   
+        }
+        else
+        {
+            target.bind_placeholder_as_string(gni.get_placeholder_name(), value);
+            return target.get_is_successful();
+        }
+    }    
+    return false;
+}
+
+
+bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+{
+    if (gni.get_is_identifier())
+    {
+        return gni.get_match_identifier(value);
+    }
+    else
+    if (gni.get_is_placeholder())
+    {
+        if (target.get_is_placeholder_bound_as_identifier(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
+        {
+            return value == target.get_placeholder_value_identifier(gni.get_placeholder_name());   
+        }
+        else
+        {
+            target.bind_placeholder_as_identifier(gni.get_placeholder_name(), value);
+            return target.get_is_successful();
+        }
+    }    
+    return false;
+}
+
 bool chomik::assignment_event::get_match(const signature & s, const machine & m, const generator & g) const
 {
     DEBUG("checking whether it is matching the signature " << s);
+    DEBUG("my event - " << *this);
     
-    // TODO: actually check whether the signature is matching
+    auto sv{s.get_vector_of_items()};   // this signature must contain actual values
+    auto sq{my_assignment_target->get_vector_of_name_items()};  // this signature may contain placeholders
+    matching_protocol mp;
     
-    return true;
+    if (sv.size() != sq.size())
+    {
+        return false;
+    }
+    
+    auto sv_iterator = sv.begin();
+    auto sq_iterator = sq.begin();
+    bool result=true;
+    for (;(sv_iterator!=sv.end()) && (sq_iterator!=sq.end()); sv_iterator++, sq_iterator++)     // only one of the conditions must be there, but it does no harm to have both
+    {
+        DEBUG("check whether " << **sv_iterator << " matches " << **sq_iterator);        
+        
+        if (!(*sv_iterator)->get_match(**sq_iterator, m, g, mp))
+        {
+            result = false;
+            break;
+        }        
+    }        
+    return result;
 }
 
 
@@ -423,7 +535,7 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                 break;
                 
             case variable_with_value::actual_memory_representation_type::FLOAT:
-                target.add_content(std::make_shared<simple_value_signature_item<double>>(m.get_variable_value_float(x)));
+                target.add_content(std::make_shared<simple_value_float_signature_item>(m.get_variable_value_float(x)));
                 break;
                 
             case variable_with_value::actual_memory_representation_type::STRING:
@@ -456,18 +568,19 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                 switch (a->get_source().get_actual_memory_representation_type())
                 {
                     case variable_with_value::actual_memory_representation_type::INTEGER:
-                        target.add_content(std::make_shared<simple_value_integer_signature_item>(123)); // TODO - replace constants with the literal value
+                        target.add_content(std::make_shared<simple_value_integer_signature_item>(a->get_source().get_actual_integer_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::FLOAT:
-                        target.add_content(std::make_shared<simple_value_float_signature_item>(123.456));
+                        target.add_content(std::make_shared<simple_value_float_signature_item>(a->get_source().get_actual_float_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::STRING:
-                        target.add_content(std::make_shared<simple_value_string_signature_item>("hallo"));
+                        target.add_content(std::make_shared<simple_value_string_signature_item>(a->get_source().get_actual_string_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::ENUM:
+                        target.add_content(std::make_shared<simple_value_enum_signature_item>(a->get_source().get_actual_identifier_value(m, g)));
                         break;
                                             
                     case variable_with_value::actual_memory_representation_type::CODE:
