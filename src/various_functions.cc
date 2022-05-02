@@ -8,6 +8,12 @@
 #define DEBUG(X)
 #endif
 
+std::ostream & operator<<(std::ostream & s, const chomik::placeholder_with_value & x)
+{
+    x.report(s);
+    return s;
+}
+
 std::ostream & operator<<(std::ostream & s, const chomik::assignment_source & x)
 {
     x.report(s);
@@ -1432,7 +1438,10 @@ void chomik::machine::expand(int i)
         for (auto & j: temporary_vector_of_type_definitions)
         {
             if (temporary_vector_of_flags_type_is_new[l])   // skip the types that are already known
+            {
+                DEBUG("expanding type definition for level " << k);
                 j->expand(*this, k, temporary_vector_of_type_instances[l]);
+            }
             l++;
         }
     }
@@ -1699,6 +1708,19 @@ void chomik::generator::add_placeholder(const std::string & p, std::shared_ptr<g
 }
 
 
+bool chomik::generator::get_does_not_exceed_level(int max_level) const
+{
+    for (auto & i: memory)
+    {
+        if (i->get_exceeds_level(max_level))
+        {
+            DEBUG(*i << " exceeds level " << max_level << ", it has level " << i->get_level());
+            return false;
+        }
+    }
+    return true;
+}
+
 void chomik::type_definition_body_enum::expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const
 {   
     std::vector<std::string> temporary_vector_of_type_instance_enums;
@@ -1722,6 +1744,7 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
             {
                 signature x{*i, m, g};
                 e->add_type_instance_enum_value(x, depth);
+                DEBUG("add type instance enum " << x << " for level 1");
             }
         }        
         else
@@ -1733,8 +1756,17 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
                 {
                     DEBUG("for " << *this << " got a generator " << g);
                     
-                    signature x{*i, m, g};
-                    temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
+                    if (g.get_does_not_exceed_level(depth-1))
+                    {                                        
+                        signature x{*i, m, g};
+                        temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
+                        
+                        DEBUG("add type instance enum " << x << " for level " << depth);
+                    }
+                    else
+                    {
+                        DEBUG("the generator " << g << " exceeds level " << (depth-1));
+                    }
                 }
             }
         }        

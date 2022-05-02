@@ -20,6 +20,8 @@ type place={Krakow,Warszawa,Wroclaw,Poznan,Gdansk},
                 (X:person)_has_told_(Y:person)_(Z:information),
                 (X:person)_has_attacked_(Y:person)};
 
-expand(2);
+expand(4);
 
 execute <print (X:information)>;
+
+#execute <print memory report>;

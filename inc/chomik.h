@@ -109,6 +109,10 @@ namespace chomik
         virtual std::string get_value_string() const { return ""; }
         
         virtual std::string get_value_enum() const { return ""; }
+        
+        virtual bool get_exceeds_level(int max_level) const { return false; }
+        
+        virtual int get_level() const { return 0; }
     };
     
     /**
@@ -1086,6 +1090,8 @@ namespace chomik
         void increment();
         
         bool get_terminated() const;
+        
+        bool get_does_not_exceed_level(int max_level) const;
     };
     
     class type_definition_body_enum: public type_definition_body
@@ -2121,6 +2127,8 @@ namespace chomik
         type_instance_enum_value(const std::string & n, unsigned new_level): name{n}, level{new_level} {}
         
         const std::string & get_name() const { return name; }
+        
+        unsigned get_level() const { return level; }
     };
     
     class type_instance_enum: public type_instance
@@ -2436,6 +2444,13 @@ namespace chomik
         virtual void increment() override { if (value == last) value = first; else value++; }
         
         virtual std::string get_value_enum() const override { return (*value)->get_name(); }
+        
+        virtual bool get_exceeds_level(int max_level) const
+        {
+            return (*value)->get_level() > max_level;
+        }
+        
+        virtual int get_level() const { return (*value)->get_level(); }
     };
     
     class simple_placeholder_for_range: public simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
@@ -2807,5 +2822,6 @@ std::ostream & operator<<(std::ostream & s, const chomik::type_definition_body &
 std::ostream & operator<<(std::ostream & s, const chomik::type_definition & x);
 std::ostream & operator<<(std::ostream & s, const chomik::assignment_event & x);
 std::ostream & operator<<(std::ostream & s, const chomik::assignment_source & x);
+std::ostream & operator<<(std::ostream & s, const chomik::placeholder_with_value & x);
 
 #endif
