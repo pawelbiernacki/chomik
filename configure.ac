@@ -54,7 +54,7 @@ dnl #
 
 dnl #################################################################################
 dnl #
-dnl # SDL_image - check the library and header file.
+dnl # SDL2_image - check the library and header file.
 dnl #
 
 AC_CHECK_LIB(SDL2_image, IMG_Load, [], [
@@ -73,11 +73,35 @@ AC_CHECK_HEADERS([SDL2/SDL_image.h], [],
 	is installed on your system.])
 			])
 
+dnl #################################################################################
+dnl #
+dnl # SDL2_ttf - check the library and header file.
+dnl #
 
+AC_CHECK_LIB(SDL2_ttf, TTF_Init, [], [
+	AC_MSG_ERROR([
+	The SDL2_ttf library not found. Check that it is installed on your system. If it is not, download and install it 
+	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.) 
+	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR. 
+	Execute "configure -h" for more info.
+		])
+	])
+
+	AC_SUBST(SDL2_TTF_CFLAGS, `pkg-config --cflags SDL2_ttf`)
+	AC_SUBST(SDL2_TTF_LIBS, `pkg-config --libs SDL2_ttf`)
+	AC_SUBST(CFLAGS, ["$CFLAGS $SDL2_TTF_CFLAGS"])
+	AC_SUBST(CPPFLAGS, ["$CPPFLAGS $SDL2_TTF_CFLAGS"])
+	AC_CHECK_HEADERS([SDL2/SDL_ttf.h], [], 
+		[
+	AC_MSG_ERROR(
+	[The SDL2_ttf library was found, but there is no corresponding header file. Check that the DEVEL version of the library 
+	is installed on your system.])
+		])
 
 
 AC_CONFIG_FILES([Makefile
                  examples/Makefile
+                 font/Makefile
                  image/Makefile
                  doc/Makefile
                  dox/Makefile

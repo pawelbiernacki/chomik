@@ -4,12 +4,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_timer.h> 
+#include <SDL2/SDL_ttf.h>
 
 #include "chomik.h"
 
 namespace sdl_chomik
 {
     class image;
+    class font;
     
     class machine: public chomik::machine
     {
@@ -18,6 +20,8 @@ namespace sdl_chomik
         SDL_Renderer * my_renderer;
         
         std::vector<std::unique_ptr<image>> vector_of_images;
+        
+        std::vector<std::unique_ptr<font>> vector_of_fonts;
         
     public:
         machine();
@@ -32,6 +36,11 @@ namespace sdl_chomik
         {
             vector_of_images.push_back(std::move(i));
         }
+        
+        void add_font(std::unique_ptr<font> && f)
+        {
+            vector_of_fonts.push_back(std::move(f));
+        }
 
         
         virtual void create_predefined_variables() override;
@@ -42,6 +51,7 @@ namespace sdl_chomik
         
         int get_last_created_image_index() const { return vector_of_images.size()-1; }
         
+        int get_last_created_font_index() const { return vector_of_fonts.size()-1; }
     };
 
     class image
@@ -53,6 +63,16 @@ namespace sdl_chomik
         virtual ~image();
                 
         void render(machine & m, int x, int y);
+    };
+    
+    class font
+    {
+    private:
+        TTF_Font * my_font;
+    public:
+        font(machine & m, const std::string & file_path, int font_size);
+        virtual ~font();
+        void render(machine & m, const std::string & t, int x, int y);
     };
     
 }

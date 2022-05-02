@@ -636,6 +636,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+SDL2_TTF_LIBS
+SDL2_TTF_CFLAGS
 SDL2_LIBS
 SDL2_CFLAGS
 pkgconfigdir
@@ -16310,9 +16312,89 @@ done
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TTF_Init in -lSDL2_ttf" >&5
+$as_echo_n "checking for TTF_Init in -lSDL2_ttf... " >&6; }
+if ${ac_cv_lib_SDL2_ttf_TTF_Init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lSDL2_ttf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char TTF_Init ();
+int
+main ()
+{
+return TTF_Init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_SDL2_ttf_TTF_Init=yes
+else
+  ac_cv_lib_SDL2_ttf_TTF_Init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_SDL2_ttf_TTF_Init" >&5
+$as_echo "$ac_cv_lib_SDL2_ttf_TTF_Init" >&6; }
+if test "x$ac_cv_lib_SDL2_ttf_TTF_Init" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSDL2_TTF 1
+_ACEOF
+
+  LIBS="-lSDL2_ttf $LIBS"
+
+else
+
+	as_fn_error $? "
+	The SDL2_ttf library not found. Check that it is installed on your system. If it is not, download and install it
+	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.)
+	Remember to install the DEVEL version. If it is installed elswehere you can run the script \"configure\" with the option --libdir=DIR.
+	Execute \"configure -h\" for more info.
+		" "$LINENO" 5
+
+fi
 
 
-ac_config_files="$ac_config_files Makefile examples/Makefile image/Makefile doc/Makefile dox/Makefile inc/Makefile src/Makefile src2/Makefile tests/Makefile libchomik.pc"
+	SDL2_TTF_CFLAGS=`pkg-config --cflags SDL2_ttf`
+
+	SDL2_TTF_LIBS=`pkg-config --libs SDL2_ttf`
+
+	CFLAGS="$CFLAGS $SDL2_TTF_CFLAGS"
+
+	CPPFLAGS="$CPPFLAGS $SDL2_TTF_CFLAGS"
+
+	for ac_header in SDL2/SDL_ttf.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "SDL2/SDL_ttf.h" "ac_cv_header_SDL2_SDL_ttf_h" "$ac_includes_default"
+if test "x$ac_cv_header_SDL2_SDL_ttf_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SDL2_SDL_TTF_H 1
+_ACEOF
+
+else
+
+	as_fn_error $? "The SDL2_ttf library was found, but there is no corresponding header file. Check that the DEVEL version of the library
+	is installed on your system." "$LINENO" 5
+
+fi
+
+done
+
+
+
+ac_config_files="$ac_config_files Makefile examples/Makefile font/Makefile image/Makefile doc/Makefile dox/Makefile inc/Makefile src/Makefile src2/Makefile tests/Makefile libchomik.pc"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -17429,6 +17511,7 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
+    "font/Makefile") CONFIG_FILES="$CONFIG_FILES font/Makefile" ;;
     "image/Makefile") CONFIG_FILES="$CONFIG_FILES image/Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "dox/Makefile") CONFIG_FILES="$CONFIG_FILES dox/Makefile" ;;

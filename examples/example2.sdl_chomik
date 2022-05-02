@@ -1,0 +1,46 @@
+
+
+# This is a "hello world" example for sdl_chomik.
+# It renders animated text using the SDL2_ttf library.
+
+
+execute <create new image "../image/title_screen.png">;
+variable title screen image index: integer;
+let variable title screen image index = <the created image index>;
+ 
+execute <create new image "../image/chomik.png">;
+variable chomik image index: integer;
+let variable chomik image index = <the created image index>;
+
+execute <create new font "../font/PlayfairDisplay-Regular.ttf" 32>;
+variable my font index:integer;
+let variable my font index = <the created font index>;
+
+
+let variable x=value integer 800;
+
+variable reset my text (X:compare_result):code;
+let variable reset my text lower=value code
+{
+    let variable x= value integer 800;
+};
+
+variable move my text:code;
+
+let variable move my text = value code
+{
+    execute <substract "integer" <x> 1>;
+    let variable x=<the substract result "integer">;
+    execute <compare "integer" <x> -200>;
+    execute <reset my text <the compare result>>;
+};
+
+let variable sdl loop body = value code 
+{ 
+    execute <show image <title screen image index> 0 0>;     
+    execute <show image <chomik image index> 0 0>;    
+    execute <show text <my font index> "hello world!" <x> 100>;
+    execute <move my text>;
+};
+
+execute <sdl loop>;

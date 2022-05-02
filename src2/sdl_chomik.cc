@@ -2,6 +2,56 @@
 #include "config.h"
 
 
+sdl_chomik::font::font(machine & m, const std::string & file_path, int font_size)
+{
+    my_font=TTF_OpenFont(file_path.c_str(), font_size);
+    
+    if (!my_font)
+    {
+        std::cerr << "failed to load the font from file " << file_path << "\n";
+        SDL_Quit();
+        TTF_Quit();
+        exit(1);
+    }
+}
+
+sdl_chomik::font::~font()
+{
+    TTF_CloseFont(my_font);    
+    my_font = nullptr;
+}
+
+void sdl_chomik::font::render(machine & m, const std::string & t, int x, int y)
+{
+    SDL_Color color={0,0,0};
+    SDL_Surface *text_surface;
+    
+    if (!(text_surface=TTF_RenderText_Solid(my_font,t.c_str(),color))) {    
+        std::cerr << "TTF error - " << TTF_GetError() << "\n";
+    } 
+    else 
+    {
+        SDL_Rect dest;
+        SDL_Texture * tex = SDL_CreateTextureFromSurface(m.get_renderer(), text_surface);
+        if (!tex)
+        {
+            std::cerr << "TTF error - " << TTF_GetError() << "\n";
+            SDL_FreeSurface(text_surface);
+        }
+        else
+        {        
+            SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+            dest.x = x;
+            dest.y = y;
+            SDL_RenderCopy(m.get_renderer(), tex, NULL, &dest);
+            SDL_FreeSurface(text_surface);
+            SDL_DestroyTexture(tex);
+        }
+    }
+}
+
+
+
 sdl_chomik::image::image(machine & m, const std::string & file_path)
 {
     SDL_Surface* surface;
@@ -15,7 +65,7 @@ sdl_chomik::image::image(machine & m, const std::string & file_path)
     {
         std::cerr << "failed to load the image from file " << file_path << "\n";
         SDL_Quit();
-        exit(0);
+        exit(1);
     }
 }
 
@@ -97,6 +147,14 @@ void sdl_chomik::machine::create_predefined_variables()
     gn6.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("up"));
     std::shared_ptr<chomik::signature> on_key_up=std::make_shared<chomik::signature>(gn6);
     add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_up), std::make_unique<chomik::code>()));    
+
+    chomik::generic_name gn7;
+    gn7.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+    gn7.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("created"));
+    gn7.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("font"));
+    gn7.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("index"));
+    std::shared_ptr<chomik::signature> the_created_font_index=std::make_shared<chomik::signature>(gn7);
+    add_variable_with_value(std::make_shared<chomik::simple_variable_with_value_integer>(std::move(the_created_font_index), 0));    
     
 }
 
@@ -129,6 +187,28 @@ bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature
             && s.get_vector_of_items()[2]->get_it_is_integer()
             && s.get_vector_of_items()[3]->get_it_is_integer()
             && s.get_vector_of_items()[4]->get_it_is_integer())
+        {
+            return true;
+        }
+        else
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("create") 
+            && s.get_vector_of_items()[1]->get_it_is_identifier("new")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("font")
+            && s.get_vector_of_items()[3]->get_it_is_string()
+            && s.get_vector_of_items()[4]->get_it_is_integer())
+        {
+            return true;
+        }
+    }
+    else
+    if (s.get_vector_of_items().size() == 6)
+    {
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("show")
+            && s.get_vector_of_items()[1]->get_it_is_identifier("text")
+            && s.get_vector_of_items()[2]->get_it_is_integer()   // font index
+            && s.get_vector_of_items()[3]->get_it_is_string()   
+            && s.get_vector_of_items()[4]->get_it_is_integer()
+            && s.get_vector_of_items()[5]->get_it_is_integer())
         {
             return true;
         }
@@ -288,6 +368,42 @@ void sdl_chomik::machine::execute_user_defined_executable(const chomik::signatur
                 vector_of_images[index]->render(*this, s.get_vector_of_items()[3]->get_value_integer(), s.get_vector_of_items()[4]->get_value_integer());
             }
         }
+        else
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("create") 
+            && s.get_vector_of_items()[1]->get_it_is_identifier("new")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("font")
+            && s.get_vector_of_items()[3]->get_it_is_string()
+            && s.get_vector_of_items()[4]->get_it_is_integer())
+        {
+            add_font(std::make_unique<font>(*this, s.get_vector_of_items()[3]->get_value_string(), s.get_vector_of_items()[4]->get_value_integer()));
+
+            chomik::generic_name gn2;
+            gn2.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+            gn2.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("created"));
+            gn2.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("font"));
+            gn2.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("index"));
+            chomik::signature the_created_font_index{gn2};            
+            get_variable_with_value(the_created_font_index).assign_value_integer(get_last_created_font_index());            
+        }                
+    }
+    else
+    if (s.get_vector_of_items().size() == 6)
+    {
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("show") 
+            && s.get_vector_of_items()[1]->get_it_is_identifier("text")
+            && s.get_vector_of_items()[2]->get_it_is_integer()  // font index
+            && s.get_vector_of_items()[3]->get_it_is_string()
+            && s.get_vector_of_items()[4]->get_it_is_integer()
+            && s.get_vector_of_items()[5]->get_it_is_integer())
+        {
+            int index = s.get_vector_of_items()[2]->get_value_integer();
+            
+            if (index >= 0 && index <vector_of_fonts.size())
+            {
+                vector_of_fonts[index]->render(*this, s.get_vector_of_items()[3]->get_value_string(), 
+                                               s.get_vector_of_items()[4]->get_value_integer(), s.get_vector_of_items()[5]->get_value_integer());
+            }
+        }        
     }
 }
 
@@ -305,20 +421,29 @@ int main(int argc, char * argv[])
     else
     {
         if (the_parser.parse(argv[1]) == 0)
-        {            
+        {
+            if (TTF_Init()==-1) 
+            {
+                std::cerr << TTF_GetError() << "\n";
+                exit(1);
+            }
+            
             if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
             {
                 std::cerr << SDL_GetError() << "\n";
+                exit(1);
             }
             sdl_chomik::machine m;
             m.create_predefined_types();
             m.create_predefined_variables();
             m.create_predefined_streams();
                         
-            the_program.execute(m);
-
-            SDL_Quit();            
+            the_program.execute(m);            
         }
+        
+        
+        SDL_Quit();            
+        TTF_Quit();
     }
         
     return 0;
