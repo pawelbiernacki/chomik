@@ -155,7 +155,34 @@ void sdl_chomik::machine::create_predefined_variables()
     gn7.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("index"));
     std::shared_ptr<chomik::signature> the_created_font_index=std::make_shared<chomik::signature>(gn7);
     add_variable_with_value(std::make_shared<chomik::simple_variable_with_value_integer>(std::move(the_created_font_index), 0));    
-    
+
+    chomik::generic_name gn8;
+    gn8.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn8.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+    gn8.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("return"));
+    std::shared_ptr<chomik::signature> on_key_return=std::make_shared<chomik::signature>(gn8);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_return), std::make_unique<chomik::code>()));    
+
+    chomik::generic_name gn9;
+    gn9.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn9.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+    gn9.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("backspace"));
+    std::shared_ptr<chomik::signature> on_key_backspace=std::make_shared<chomik::signature>(gn9);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_backspace), std::make_unique<chomik::code>()));    
+
+    chomik::generic_name gn10;
+    gn10.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn10.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+    gn10.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("escape"));
+    std::shared_ptr<chomik::signature> on_key_escape=std::make_shared<chomik::signature>(gn10);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_escape), std::make_unique<chomik::code>()));    
+
+    chomik::generic_name gn11;
+    gn11.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn11.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+    gn11.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("space"));
+    std::shared_ptr<chomik::signature> on_key_space=std::make_shared<chomik::signature>(gn11);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_space), std::make_unique<chomik::code>()));        
 }
 
 bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature & s) const
@@ -249,6 +276,62 @@ void sdl_chomik::machine::execute_user_defined_executable(const chomik::signatur
                     case SDL_KEYDOWN:
                         switch (event.key.keysym.scancode) 
                         {                            
+                            case SDL_SCANCODE_RETURN:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("return"));
+                                chomik::signature s0{gn};
+                
+                                chomik::code ci;                
+                                get_variable_value_code(s0, ci);                
+                                ci.execute(*this);
+                            }
+                                break;
+                            case SDL_SCANCODE_SPACE:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("space"));
+                                chomik::signature s0{gn};
+                
+                                chomik::code ci;                
+                                get_variable_value_code(s0, ci);                
+                                ci.execute(*this);
+                            }
+                                break;
+                                
+                            case SDL_SCANCODE_ESCAPE:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("escape"));
+                                chomik::signature s0{gn};
+                
+                                chomik::code ci;                
+                                get_variable_value_code(s0, ci);                
+                                ci.execute(*this);
+                            }
+                                break;
+                                
+                            case SDL_SCANCODE_BACKSPACE:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("key"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("backspace"));
+                                chomik::signature s0{gn};
+                
+                                chomik::code ci;                
+                                get_variable_value_code(s0, ci);                
+                                ci.execute(*this);
+                            }
+                                break;
+
+                                
                             case SDL_SCANCODE_UP:
                             {
                                 chomik::generic_name gn;
