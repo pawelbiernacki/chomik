@@ -1,6 +1,6 @@
 
 
-SUBDIRS = examples font image doc dox inc src src2 tests
+SUBDIRS = 3d examples font image doc dox inc src src2 tests
 
 EXTRA_DIST = Doxyfile
 

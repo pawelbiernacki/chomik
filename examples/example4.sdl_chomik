@@ -1,0 +1,330 @@
+
+type game_mode_type = { initial, game, hero_status, in_a_building };
+type huts_range = 1..3;
+expand(1);
+
+variable game mode: game_mode_type;
+
+let variable game mode = value game_mode_type initial;
+
+execute <create new image "../image/title_screen.png">;
+variable title screen image index: integer;
+let variable title screen image index = <the created image index>;
+
+execute <create new image "../image/floor.png">;
+variable floor image index: integer;
+let variable floor image index = <the created image index>;
+
+execute <create new image "../image/paper.png">;
+variable paper image index: integer;
+let variable paper image index = <the created image index>;
+
+execute <create new image "../image/chomik.png">;
+variable chomik image index: integer;
+let variable chomik image index = <the created image index>;
+
+execute <create new image "../image/building.png">;
+variable hut image index: integer;
+let variable hut image index = <the created image index>;
+
+execute <create new image "../image/blue_monkey_figure.png">;
+variable blue monkey image index: integer;
+let variable blue monkey image index = <the created image index>;
+
+execute <create new font "../font/PlayfairDisplay-Regular.ttf" 24>;
+variable my regular font index:integer;
+let variable my regular font index = <the created font index>;
+
+execute <create new font "../font/PlayfairDisplay-BoldItalic.ttf" 64>;
+variable my big font index:integer;
+let variable my big font index = <the created font index>;
+
+
+
+variable hero dx:integer, hero dy:integer, hero x:integer, hero y:integer;
+let variable hero dx = value integer 0;
+let variable hero dy = value integer 0;
+let variable hero x = value integer 400;
+let variable hero y = value integer 300;
+
+
+variable enter building (X:huts_range):code;
+let variable enter building (X:huts_range)=value code
+{
+    let variable game mode = value game_mode_type in_a_building;
+};
+
+
+variable return pressed depending on game mode (X:game_mode_type): code;
+let variable return pressed depending on game mode initial=value code
+{
+    let variable game mode = value game_mode_type game;    
+    let variable on key up = value code { let variable hero dy = value integer -10; };
+    let variable on key down = value code { let variable hero dy = value integer 10; };
+    let variable on key left = value code { let variable hero dx = value integer -10; };
+    let variable on key right = value code { let variable hero dx = value integer 10; };
+};
+
+variable space pressed depending on game mode (X:game_mode_type):code;
+let variable space pressed depending on game mode game=value code
+{
+    execute <enter building <active hut index>>;
+};
+let variable space pressed depending on game mode in_a_building=value code
+{
+    let variable game mode = value game_mode_type game;
+};
+
+
+variable escape pressed depending on game mode (X:game_mode_type): code;
+let variable escape pressed depending on game mode game=value code
+{
+    let variable game mode = value game_mode_type initial;    
+    let variable on key up = value code {};
+    let variable on key down = value code {};
+    let variable on key left = value code {};
+    let variable on key right = value code {};
+};
+let variable escape pressed depending on game mode in_a_building=value code
+{
+    let variable game mode = value game_mode_type initial;    
+    let variable on key up = value code {};
+    let variable on key down = value code {};
+    let variable on key left = value code {};
+    let variable on key right = value code {};
+};
+
+variable backspace pressed depending on game mode (X:game_mode_type): code;
+let variable backspace pressed depending on game mode game=value code
+{
+    let variable game mode = value game_mode_type hero_status;
+};
+
+let variable backspace pressed depending on game mode hero_status=value code
+{
+    let variable game mode = value game_mode_type game;
+};
+
+let variable on key space = value code
+{
+    execute <space pressed depending on game mode <game mode>>;
+};
+
+let variable on key return = value code
+{
+    execute <return pressed depending on game mode <game mode>>;
+};
+
+let variable on key escape = value code
+{
+    execute <escape pressed depending on game mode <game mode>>;
+};
+
+let variable on key backspace = value code
+{
+    execute <backspace pressed depending on game mode <game mode>>;
+};
+
+
+variable loop body depending on game mode (X:game_mode_type): code;
+let variable loop body depending on game mode initial=value code
+{
+    execute <show image <title screen image index> 0 0>;     
+    execute <show image <chomik image index> 0 0>;    
+    execute <show text <my big font index> "The Crazy Monkey" 100 0>;    
+    execute <show text <my regular font index> "by Pawel Biernacki" 100 100>;
+    execute <show text <my regular font index> "<pawel.f.biernacki@gmail.com>" 100 132>;
+    execute <show text <my regular font index> "press Return to play" 100 264>;    
+};
+
+
+variable hut (X:huts_range) x:integer;
+variable hut (X:huts_range) y:integer;
+variable hut (X:huts_range) name:string;
+
+let variable hut 1 x=value integer 120;
+let variable hut 1 y=value integer 200;
+let variable hut 1 name=value string "Gotrek's hut";
+
+let variable hut 2 x=value integer 350;
+let variable hut 2 y=value integer 100;
+let variable hut 2 name=value string "Gerrudir's hut";
+
+let variable hut 3 x=value integer 600;
+let variable hut 3 y=value integer 400;
+let variable hut 3 name=value string "Gwaigilion's hut";
+
+variable show_hut (X:huts_range):code;
+let variable show_hut (X:huts_range) = value code
+{
+    execute <show image <hut image index> <hut (X:huts_range) x> <hut (X:huts_range) y>>;
+    execute <show text <my regular font index> <hut (X:huts_range) name> <hut (X:huts_range) x> <hut (X:huts_range) y>>;
+};
+
+variable show_all_huts:code;
+let variable show_all_huts=value code
+{
+    execute <show_hut (X:huts_range)>;
+};
+
+variable slow_down_hero_x_on_comparison (X:compare_result):code, slow_down_hero_y_on_comparison (X:compare_result):code;
+let variable slow_down_hero_x_on_comparison greater=value code
+{
+    execute <substract "integer" <hero dx> 1>;
+    let variable hero dx=<the substract result "integer">;
+};
+
+let variable slow_down_hero_x_on_comparison lower=value code
+{
+    execute <add "integer" <hero dx> 1>;
+    let variable hero dx=<the add result "integer">;
+};
+
+variable slow_down_hero_y_on_comparison (X:compare_result):code;
+let variable slow_down_hero_y_on_comparison greater=value code
+{
+    execute <substract "integer" <hero dy> 1>;
+    let variable hero dy=<the substract result "integer">;
+};
+
+let variable slow_down_hero_y_on_comparison lower=value code
+{
+    execute <add "integer" <hero dy> 1>;
+    let variable hero dy=<the add result "integer">;
+};
+
+
+variable reset_hero_x_left_on_comparison (X:compare_result):code, 
+        reset_hero_x_right_on_comparison (X:compare_result):code, 
+        reset_hero_y_down_on_comparison (X:compare_result):code,
+        reset_hero_y_up_on_comparison (X:compare_result):code;
+        
+let variable reset_hero_x_left_on_comparison lower=value code { let variable hero x=value integer 0; };
+let variable reset_hero_x_right_on_comparison greater=value code { let variable hero x=value integer 750; };
+let variable reset_hero_y_up_on_comparison lower=value code { let variable hero y=value integer 0; };
+let variable reset_hero_y_down_on_comparison greater=value code { let variable hero y=value integer 500; };
+
+
+variable move hero:code;
+let variable move hero=value code
+{
+    execute <add "integer" <hero x> <hero dx>>;
+    let variable hero x=<the add result "integer">;
+    execute <compare "integer" <hero dx> 0>;
+    execute <slow_down_hero_x_on_comparison <the compare result>>;
+
+    execute <add "integer" <hero y> <hero dy>>;
+    let variable hero y=<the add result "integer">;
+    execute <compare "integer" <hero dy> 0>;
+    execute <slow_down_hero_y_on_comparison <the compare result>>;        
+    
+    # don't allow moving beyond the screen
+    execute <compare "integer" <hero x> 0>;
+    execute <reset_hero_x_left_on_comparison <the compare result>>;
+    
+    execute <compare "integer" <hero x> 750>;
+    execute <reset_hero_x_right_on_comparison <the compare result>>;
+
+    execute <compare "integer" <hero y> 0>;
+    execute <reset_hero_y_up_on_comparison <the compare result>>;
+    
+    execute <compare "integer" <hero y> 500>;
+    execute <reset_hero_y_down_on_comparison <the compare result>>;    
+};
+
+variable distance x: integer, distance y: integer;
+
+variable active hut index:integer;  # it is 0 when no hut is active
+
+
+variable show extra text on comparison (X:compare_result):code;
+let variable show extra text on comparison lower=value code
+{
+    execute <show text <my regular font index> "press Space to enter a building" 100 32>;
+    let variable active hut index=<current hut>;
+};
+
+
+variable replace distance x by its negation if (X:compare_result):code;
+let variable replace distance x by its negation if lower=value code
+{
+    execute <substract "integer" 0 <distance x>>;
+    let variable distance x=<the substract result "integer">;
+};
+
+variable replace distance y by its negation if (X:compare_result):code;
+let variable replace distance y by its negation if lower=value code
+{
+    execute <substract "integer" 0 <distance y>>;   # we don't have unary minus ;(
+    let variable distance y=<the substract result "integer">;
+};
+
+variable check whether hero is near a building:code;
+let variable check whether hero is near a building=value code
+{
+    execute <substract "integer" <hero x> <hut <current hut> x>>;
+    let variable distance x=<the substract result "integer">;
+    execute <compare "integer" <distance x> 0>;
+    execute <replace distance x by its negation if <the compare result>>;
+    
+    execute <substract "integer" <hero y> <hut <current hut> y>>;
+    let variable distance y=<the substract result "integer">;
+    execute <compare "integer" <distance y> 0>;
+    execute <replace distance y by its negation if <the compare result>>;
+    
+    execute <add "integer" <distance x> <distance y>>;
+    #execute <print for <current hut> "the distance is" <the add result "integer">>;
+        
+    execute <compare "integer" <the add result "integer"> 100>;
+    execute <show extra text on comparison <the compare result>>;
+};
+
+variable show extra text when near a building:code;
+let variable show extra text when near a building (X:huts_range)=value code
+{    
+    let variable current hut=value integer [(X:huts_range)];
+    execute <check whether hero is near a building>;
+};
+
+
+let variable loop body depending on game mode game=value code
+{
+    execute <show image <title screen image index> 0 0>;     
+    execute <show image <chomik image index> 0 0>;    
+    execute <show_all_huts>;
+    execute <show image <blue monkey image index> <hero x> <hero y>>;
+    
+    execute <show text <my regular font index> "press Escape to exit" 100 0>;    
+    let variable active hut index=value integer 0;    
+    execute <show extra text when near a building (X:huts_range)>;    
+    execute <show text <my regular font index> "press Backspace to see your status" 100 64>;
+    execute <move hero>;
+};
+
+
+let variable loop body depending on game mode in_a_building=value code
+{
+    execute <show image <floor image index> 0 0>;     
+    execute <show image <blue monkey image index> 400 300>;
+    
+    execute <show text <my regular font index> "press Escape to exit" 100 16>;    
+    execute <show text <my regular font index> "press Space to return" 100 48>;    
+};
+
+
+let variable loop body depending on game mode hero_status=value code
+{
+    execute <show image <paper image index> 0 0>;     
+    execute <show image <chomik image index> 0 0>;        
+    execute <show text <my regular font index> "Your strength is 10" 100 16>;
+    execute <show text <my regular font index> "press Backspace to exit" 100 48>;
+};
+
+let variable sdl loop body = value code 
+{ 
+    execute <loop body depending on game mode <game mode>>;
+};
+
+execute <sdl loop>;
+ 
+
