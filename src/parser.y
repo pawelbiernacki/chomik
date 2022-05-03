@@ -147,7 +147,7 @@ value: T_VALUE constant_value_literal { $$ = chomik_create_value_literal($2); /*
     | '<' name '>' { $$ = chomik_create_variable_value($2); /* no need to destroy $2 !!! */ }
         
 constant_value_literal: 
-        T_IDENTIFIER name { $$ = chomik_create_enum_literal($1, $2); free($1); /* no need to destroy $3 !!! */ }
+        T_IDENTIFIER name { $$ = chomik_create_enum_literal($1, $2); free($1); /* no need to destroy $2 !!! */ }
         | T_IDENTIFIER '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_enum_literal_placeholder($4, $6, $1); free($1); free($4); /* no need to destroy $6 !!! */ } 
         | T_CODE code_literal { $$ = $2; }
         | T_INTEGER T_INT_LITERAL { $$ = chomik_create_integer_literal($2); }

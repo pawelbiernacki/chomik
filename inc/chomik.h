@@ -187,11 +187,15 @@ namespace chomik
         
         virtual bool get_it_is_float() const { return false; }
         
+        virtual bool get_it_is_enum() const { return false; }
+        
         virtual int get_value_integer() const { return 0; }
         
         virtual double get_value_float() const { return 0.0; }
         
         virtual std::string get_value_string() const { return ""; }
+        
+        virtual std::string get_value_enum() const { return ""; }
 
         virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const = 0;
     };
@@ -271,6 +275,10 @@ namespace chomik
         virtual bool get_it_is_identifier(const std::string & pattern) const { return value == pattern; }
         
         virtual bool get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const override;        
+        
+        virtual bool get_it_is_enum() const override { return true; }
+        
+        virtual std::string get_value_enum() const override { return value; }
     };
     
     class generic_name;
@@ -2142,15 +2150,9 @@ namespace chomik
     public:
         type_instance_enum(const std::string & n): type_instance{n} {}
         
-        virtual void add_type_instance_enum_value(const signature & n, unsigned new_level) override
-        {
-            vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n.get_string_representation(), new_level));
-        }                
+        virtual void add_type_instance_enum_value(const signature & n, unsigned new_level) override;
         
-        virtual void add_type_instance_enum_value(const std::string & n, unsigned int new_level) override
-        {
-            vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n, new_level));
-        }
+        virtual void add_type_instance_enum_value(const std::string & n, unsigned int new_level) override;
         
         virtual void report(std::ostream & s) const override;
         

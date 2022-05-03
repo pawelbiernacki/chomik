@@ -1,0 +1,26 @@
+
+
+type person = { I, Gotrek, Gerrudir, Gwaigilion };
+type item = { sword, axe, bow }; 
+type place = { Gotreks_hut, Gerrudirs_hut, Gwaigilions_hut };
+type action = { talk_with_(X:person), end_conversation, tell_(X:person)_(Y:information), ask_(X:person)_whether_(Y:information), go_to_(X:place), ask_(X:person)_to_(Y:action) };
+type information = { (X:person)_is_in_(Y:place), (X:person)_can_see_(Y:person), (X:person)_has_(Y:item), (X:person)_can_see_(Y:information)_is_(Z:boolean),
+                    (X:person)_has_heard_(Y:information), (X:person)_has_asked_(Y:person)_to_(Z:action) };
+type my_range = 1..10;
+expand(3);
+
+ 
+execute <compare "action" talk_with_Gotrek talk_with_Gotrek>;
+execute <print <the compare result>>;
+
+execute <compare "action" talk_with_Gotrek talk_with_Gerrudir>;
+execute <print <the compare result>>;
+
+variable someone:person;
+let variable someone=value person Gotrek;
+
+let variable a=value action talk_with_<someone>;
+let variable b=value action talk_with_Gotrek;
+
+execute <compare "action" <a> <b>>;
+execute <print <the compare result>>;

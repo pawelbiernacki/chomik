@@ -1,4 +1,6 @@
 #include "chomik.h"
+#include <cstring>
+#include <algorithm>
 
 //#define CHOMIK_DEBUG
 
@@ -1238,7 +1240,8 @@ void chomik::signature::execute_predefined_read(machine & m) const
 void chomik::signature::execute_predefined_compare(machine & m) const
 {
         if (vector_of_items.size() == 4)
-        {
+        {                        
+            
             if (vector_of_items[1]->get_it_is_string() 
                 && vector_of_items[2]->get_it_is_integer()
                 && vector_of_items[3]->get_it_is_integer())
@@ -1276,6 +1279,41 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                     m.get_variable_with_value(the_compare_result).assign_value_enum(s);                                        
                     return;
                 }
+            }
+            else
+            if (vector_of_items[1]->get_it_is_string() 
+                && vector_of_items[2]->get_it_is_enum()
+                && vector_of_items[3]->get_it_is_enum())
+            {                
+                    generic_name gn2;
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
+                
+                    signature the_compare_result{gn2};
+                    
+                    std::string s = "";
+                    std::string a = vector_of_items[2]->get_value_enum();
+                    std::string b = vector_of_items[3]->get_value_enum();
+                    
+                    auto x{strcmp(a.c_str(), b.c_str())};
+                    
+                    if (x < 0)
+                    {
+                        s = "lower";
+                    }
+                    else
+                    if (x > 0)
+                    {
+                        s = "greater";
+                    }
+                    else
+                    {
+                        s = "equal";
+                    }                    
+                    
+                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);
+                    return;
             }
         }
     std::cerr << "warning: unknown compare variable\n";        
@@ -2183,4 +2221,18 @@ std::string chomik::machine::get_enum_type_item(const std::string & tn, int i) c
         throw std::runtime_error("type instance is not known");
     }
     return map_type_name_to_type_instance.at(tn)->get_enum_item(i);
+}
+
+
+void chomik::type_instance_enum::add_type_instance_enum_value(const signature & n, unsigned new_level) 
+{
+    std::string sr = n.get_string_representation();
+    if (std::find_if(vector_of_values.begin(), vector_of_values.end(), [&sr](auto & x){return x->get_name()==sr;})==vector_of_values.end())
+        vector_of_values.push_back(std::make_unique<type_instance_enum_value>(sr, new_level));
+}                
+        
+void chomik::type_instance_enum::add_type_instance_enum_value(const std::string & n, unsigned int new_level)
+{
+    if (std::find_if(vector_of_values.begin(), vector_of_values.end(), [&n](auto & x){return x->get_name()==n;})==vector_of_values.end())
+        vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n, new_level));
 }

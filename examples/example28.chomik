@@ -1,0 +1,91 @@
+
+#
+# I used this example to study a bug from the example4.sdl_chomik.
+#
+
+
+type person = { I, Gotrek, Gerrudir, Gwaigilion };
+type item = { sword, axe, bow }; 
+type place = { Gotreks_hut, Gerrudirs_hut, Gwaigilions_hut };
+type action = { do_nothing, talk_with_(X:person), end_conversation, tell_(X:person)_(Y:information), ask_(X:person)_whether_(Y:information), 
+                go_to_(X:place), ask_(X:person)_to_(Y:action) };
+type information = { (X:person)_is_in_(Y:place), (X:person)_can_see_(Y:person), (X:person)_has_(Y:item), (X:person)_can_see_(Y:information)_is_(Z:boolean),
+                    (X:person)_has_heard_(Y:information), (X:person)_has_asked_(Y:person)_to_(Z:action) };
+expand(3);
+
+
+variable it is not reasonable to talk to oneself (X:compare_result):code;
+let variable it is not resonable to talk to oneself equal=value code
+{
+    execute <print "IT IS NOT REASONABLE TO TALK TO ONESELF">;
+};
+
+variable it is not reasonable to tell oneself anything (X:compare_result):code;
+let variable it is not reasonable to tell oneself anything equal=value code
+{
+    execute <print "IT IS NOT REASONABLE TO TELL ONESELF ANYTHING">;
+};
+
+variable it is not reasonable to ask oneself whether anything (X:compare_result):code;
+let variable it is not reasonable to ask oneself whether anything equal=value code
+{
+    execute <print "IT IS NOT REASONABLE TO ASK ONESELF WHETHER ANYTHING">;
+};
+variable it is not reasonable to ask oneself to do anything (X:compare_result):code;
+let variable it is not reasonable to ask oneself to do anything equal=value code
+{
+    execute <print "IT IS NOT REASONABLE TO ASK ONESELF TO DO ANYTHING">;
+};
+
+
+variable some strange action:action, current action:action, current information:information;
+
+variable go through all informations (X:information):code;
+let variable go through all informations (X:information)=value code
+{
+    let variable current information = value information [(X:information)];
+    let variable some strange action = value action tell_<current npc>_<current information>;    
+    execute <print "checking" <current information> ", the strange action would be" <some strange action>>;
+    execute <compare "action" <<current npc> wants to> <some strange action>>;
+    execute <print "compare result=" <the compare result>>;
+    execute <it is not reasonable to tell oneself anything <the compare result>>;
+
+    let variable some strange action = value action ask_<current npc>_whether_<current information>;
+    execute <print "checking" <current information> ", the strange action would be" <some strange action>>;
+    execute <compare "action" <<current npc> wants to> <some strange action>>;
+    #execute <print "compare result=" <the compare result>>;
+    execute <it is not reasonable to ask oneself whether anything <the compare result>>;    
+};
+
+variable go through all actions (X:action):code;
+let variable go through all actions (X:action)=value code
+{
+    let variable current action = value action [(X:action)];
+    let variable some strange action = value action ask_<current npc>_to_<current action>;
+    execute <compare "action" <<current npc> wants to> <some strange action>>;
+    #execute <print "compare result=" <the compare result>>;
+    execute <it is not reasonable to ask oneself to do anything <the compare result>>;    
+};
+
+variable go through all crazy ideas :code;
+let variable go through all crazy ideas =value code
+{
+    # one cannot talk to himself!
+    let variable some strange action = value action talk_with_<current npc>;
+    execute <print "checking" <some strange action>>;
+    execute <compare "action" <<current npc> wants to> <some strange action>>;
+    #execute <print "compare result=" <the compare result>>;
+    execute <it is not reasonable to talk to oneself <the compare result>>;
+    
+    # one cannot tell himself anything
+    execute <go through all informations (Y:information)>;
+    # one cannot ask himself to do anything
+    execute <go through all actions (Y:action)>;
+};
+
+
+let variable current npc=value person Gerrudir;
+let variable Gerrudir wants to=value action tell_Gerrudir_Gwaigilion_is_in_Gerrudirs_hut;
+
+execute <go through all crazy ideas>;
+
