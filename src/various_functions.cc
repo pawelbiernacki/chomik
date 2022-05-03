@@ -1014,6 +1014,30 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 }
             }
         }
+        else
+        if (vector_of_items.size() == 7)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("new") 
+                && vector_of_items[2]->get_it_is_identifier("input") 
+                && vector_of_items[3]->get_it_is_identifier("random")
+                && vector_of_items[4]->get_it_is_identifier("enum")
+                && vector_of_items[5]->get_it_is_identifier("stream")
+                && vector_of_items[6]->get_it_is_string())  // enum type name
+            {
+                m.add_stream(std::make_unique<generic_stream_random_enum_stream>(vector_of_items[6]->get_value_string(), m));
+                generic_name gn2;
+                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
+                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+                signature the_created_stream_index{gn2};    
+                
+                DEBUG("assign value integer " << m.get_last_created_stream_index());
+                
+                m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                                
+                return;
+            }
+        }
             
         std::cerr << "warning: unknown create variable\n";        
         for (auto & i: vector_of_items)
@@ -1164,10 +1188,46 @@ void chomik::signature::execute_predefined_read(machine & m) const
                     return;
                     }
                 }
+                else
+                {
+                    generic_name gn;
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("source"));
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
+                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+                
+                    signature the_read_from_stream_source_stream_index{gn};
+                
+                    int index = m.get_variable_with_value(the_read_from_stream_source_stream_index).get_value_integer();
+        
+                    DEBUG("value of the print target stream index " << index);
+                    if (index >= 0 && index < m.get_amount_of_streams())
+                    {
+                        generic_stream& gs{m.get_stream(index)};
+                        
+                        generic_name gn2;
+                        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+                        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+                        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+                        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+                        gn2.add_generic_name_item(std::make_shared<name_item_string>(vector_of_items[3]->get_value_string()));
+                        signature the_read_from_stream_result{gn2};    
+                        
+                        std::string s = gs.read_string();
+                                    
+                        DEBUG("read " << s);
+                
+                        m.get_variable_with_value(the_read_from_stream_result).assign_value_enum(s);
+                    }
+                }
                 return;
             }
         }
-        std::cerr << "warning: unknown get variable\n";        
+        std::cerr << "warning: unknown read variable\n";        
         for (auto & i: vector_of_items)
         {
             std::cerr << *i << ' ';
@@ -1441,11 +1501,12 @@ void chomik::machine::expand(int i)
             {
                 DEBUG("expanding type definition for level " << k);
                 j->expand(*this, k, temporary_vector_of_type_instances[l]);
+                create_auxilliary_variables_for_type_instance(*temporary_vector_of_type_instances[l]);
             }
             l++;
         }
     }
-
+    
     for (int k=1; k<=i; k++)
     {    
         for (auto & j: vector_of_variable_definition_statements)
@@ -1454,6 +1515,32 @@ void chomik::machine::expand(int i)
         }    
     }
 }
+
+
+void chomik::machine::create_auxilliary_variables_for_type_instance(type_instance & ti)
+{
+    
+    if (ti.get_mode() == type_instance::type_instance_mode::ENUM)
+    {    
+        generic_name gn;
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("result"));    
+        gn.add_generic_name_item(std::make_shared<name_item_string>(ti.get_name()));    
+    
+        std::shared_ptr<signature> the_read_from_stream_result=std::make_shared<signature>(gn);    
+            
+        if (!get_variable_is_represented_in_memory(*the_read_from_stream_result))
+        {
+            DEBUG("creating the read from stream result " << ti.get_name() << " variable");
+            add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_read_from_stream_result), ""));    
+        }        
+    }
+    
+}
+
 
 
 void chomik::variable_definition::expand(machine & m, int depth) const
@@ -2069,3 +2156,31 @@ std::string chomik::generic_value_variable_value::get_actual_text_representation
     return "unknown";
 }
 
+
+chomik::generic_stream_random_enum_stream::generic_stream_random_enum_stream(const std::string & n, machine & m): 
+    type_name{n}, my_machine{m}, generic_stream_random_number_stream{0, m.get_max_enum_type_index(n)} 
+{
+}
+
+std::string chomik::generic_stream_random_enum_stream::read_string() 
+{ 
+    return my_machine.get_enum_type_item(type_name, read_integer()); 
+}
+
+int chomik::machine::get_max_enum_type_index(const std::string & tn) const 
+{ 
+    if (!get_type_instance_is_known(tn))
+    {
+        throw std::runtime_error("type instance is not known");
+    }
+    return map_type_name_to_type_instance.at(tn)->get_amount_of_values()-1;
+}
+
+std::string chomik::machine::get_enum_type_item(const std::string & tn, int i) const 
+{ 
+    if (!get_type_instance_is_known(tn))
+    {
+        throw std::runtime_error("type instance is not known");
+    }
+    return map_type_name_to_type_instance.at(tn)->get_enum_item(i);
+}

@@ -1,11 +1,27 @@
+#
+# This is a simple RPG game written in sdl_chomik
+#
 
 type game_mode_type = { initial, game, hero_status, in_a_building };
 type huts_range = 1..3;
-expand(1);
+type person = { I, Gotrek, Gerrudir, Gwaigilion };
+type item = { sword, axe, bow }; 
+type place = { Gotreks_hut, Gerrudirs_hut, Gwaigilions_hut };
+type action = { talk_with_(X:person), end_conversation, tell_(X:person)_(Y:information), ask_(X:person)_whether_(Y:information), go_to_(X:place), ask_(X:person)_to_(Y:action) };
+type information = { (X:person)_is_in_(Y:place), (X:person)_can_see_(Y:person), (X:person)_has_(Y:item), (X:person)_can_see_(Y:information)_is_(Z:boolean),
+                    (X:person)_has_heard_(Y:information), (X:person)_has_asked_(Y:person)_to_(Z:action) };
+expand(3);
 
 variable game mode: game_mode_type;
 
 let variable game mode = value game_mode_type initial;
+
+
+execute <create new input random number stream "integer" 100 1000>;
+let variable my time generator index = <the created stream index>;
+
+execute <create new input random enum stream "action">; # this is a random generator creating enums of type "action"
+let variable my action dice index = <the created stream index>;
 
 execute <create new image "../image/title_screen.png">;
 variable title screen image index: integer;
@@ -287,6 +303,47 @@ let variable show extra text when near a building (X:huts_range)=value code
 };
 
 
+variable npc thinking time (X:person):integer;
+let variable npc thinking time (X:person)=value integer 0;
+
+variable current npc:person;
+
+variable npc gets new idea on comparison (X:compare_result):code;
+let variable npc gets new idea on comparison equal=value code
+{
+    let variable the read from stream source stream index = <my action dice index>;
+    execute <read from stream "action">;
+    execute <print <current npc> "wants to" <the read from stream result "action">>;
+    
+    let variable the read from stream source stream index = <my time generator index>;
+    execute <read from stream "integer">;
+    
+    let variable npc thinking time <current npc>=<the read from stream result "integer">;
+    
+    #execute <print "new npc thinking time is" <npc thinking time <current npc>> "for" <current npc>>;
+    
+};
+
+
+
+variable npc is thinking (X:person):code;
+
+let variable npc is thinking (X:person)=value code
+{
+    let variable current npc=value person[(X:person)];
+    execute <compare "integer" <npc thinking time <current npc>> 0>;
+    
+    execute <npc gets new idea on comparison <the compare result>>;
+    
+    # decrease the npc's thinking time
+    execute <substract "integer" <npc thinking time <current npc>> 1>;
+    let variable npc thinking time <current npc>=<the substract result "integer">;    
+        
+};
+
+let variable npc is thinking I=value code {};   # the hero does not think - it is controlled by the player
+
+
 let variable loop body depending on game mode game=value code
 {
     execute <show image <title screen image index> 0 0>;     
@@ -299,6 +356,7 @@ let variable loop body depending on game mode game=value code
     execute <show extra text when near a building (X:huts_range)>;    
     execute <show text <my regular font index> "press Backspace to see your status" 100 64>;
     execute <move hero>;
+    execute <npc is thinking (X:person)>;
 };
 
 

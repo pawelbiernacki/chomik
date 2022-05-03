@@ -2115,6 +2115,10 @@ namespace chomik
         const std::string get_name() const { return name; }
         
         virtual type_instance_mode get_mode() const { return type_instance_mode::NONE; }
+        
+        virtual int get_amount_of_values() const = 0;
+        
+        virtual std::string get_enum_item(int i) { return ""; }
     };
     
 
@@ -2160,6 +2164,10 @@ namespace chomik
         }
         
         virtual type_instance_mode get_mode() const { return type_instance_mode::ENUM; }
+        
+        virtual int get_amount_of_values() const override { return vector_of_values.size(); }
+        
+        virtual std::string get_enum_item(int i) { return vector_of_values[i]->get_name(); }
     };
     
     class type_instance_range: public type_instance
@@ -2176,6 +2184,8 @@ namespace chomik
         virtual int get_last_iterator_for_range() const override { return max_boundary; }
         
         virtual type_instance_mode get_mode() const { return type_instance_mode::INTEGER; }
+        
+        virtual int get_amount_of_values() const override { return max_boundary - min_boundary + 1; }
     };
     
     /**
@@ -2575,9 +2585,21 @@ namespace chomik
         std::uniform_int_distribution<std::mt19937::result_type> dist;
     public:
         generic_stream_random_number_stream(int a, int b): rng{dev()}, dist(a, b) {}
-        virtual bool get_allows_input() const { return true; }
+        virtual bool get_allows_input() const override { return true; }
         virtual int read_integer() override;
     };
+    
+    class generic_stream_random_enum_stream: public generic_stream_random_number_stream
+    {
+    private:
+        const std::string type_name;
+        machine & my_machine;
+    public:
+        generic_stream_random_enum_stream(const std::string & n, machine & m);
+        virtual bool get_allows_input() const override { return true; }
+        virtual std::string read_string() override;
+    };
+    
     
     /**
      * This class represents the memory used by the program while executing it.
@@ -2603,6 +2625,10 @@ namespace chomik
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
         
     public:
+        
+        int get_max_enum_type_index(const std::string & tn) const;
+        
+        std::string get_enum_type_item(const std::string & tn, int i) const;
         
         const std::vector<std::unique_ptr<assignment_event>> & get_vector_of_assignment_events() const { return vector_of_assignment_events; }
         
@@ -2661,6 +2687,11 @@ namespace chomik
             std::shared_ptr<type_instance> i2{i};
             vector_of_type_instances.push_back(std::move(i2));
         }
+        
+        /**
+         * For each newly created type instance some special variables of that type are created.
+         */
+        void create_auxilliary_variables_for_type_instance(type_instance & ti);
         
         void add_variable_with_value(std::shared_ptr<variable_with_value> && vv)
         {
