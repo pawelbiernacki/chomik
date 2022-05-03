@@ -2,30 +2,47 @@
 # This is a simple RPG game written in sdl_chomik
 #
 
+type direction = { north, east, south, west };
+
 type game_mode_type = { initial, game, hero_status, in_a_building };
-type huts_range = 1..3;
+
+type huts_range = 1..3,         # there are 3 huts in the game
+    information_range=1..5;     # each person can remember up to 5 informations
+    
 type person = { I, Gotrek, Gerrudir, Gwaigilion };
 type item = { sword, axe, bow }; 
-type place = { Gotreks_hut, Gerrudirs_hut, Gwaigilions_hut };
+type place = { outside, Gotreks_hut, Gerrudirs_hut, Gwaigilions_hut };
 type action = { do_nothing, talk_with_(X:person), end_conversation, tell_(X:person)_(Y:information), ask_(X:person)_whether_(Y:information), 
                 go_to_(X:place), ask_(X:person)_to_(Y:action), ask_(X:person)_question_(Y:question) };
-type information = { (X:person)_is_in_(Y:place), (X:person)_can_see_(Y:person), (X:person)_has_(Y:item), (X:person)_can_see_(Y:information)_is_(Z:boolean),
+type information = { nothing, (X:person)_is_in_(Y:place), (X:person)_can_see_(Y:person), (X:person)_has_(Y:item), (X:person)_can_see_(Y:information)_is_(Z:boolean),
                     (X:person)_has_heard_(Y:information), (X:person)_has_asked_(Y:person)_to_(Z:action), (X:person)_thinks_(Y:information)_is_(Z:boolean),
                     (X:person)_has_asked_(Y:person)_a_question_(Z:question)};                    
 type question = { where_is_(X:person), can_(X:person)_see_(Y:person), does_(X:person)_have_(Y:item), what_items_has_(X:person), can_(X:person)_see_(Y:information)_is_(Z:boolean),
                     has_(X:person)_heard_(Y:information), has_(X:person)_asked_(Y:person)_to_(Z:action) };
 expand(3);
 
+
+variable (X:person) thinks (Y:information_range):information;   # each person can remember several informations
+variable (X:person) can see (Y:information_range):information;  # and also can see several informations
+variable (X:person) is in a conversation:boolean;   # for each person there is a boolean flag - whether it is in a conversation
+
+
 variable game mode: game_mode_type;
 
 let variable game mode = value game_mode_type initial;
 
 
-execute <create new input random number stream "integer" 100 1000>;
+execute <create new input random number stream "integer" 1 5>;  # to choose randomly an information index
+let variable my information index generator index = <the created stream index>;
+
+execute <create new input random number stream "integer" 100 200>;
 let variable my time generator index = <the created stream index>;
 
 execute <create new input random enum stream "action">; # this is a random generator creating enums of type "action"
 let variable my action dice index = <the created stream index>;
+
+execute <create new input random enum stream "direction">; # this is a random generator creating enums of type "direction"
+let variable my direction dice index = <the created stream index>;
 
 #
 # read the images
@@ -81,6 +98,9 @@ variable npc thinking time (X:person):integer;
 
 
 variable hero dx:integer, hero dy:integer, hero x:integer, hero y:integer;
+variable (X:person) dx:integer, (X:person) dy:integer, (X:person) x:integer, (X:person) y:integer;
+
+
 variable initialize the game:code;
 let variable initialize the game=value code
 {
@@ -89,7 +109,50 @@ let variable initialize the game=value code
     let variable hero x = value integer 400;
     let variable hero y = value integer 300;
     let variable npc thinking time (X:person)=value integer 0;
+    
+    let variable Gotrek x = value integer 50;
+    let variable Gotrek y = value integer 50;
+    let variable Gerrudir x = value integer 700;
+    let variable Gerrudir y = value integer 50;
+    let variable Gwaigilion x = value integer 700;
+    let variable Gwaigilion y = value integer 400;
+    
+    let variable (X:person) dx = value integer 0;
+    let variable (X:person) dy = value integer 0;    
+    let variable (X:person) thinks (Y:information_range)=value information nothing; # clear the memory of the npcs
+    let variable (X:person) is in a conversation=value boolean false;
 };
+
+
+variable current information index:information_range;
+variable current npc:person, current question:question;
+variable current information:information;
+
+variable learn new information:code;    # this code is used to remember new informations
+let variable learn new information=value code
+{
+    # choose randomly an information index
+    let variable the read from stream source stream index = <my information index generator index>;
+    execute <read from stream "integer">;
+    let variable current information index=<the read from stream result "integer">;
+
+    # store the new information in it
+    let variable <current npc> thinks <current information index>=<current information>;
+};
+
+variable notice new information:code;   # this code is used to notice what can be seen
+let variable notice new information=value code
+{
+    # choose randomly an information index
+    let variable the read from stream source stream index = <my information index generator index>;
+    execute <read from stream "integer">;
+    let variable current information index=<the read from stream result "integer">;
+    
+    # store the new information in it
+    let variable <current npc> can see <current information index>=<current information>;
+};
+
+
 
 
 variable enter building (X:huts_range):code;
@@ -177,27 +240,31 @@ let variable loop body depending on game mode initial=value code
     execute <show image <title screen image index> 0 0>;     
     execute <show image <chomik image index> 0 0>;    
     execute <show text <my big font index> "The Four Monkeys" 100 0>;    
-    execute <show text <my regular font index> "by Pawel Biernacki" 100 100>;
-    execute <show text <my regular font index> "<pawel.f.biernacki@gmail.com>" 100 132>;
-    execute <show text <my regular font index> "press Return to play" 100 264>;    
+    execute <show text <my regular font index> "by Pawel Biernacki" 100 400>;
+    execute <show text <my regular font index> "<pawel.f.biernacki@gmail.com>" 100 432>;
+    execute <show text <my regular font index> "press Return to play" 100 564>;    
 };
 
 
 variable hut (X:huts_range) x:integer;
 variable hut (X:huts_range) y:integer;
 variable hut (X:huts_range) name:string;
+variable hut (X:huts_range) id:place;
 
 let variable hut 1 x=value integer 120;
 let variable hut 1 y=value integer 200;
 let variable hut 1 name=value string "Gotrek's hut";
+let variable hut 1 id = value place Gotreks_hut;
 
 let variable hut 2 x=value integer 350;
 let variable hut 2 y=value integer 100;
 let variable hut 2 name=value string "Gerrudir's hut";
+let variable hut 2 id = value place Gerrudirs_hut;
 
 let variable hut 3 x=value integer 600;
 let variable hut 3 y=value integer 400;
 let variable hut 3 name=value string "Gwaigilion's hut";
+let variable hut 3 id = value place Gwaigilions_hut;
 
 variable show_hut (X:huts_range):code;
 let variable show_hut (X:huts_range) = value code
@@ -225,7 +292,6 @@ let variable slow_down_hero_x_on_comparison lower=value code
     let variable hero dx=<the add result "integer">;
 };
 
-variable slow_down_hero_y_on_comparison (X:compare_result):code;
 let variable slow_down_hero_y_on_comparison greater=value code
 {
     execute <substract "integer" <hero dy> 1>;
@@ -367,7 +433,12 @@ let variable it is not reasonable to ask oneself to do anything equal=value code
     execute <print "IT IS NOT REASONABLE TO ASK ONESELF TO DO ANYTHING">;
     let variable the idea is reasonable=value boolean false;
 };
-
+variable it is not reasonable to ask oneself any question (X:compare_result):code;
+let variable it is not reasonable to ask oneself any question equal=value code
+{
+    execute <print "IT IS NOT REASONABLE TO ASK ONESELF ANY QUESTION">;
+    let variable the idea is reasonable=value boolean false;
+};
 
 variable some strange action:action, current action:action, current information:information;
 
@@ -396,6 +467,14 @@ let variable go through all actions (X:action)=value code
     #execute <print "compare result=" <the compare result>>;
     execute <it is not reasonable to ask oneself to do anything <the compare result>>;    
 };
+variable go through all questions (X:question):code;
+let variable go through all questions (X:question)=value code
+{
+    let variable current question = value question [(X:question)];
+    let variable some strange action = value action ask_<current npc>_question_<current question>;    
+    execute <compare "action" <<current npc> wants to> <some strange action>>;
+    execute <it is not reasonable to ask oneself any question <the compare result>>;    
+};
 
 variable go through all crazy ideas :code;
 let variable go through all crazy ideas =value code
@@ -406,11 +485,29 @@ let variable go through all crazy ideas =value code
     execute <compare "action" <<current npc> wants to> <some strange action>>;
     #execute <print "compare result=" <the compare result>>;
     execute <it is not reasonable to talk to oneself <the compare result>>;
-    
-    # one cannot tell himself anything
-    execute <go through all informations (Y:information)>;
-    # one cannot ask himself to do anything
+        
+    execute <go through all informations (Y:information)>;    
     execute <go through all actions (Y:action)>;
+    execute <go through all questions (Y:question)>;
+};
+
+
+variable move npc in the direction (X:direction):code;
+let variable move npc in the direction north=value code
+{
+    let variable <current npc> dy=value integer -10;
+};
+let variable move npc in the direction east=value code
+{
+    let variable <current npc> dx=value integer 10;
+};
+let variable move npc in the direction south=value code
+{
+    let variable <current npc> dy=value integer 10;
+};
+let variable move npc in the direction west=value code
+{
+    let variable <current npc> dx=value integer -10;
 };
 
 
@@ -420,10 +517,21 @@ let variable if the idea is not reasonable then shorten the thinking time false=
     let variable npc thinking time <current npc>=value integer 50;
 };
 
+variable current direction:direction;
+
 let variable if the idea is not reasonable then shorten the thinking time true=value code
 {
     execute <print "an excellent idea!">;
     # now make a plan - how to achieve your goal, when you want to talk with X go to where he might be
+    
+        
+    # get random direction
+    let variable the read from stream source stream index = <my direction dice index>;
+    execute <read from stream "direction">;
+    let variable current direction=<the read from stream result "direction">;
+    
+    # move the npc
+    execute <move npc in the direction <current direction>>;    
 };
 
 
@@ -440,7 +548,6 @@ let variable check whether the new idea is reasonable=value code
     execute <if the idea is not reasonable then shorten the thinking time <the idea is reasonable>>;
 };
 
-variable current npc:person;
 
 variable npc gets new idea on comparison (X:compare_result):code;
 let variable npc gets new idea on comparison equal=value code
@@ -461,13 +568,97 @@ let variable npc gets new idea on comparison equal=value code
 };
 
 
+variable notice all informations:code;
+let variable notice all informations=value code
+{
+    # calculate the distance from all buildings
+    # choose the smallest one, if it is less then the threshold:
+    # notice the information <current npc>_is_in_<current place>
+    # check whether the other characters are in the same place -
+    # 
+};
+
+
+
+variable slow_down_npc_x_on_comparison (X:compare_result):code, slow_down_npc_y_on_comparison (X:compare_result):code;
+let variable slow_down_npc_x_on_comparison greater=value code
+{
+    execute <substract "integer" <<current npc> dx> 1>;
+    let variable <current npc> dx=<the substract result "integer">;
+};
+
+let variable slow_down_npc_x_on_comparison lower=value code
+{
+    execute <add "integer" <<current npc> dx> 1>;
+    let variable <current npc> dx=<the add result "integer">;
+};
+let variable slow_down_npc_y_on_comparison greater=value code
+{
+    execute <substract "integer" <<current npc> dy> 1>;
+    let variable <current npc> dy=<the substract result "integer">;
+};
+
+let variable slow_down_npc_y_on_comparison lower=value code
+{
+    execute <add "integer" <<current npc> dy> 1>;
+    let variable <current npc> dy=<the add result "integer">;
+};
+
+
+variable reset_npc_x_left_on_comparison (X:compare_result):code, 
+        reset_npc_x_right_on_comparison (X:compare_result):code, 
+        reset_npc_y_down_on_comparison (X:compare_result):code,
+        reset_npc_y_up_on_comparison (X:compare_result):code;
+        
+let variable reset_npc_x_left_on_comparison lower=value code { let variable <current npc> x=value integer 0; };
+let variable reset_npc_x_right_on_comparison greater=value code { let variable <current npc> x=value integer 750; };
+let variable reset_npc_y_up_on_comparison lower=value code { let variable <current npc> y=value integer 0; };
+let variable reset_npc_y_down_on_comparison greater=value code { let variable <current npc> y=value integer 500; };
+
+
+variable move npc:code;
+let variable move npc=value code
+{
+    execute <add "integer" <<current npc> x> <<current npc> dx>>;
+    let variable <current npc> x=<the add result "integer">;
+    execute <compare "integer" <<current npc> dx> 0>;
+    execute <slow_down_npc_x_on_comparison <the compare result>>;
+
+    execute <add "integer" <<current npc> y> <<current npc> dy>>;
+    let variable <current npc> y=<the add result "integer">;
+    execute <compare "integer" <<current npc> dy> 0>;
+    execute <slow_down_npc_y_on_comparison <the compare result>>;        
+    
+    # don't allow moving beyond the screen
+    execute <compare "integer" <<current npc> x> 0>;
+    execute <reset_npc_x_left_on_comparison <the compare result>>;
+    
+    execute <compare "integer" <<current npc> x> 750>;
+    execute <reset_npc_x_right_on_comparison <the compare result>>;
+
+    execute <compare "integer" <<current npc> y> 0>;
+    execute <reset_npc_y_up_on_comparison <the compare result>>;
+    
+    execute <compare "integer" <<current npc> y> 500>;
+    execute <reset_npc_y_down_on_comparison <the compare result>>;    
+};
+
+
+variable move npc (X:person):code;
+let variable move npc (X:person)=value code
+{
+    let variable current npc=value person[(X:person)];
+    execute <move npc>;
+};
+let variable move npc I=value code {};  # "I" is not an NPC
 
 variable npc is thinking (X:person):code;
-
 let variable npc is thinking (X:person)=value code
 {
     let variable current npc=value person[(X:person)];
     execute <compare "integer" <npc thinking time <current npc>> 0>;
+    
+    execute <notice all informations>;
     
     execute <npc gets new idea on comparison <the compare result>>;
     
@@ -476,7 +667,6 @@ let variable npc is thinking (X:person)=value code
     let variable npc thinking time <current npc>=<the substract result "integer">;    
         
 };
-
 let variable npc is thinking I=value code {};   # the hero does not think - it is controlled by the player
 
 
@@ -486,9 +676,9 @@ let variable loop body depending on game mode game=value code
     execute <show_all_huts>;
     execute <show image <blue monkey image index> <hero x> <hero y>>;
 
-    execute <show image <red monkey image index> 0 0>;
-    execute <show image <yellow monkey image index> 730 0>;
-    execute <show image <green monkey image index> 730 480>;        
+    execute <show image <red monkey image index> <Gotrek x> <Gotrek y>>;
+    execute <show image <yellow monkey image index> <Gerrudir x> <Gerrudir y>>;
+    execute <show image <green monkey image index> <Gwaigilion x> <Gwaigilion y>>;        
     
     execute <show text <my regular font index> "press Escape to exit" 100 0>;    
     
@@ -499,6 +689,7 @@ let variable loop body depending on game mode game=value code
     execute <show image <chomik image index> 0 0>;    
     execute <move hero>;
     execute <npc is thinking (X:person)>;
+    execute <move npc (X:person)>;
 };
 
 
