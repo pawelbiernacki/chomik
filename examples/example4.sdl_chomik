@@ -29,10 +29,15 @@ expand(3);
 
 
 variable (X:person) thinks (Y:information_range):information;   # each person can remember several informations
-variable (X:person) can see (Y:information_range):information;  # and also can see several informations
-variable (X:person) is in a conversation:boolean;   # for each person there is a boolean flag - whether it is in a conversation
-variable where is (X:person):place;
 
+# "input variables"
+variable (X:person) can see (Y:person):boolean;
+variable where is (X:person):place;
+variable (X:person) is in a conversation:boolean;   # for each person there is a boolean flag - whether it is in a conversation
+
+
+
+# game mode - it controls how the keys are interpreted and what the sdl loop body is.
 variable game mode: game_mode_type;
 
 let variable game mode = value game_mode_type initial;
@@ -142,7 +147,6 @@ let variable initialize the game=value code
     let variable (X:person) dx = value integer 0;
     let variable (X:person) dy = value integer 0;    
     let variable (X:person) thinks (Y:information_range)=value information nothing;     # clear the memory of the npcs
-    let variable (X:person) can see (Y:information_range)=value information nothing;    # and everything they can see
     let variable (X:person) is in a conversation=value boolean false;
     let variable where is (X:person) = value place outside;
 };
@@ -169,17 +173,6 @@ let variable learn new information=value code
     let variable <current npc> thinks <current information index>=<current information>;
 };
 
-variable notice new information:code;   # this code is used to notice what can be seen
-let variable notice new information=value code
-{
-    # choose randomly an information index
-    let variable the read from stream source stream index = <my information index generator index>;
-    execute <read from stream "integer">;
-    let variable current information index=<the read from stream result "integer">;
-    
-    # store the new information in it
-    let variable <current npc> can see <current information index>=<current information>;
-};
 
 
 ###################################################################################################
@@ -654,9 +647,8 @@ let variable notice all informations=value code
 {
     # calculate the distance from all buildings
     # choose the smallest one, if it is less then the threshold:
-    # notice the information <current npc>_is_in_<current place>
     # check whether the other characters are in the same place -
-    # 
+    # set the variables (X:person)_can_see_(Y:person)
 };
 
 
