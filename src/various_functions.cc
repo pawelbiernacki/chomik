@@ -2170,11 +2170,13 @@ chomik::description_of_a_cartesian_product::description_of_a_cartesian_product(c
 std::string chomik::generic_value_variable_value::get_actual_text_representation(machine & m, generator & g) const
 {
     signature s{*name, m, g};
+
     /*
     std::cout << "getting value of variable ";
     s.report(std::cout);
     std::cout << "\n";
-    */      
+    */
+
     switch (m.get_actual_memory_representation_type_of_the_variable(s))
     {
         case variable_with_value::actual_memory_representation_type::INTEGER:
@@ -2187,6 +2189,10 @@ std::string chomik::generic_value_variable_value::get_actual_text_representation
             break;
             
         case variable_with_value::actual_memory_representation_type::CODE:
+            break;
+            
+        case variable_with_value::actual_memory_representation_type::ENUM:
+            return m.get_variable_value_enum(s);
             break;
 
     }
@@ -2220,6 +2226,9 @@ std::string chomik::machine::get_enum_type_item(const std::string & tn, int i) c
     {
         throw std::runtime_error("type instance is not known");
     }
+        
+    //std::cout << "GET ENUM " << tn << " OFFSET " << i << "\n";
+    
     return map_type_name_to_type_instance.at(tn)->get_enum_item(i);
 }
 
