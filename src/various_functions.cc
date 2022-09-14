@@ -776,6 +776,9 @@ void chomik::machine::create_predefined_types()
     gn_true.add_generic_name_item(std::make_shared<identifier_name_item>("true"));
     signature signature_true{gn_true};    
     boolean_type->add_type_instance_enum_value(signature_true);
+
+    // also create auxilliary variables for the newly created types
+    create_auxilliary_variables_for_type_instance(*boolean_type);
     
     add_type_instance(std::move(boolean_type));
     
@@ -796,8 +799,10 @@ void chomik::machine::create_predefined_types()
     signature signature_greater{gn_greater};
     comparison_result_type->add_type_instance_enum_value(signature_greater);
 
-    add_type_instance(std::move(comparison_result_type));
-    
+    // also create auxilliary variables for the newly created types
+    create_auxilliary_variables_for_type_instance(*comparison_result_type);
+
+    add_type_instance(std::move(comparison_result_type));    
 }
 
 void chomik::machine::create_predefined_streams()
