@@ -3,6 +3,8 @@
 #define YY_DECL int yylex( YYSTYPE * yylval_param, void * yyscanner )
 #define YYLTYPE int
 
+void chomik_push_buffer_data(const char * const filename, unsigned line_number);
+void chomik_pop_buffer_data(const char ** filename_ptr, unsigned * line_number_ptr);
 
 void chomik_open_file(const char * f);
 void chomik_close_file();
@@ -164,14 +166,25 @@ void chomik_open_file(const char * f)
 		fprintf(stderr, "unable to open file %s\n", f);
 		exit(EXIT_FAILURE);
 	}
+	chomik_push_buffer_data(f, yylineno);
+	
+	/*printf("opening file %s\n", f);*/
+	
 }
 
 void chomik_close_file()
 {
+    const char * f = "unknown";
+    chomik_pop_buffer_data(&f,&yylineno);
+    
+    /*printf("closing file %s\n", f);*/
+    
 	fclose(yyin);
 }
 
+char chomik_current_file[1024] = "";
+
 void yyerror (char const *s) {
-   fprintf (stderr, "line %i: %s\n", yylineno, s);
+   fprintf (stderr, "file %s, line %i: %s\n", chomik_current_file, yylineno, s);
 }
 
