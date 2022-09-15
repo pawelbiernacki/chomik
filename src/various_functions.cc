@@ -109,7 +109,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "substract", "the"
+    "print", "create", "get", "read", "compare", "add", "substract", "the", "set"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -674,8 +674,7 @@ void chomik::machine::create_predefined_variables()
     gn3.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
     gn3.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
     gn3.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("result"));    
+    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));    
     gn3.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));    
     gn3.add_generic_name_item(std::make_shared<identifier_name_item>("index"));    
     std::shared_ptr<signature> the_get_from_stream_result_stream_index=std::make_shared<signature>(gn3);    
@@ -760,6 +759,16 @@ void chomik::machine::create_predefined_variables()
     gn12.add_generic_name_item(std::make_shared<name_item_string>("integer"));
     std::shared_ptr<signature> the_substract_result_integer=std::make_shared<signature>(gn12);
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_substract_result_integer), 0));
+
+    generic_name gn13;
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("set"));
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("to"));
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));    
+    gn13.add_generic_name_item(std::make_shared<identifier_name_item>("index"));    
+    std::shared_ptr<signature> the_set_to_stream_stream_index=std::make_shared<signature>(gn13);    
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_set_to_stream_stream_index), 0));
     
 }
 
@@ -1055,13 +1064,59 @@ void chomik::signature::execute_predefined_create(machine & m) const
 }
 
 
-void chomik::signature::execute_predefined_get(machine & m) const
+void chomik::signature::execute_predefined_set(machine & m) const
 {
         if (vector_of_items.size() == 4)
         {
-            if (vector_of_items[1]->get_it_is_identifier("from") 
+            if (vector_of_items[1]->get_it_is_identifier("to") 
                 && vector_of_items[2]->get_it_is_identifier("stream") 
-                && vector_of_items[3]->get_it_is_identifier("result"))
+                && vector_of_items[3]->get_it_is_string())
+            {
+                
+                //the set to stream result stream index
+                generic_name gn;
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("set"));
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("to"));
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+                gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+                
+                signature the_set_to_stream_index{gn};
+                
+                int index = m.get_variable_with_value(the_set_to_stream_index).get_value_integer();
+        
+                DEBUG("value of the set to stream stream index " << index);
+                if (index >= 0 && index < m.get_amount_of_streams())
+                {
+                    generic_stream& gs{m.get_stream(index)};                                                        
+                    
+                    gs.set_result(vector_of_items[3]->get_value_string());
+                                    
+                    DEBUG("assign value string " << gs.get_result());
+                
+                    return;
+                }
+                return;
+            }
+        }
+        
+    std::cerr << "warning: unknown set variable\n";        
+    for (auto & i: vector_of_items)
+    {
+        std::cerr << *i << ' ';
+    }    
+    std::cerr << '\n';             
+}
+
+
+
+void chomik::signature::execute_predefined_get(machine & m) const
+{
+        if (vector_of_items.size() == 3)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("from") 
+                && vector_of_items[2]->get_it_is_identifier("stream"))
             {
                 
                 //the get from stream result stream index
@@ -1070,15 +1125,14 @@ void chomik::signature::execute_predefined_get(machine & m) const
                 gn.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
                 gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
                 gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("result"));        
                 gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
                 gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
                 
-                signature the_get_from_stream_result_stream_index{gn};
+                signature the_get_from_stream_stream_index{gn};
                 
-                int index = m.get_variable_with_value(the_get_from_stream_result_stream_index).get_value_integer();
+                int index = m.get_variable_with_value(the_get_from_stream_stream_index).get_value_integer();
         
-                DEBUG("value of the print target stream index " << index);
+                DEBUG("value of the get from stream stream index " << index);
                 if (index >= 0 && index < m.get_amount_of_streams())
                 {
                     generic_stream& gs{m.get_stream(index)};                        
@@ -1407,6 +1461,8 @@ void chomik::signature::execute_predefined_substract(machine & m) const
 }
 
 
+
+
 void chomik::signature::execute_predefined(machine & m) const
 {
     if (m.get_is_user_defined_executable(*this))
@@ -1447,6 +1503,11 @@ void chomik::signature::execute_predefined(machine & m) const
     if (get_it_has_prefix("substract"))
     {
         execute_predefined_substract(m);
+    }
+    else
+    if (get_it_has_prefix("set"))
+    {
+        execute_predefined_set(m);
     }
     
 }

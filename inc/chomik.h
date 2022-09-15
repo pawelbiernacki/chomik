@@ -303,6 +303,7 @@ namespace chomik
         void execute_predefined_compare(machine & m) const;
         void execute_predefined_add(machine & m) const;
         void execute_predefined_substract(machine & m) const;
+        void execute_predefined_set(machine & m) const;
     public:
         signature(const generic_name & gn, machine & m, generator & g);
         signature(const generic_name & gn);
@@ -2503,6 +2504,7 @@ namespace chomik
         virtual std::ostream& get_output_stream() { return std::cout; }
         virtual std::istream& get_input_stream() { return std::cin; }
         virtual std::string get_result() const { return ""; }
+        virtual void set_result(const std::string & r) {}
         virtual std::string read_string() { return ""; }
         virtual int read_integer() { return 0; }
     };
@@ -2572,6 +2574,7 @@ namespace chomik
         virtual std::istream& get_input_stream() override { return string_stream; }
         
         virtual std::string get_result() const override { return string_stream.str(); }
+        virtual void set_result(const std::string & r) override { string_stream.clear(); string_stream.str(r); }
         
         virtual std::string read_string() override { std::string word; string_stream >> word; return word; }
     };

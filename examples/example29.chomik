@@ -1,0 +1,27 @@
+ 
+execute <create new output stringstream>;  
+let variable my concatenating stream index = <the created stream index>;
+ 
+let variable the set to stream stream index = <my concatenating stream index>;
+execute <set to stream "">;
+
+let variable the get from stream stream index = <the set to stream stream index>;
+execute <get from stream>;
+
+execute <print "the result is " <the get from stream result>>;
+
+
+let variable the print target stream index =  <the set to stream stream index>;
+let variable the print end of line = value string "";
+execute <print "first">;
+execute <print "second">;
+execute <print "third">;
+
+let variable the print target stream index = value integer 0;    # standard output
+let variable the print end of line = value string "\n";
+execute <print "hallo">;
+
+let variable the get from stream stream index = <the set to stream stream index>;
+execute <get from stream>;
+
+execute <print "the result is" <the get from stream result>>;
