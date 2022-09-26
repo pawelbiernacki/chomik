@@ -1,0 +1,22 @@
+
+
+# there is a built-in boolean variable "the break flag"
+# it is false by default, but it can be set to true
+# within a command code to break its execution
+
+variable something (X:integer):code;
+
+let variable something (X:integer)=value code
+{
+    execute <print "loop">;
+    let variable the break flag=value boolean true;
+};
+
+execute <print "we enter an infinite loop">;
+
+execute <something (X:integer)>;
+
+execute <print "we got out of the infinite loop">;
+
+execute <print "the break flag equals" <the break flag>>;
+

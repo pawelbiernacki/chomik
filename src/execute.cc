@@ -296,11 +296,16 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
     else
     {
         // it must be therefore a variable value
-        auto s{std::make_unique<assignment_source_variable_value>()};
+        std::unique_ptr<generic_value> v;
+        value->get_copy(v);
+                
+        auto s{std::make_unique<assignment_source_variable_value>(std::move(v))};
         auto a{std::make_unique<assignment_event>(std::move(t), std::move(d), std::move(s))};
         DEBUG("code line number " << line_number << ": an assignment " << *a);        
         
         m.add_assignment_event(std::move(a));
+                
+        // TODO - update all the values matching the signature for the variables stored in memory
     }
 }
 
@@ -438,7 +443,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::ENUM:
-                                std::cerr << "warning: cannot execute a float!\n";
+                                std::cerr << "warning: cannot execute an enum!\n";
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::CODE:
@@ -463,14 +468,78 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
 
 void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, generator & g) const
 {
-    // TODO - infinite loop execution
+    signature s{*name, m, g};    
+        
+    DEBUG("code line number " << line_number << ": got signature " << s);
+        
+        if (s.get_is_predefined(m))
+        {
+            s.execute_predefined(m);
+        }
+        else
+        {
+            if (m.get_variable_is_represented_in_memory(s))
+            {
+                DEBUG("code line number " << line_number << ": it is in memory");   // this should never happen, since we do not have infinite memory!!!
+                                
+                throw std::runtime_error("internal error");
+            }
+            else
+            {
+                DEBUG("code line number " << line_number << ": it is NOT in memory");
+                
+                DEBUG("iterate backwards through the assignment events (there are " << m.get_vector_of_assignment_events().size() << " of them)");
+        
+                for (int i=m.get_vector_of_assignment_events().size()-1; i>=0; i--)
+                {
+                    const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
+                    DEBUG("found " << *a);
+            
+                    if (a->get_match(s, m, g))
+                    {
+                        DEBUG("it is matching our signature !!!");
+                                
+                        switch (a->get_source().get_actual_memory_representation_type())
+                        {
+                            case variable_with_value::actual_memory_representation_type::CODE:
+                            {
+                                code c;
+                                a->get_source().get_actual_code_value(m, g, c);
+                                
+                                DEBUG("code line number " << line_number << ": it is a code " << c);
+                                                        
+                                c.execute(m);
+                            }    
+                            break;
+                        
+                        default:
+                            DEBUG("code line number " << line_number << ": error - we may only execute code!");
+                            break;
+                        }
+                
+                        break;
+                    }            
+                }                
+            }
+        }    
+
 }
  
 
 void chomik::execute_variable_value_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
 {
     //std::cout << "execute_variable_value_statement::execute\n";
-    generator g{*name, __FILE__, __LINE__};    
+    generator g{*name, __FILE__, __LINE__};
+
+    // "the break flag" is a predefined boolean variable used to terminate the implicit loops
+    bool the_break_flag=false;
+    generic_name gn_the_break_flag;
+    gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+    gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("break"));
+    gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("flag"));
+
+    signature s{gn_the_break_flag, m, g};
+    
     
     if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
     {
@@ -480,25 +549,62 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
         g.initialize(m);
+        
+        DEBUG("code line number " << line_number << ": execute variable value (single item)");
+        
         execute_if_cartesian_product_has_one_item(m, g);
     }
     else
     if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
     {
+        DEBUG("code line number " << line_number << ": execute variable value (small and finite loop)");
         for (g.initialize(m); !g.get_terminated(); g.increment())
         {
             if (g.get_is_valid())
             {
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
+            
+                        
+            switch (m.get_actual_memory_representation_type_of_the_variable(s))
+            {
+                case variable_with_value::actual_memory_representation_type::ENUM:
+                    the_break_flag = (m.get_variable_value_enum(s) == "true");
+                    break;
+                    
+                default:
+                    std::cerr << "internal error\n"; // this  should never happen
+            }
+                                                
+            if (the_break_flag)
+                break;            
         }
     }    
     else
     {
         // unlimited
         // TODO - check the families of variables
-        
-        execute_if_cartesian_product_is_large_or_infinite(m, g);
+        DEBUG("code line number " << line_number << ": execute variable value (infinite loop)");
+        for (g.initialize(m);; g.increment())
+        {
+            if (g.get_is_valid())
+            {        
+                execute_if_cartesian_product_is_large_or_infinite(m, g);
+            }
+                        
+            switch (m.get_actual_memory_representation_type_of_the_variable(s))
+            {
+                case variable_with_value::actual_memory_representation_type::ENUM:
+                    the_break_flag = (m.get_variable_value_enum(s) == "true");
+                    break;
+                    
+                default:
+                    std::cerr << "internal error\n"; // this  should never happen
+            }
+                                                
+            if (the_break_flag)
+                break;
+        }
     }
 }
 
@@ -534,7 +640,7 @@ void chomik::execute_value_statement::execute_if_cartesian_product_is_finite_and
 
 void chomik::execute_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, generator & g) const
 {
-    // TODO - implement
+    // TODO implement
 }
 
 void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const statement> && i) const

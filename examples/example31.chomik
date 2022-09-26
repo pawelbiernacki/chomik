@@ -1,0 +1,35 @@
+
+variable counter:integer;
+let variable counter = value integer 1;
+
+
+variable break if 100 (X:compare_result):code;
+let variable break if 100 lower=value code {};
+let variable break if 100 greater=value code {};
+let variable break if 100 equal=value code 
+{
+    let variable the break flag=value boolean true;
+};
+
+
+
+variable something (X:integer):code;
+
+let variable something (X:integer)=value code
+{
+    execute <print "counter =" <counter>>;
+    execute <add "integer" <counter> 1>;
+    let variable counter = <the add result "integer">;
+    execute <compare "integer" <counter> 100>;    
+    execute <break if 100 <the compare result>>;
+};
+
+execute <print "we enter an infinite loop">;
+
+execute <something (X:integer)>;
+
+execute <print "we got out of the infinite loop">;
+
+execute <print "the break flag equals" <the break flag>>;
+
+ 

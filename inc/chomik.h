@@ -2248,6 +2248,8 @@ namespace chomik
         virtual double get_actual_float_value(machine & m, generator & g) const { return 0.0; }
         virtual std::string get_actual_string_value(machine & m, generator & g) const { return ""; }
         virtual std::string get_actual_identifier_value(machine & m, generator & g) const { return ""; }
+        virtual void get_actual_code_value(machine & m, generator & g, code & target) const {}
+        
     };
     
     /**
@@ -2271,6 +2273,7 @@ namespace chomik
         virtual double get_actual_float_value(machine & m, generator & g) const override { return my_value->get_actual_float_value(m, g); }
         virtual std::string get_actual_string_value(machine & m, generator & g) const override { return my_value->get_actual_string_value(m, g); }
         virtual std::string get_actual_identifier_value(machine & m, generator & g) const override { return my_value->get_actual_enum_value(m, g); }        
+        virtual void get_actual_code_value(machine & m, generator & g, code & target) const;
     };
     
     /**
@@ -2286,16 +2289,21 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override 
         { return variable_with_value::actual_memory_representation_type::CODE; }
+                
+        virtual void get_actual_code_value(machine & m, generator & g, code & target) const override;
     };
     
     class assignment_source_variable_value: public assignment_source
     {
     private:
+        std::unique_ptr<generic_value> my_value;
     public:
-        assignment_source_variable_value() {}
+        assignment_source_variable_value(std::unique_ptr<generic_value> && v): my_value{std::move(v)} {}
         virtual void report(std::ostream & s) const override;
         
-        // TODO - identify the variable family and implement variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override;
+        
+        virtual void get_actual_code_value(machine & m, generator & g, code & target) const override;
+        
     };
     
     
@@ -2466,7 +2474,33 @@ namespace chomik
         virtual int get_level() const { return (*value)->get_level(); }
     };
     
-    class simple_placeholder_for_range: public simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+    
+    class simple_placeholder_for_infinite_range: public simple_placeholder_with_value<int, 
+        static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+    {
+    public:
+        simple_placeholder_for_infinite_range(const std::string & p): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, 0} {}
+        
+        virtual void report(std::ostream & s) const override
+        {
+            s << placeholder << '=' << value << "\n";
+        }
+        virtual bool get_is_valid() const override
+        {
+            return true;
+        }
+        virtual bool get_is_terminated() const override
+        {
+            return false;
+        }        
+        virtual void increment() override { value++; }
+        
+        virtual int get_value_integer() const override { return value; }        
+    };
+    
+    
+    class simple_placeholder_for_range: public simple_placeholder_with_value<int,
+        static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
     {
     private:
         const int first, last;

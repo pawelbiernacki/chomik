@@ -770,6 +770,13 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_set_to_stream_stream_index=std::make_shared<signature>(gn13);    
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_set_to_stream_stream_index), 0));
     
+    generic_name gn14;
+    gn14.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn14.add_generic_name_item(std::make_shared<identifier_name_item>("break"));
+    gn14.add_generic_name_item(std::make_shared<identifier_name_item>("flag"));
+    std::shared_ptr<signature> the_break_flag=std::make_shared<signature>(gn14);    
+    add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_break_flag), "false"));    
+    
 }
 
 void chomik::machine::create_predefined_types()
@@ -850,7 +857,11 @@ std::string chomik::generic_literal_placeholder::get_actual_string_value(machine
 int chomik::generic_value_variable_value::get_actual_integer_value(machine & m, generator & g) const
 {
     signature s{*name, m, g};
-    return m.get_variable_value_integer(s);
+    int v{m.get_variable_value_integer(s)};
+    
+    DEBUG("get integer value for " << s << ", it equals " << v);
+    
+    return v;
 }
 
 
@@ -1409,7 +1420,7 @@ void chomik::signature::execute_predefined_add(machine & m) const
                     
                     DEBUG("signature::execute_predefined_add got " << a << " and " << b);
                                     
-                    m.get_variable_with_value(the_add_result).assign_value_integer(a+b);                                        
+                    m.get_variable_with_value(the_add_result).assign_value_integer(a+b);
                     return;
                 }
             }
@@ -2030,7 +2041,10 @@ void chomik::generator::initialize(machine & m)
                 }
                 else
                 {
-                    throw std::runtime_error("type_instance is not known");
+                    // TODO we just assume it is infinite because there is no type instance - we should check whether the assumption is correct                                        
+                    DEBUG("it is infinite");
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_infinite_range>(i->get_name())};
+                    add_placeholder_with_value(std::move(x));
                 }
             }
             break;
@@ -2311,3 +2325,23 @@ void chomik::type_instance_enum::add_type_instance_enum_value(const std::string 
     if (std::find_if(vector_of_values.begin(), vector_of_values.end(), [&n](auto & x){return x->get_name()==n;})==vector_of_values.end())
         vector_of_values.push_back(std::make_unique<type_instance_enum_value>(n, new_level));
 }
+
+
+void chomik::assignment_source_variable_value::get_actual_code_value(machine & m, generator & g, code & target) const
+{
+    DEBUG("got " << target);    
+}
+
+void chomik::assignment_source_code_pattern::get_actual_code_value(machine & m, generator & g, code & target) const
+{
+    DEBUG("got " << target);
+}
+
+void chomik::assignment_source_literal_value::get_actual_code_value(machine & m, generator & g, code & target) const
+{
+    replacing_policy_literal p;
+    my_value->get_actual_code_value(m, g, p, target);
+        
+    DEBUG("got " << target);
+}
+
