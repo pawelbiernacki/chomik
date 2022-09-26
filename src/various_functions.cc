@@ -777,6 +777,18 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_break_flag=std::make_shared<signature>(gn14);    
     add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_break_flag), "false"));    
     
+    
+    generic_name gn15;
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("max"));
+    gn15.add_generic_name_item(std::make_shared<identifier_name_item>("size"));
+    std::shared_ptr<signature> the_read_from_stream_max_size=std::make_shared<signature>(gn15);    
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_read_from_stream_max_size), 0));
+    
+    
 }
 
 void chomik::machine::create_predefined_types()
@@ -1249,8 +1261,23 @@ void chomik::signature::execute_predefined_read(machine & m) const
                     gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
                     gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
                     gn2.add_generic_name_item(std::make_shared<name_item_string>("string"));
-                
+                    
+                    
+                    generic_name gn3;
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("max"));
+                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("size"));
+
+                    
+                    signature the_read_from_stream_max_size{gn3};                
+                    int max_size = m.get_variable_with_value(the_read_from_stream_max_size).get_value_integer();
+                    
                     signature the_read_from_stream_result{gn2};    
+                    
+                    gs.set_max_size(max_size);
                     
                     std::string s = gs.read_string();
                                     
@@ -1365,6 +1392,41 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                     std::string s = "";
                     std::string a = vector_of_items[2]->get_value_enum();
                     std::string b = vector_of_items[3]->get_value_enum();
+                    
+                    auto x{strcmp(a.c_str(), b.c_str())};
+                    
+                    if (x < 0)
+                    {
+                        s = "lower";
+                    }
+                    else
+                    if (x > 0)
+                    {
+                        s = "greater";
+                    }
+                    else
+                    {
+                        s = "equal";
+                    }                    
+                    
+                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);
+                    return;
+            }
+            else
+            if (vector_of_items[1]->get_it_is_string() 
+                && vector_of_items[2]->get_it_is_string()
+                && vector_of_items[3]->get_it_is_string())
+            {                
+                    generic_name gn2;
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
+                
+                    signature the_compare_result{gn2};
+                    
+                    std::string s = "";
+                    std::string a = vector_of_items[2]->get_value_string();
+                    std::string b = vector_of_items[3]->get_value_string();
                     
                     auto x{strcmp(a.c_str(), b.c_str())};
                     

@@ -1,0 +1,62 @@
+
+
+# reading a string from the standard input and calculating its length
+
+# first we create a stringstream
+execute <create new input stringstream "">;
+let variable my stream index = <the created stream index>;
+
+
+execute <print "please type a word and press return">;
+
+
+# now we read from the input
+let variable the read from stream source stream index = value integer 2; # standard input
+execute <read from stream "string">;
+variable word:string;
+let variable word=<the read from stream result "string">;
+execute <print "got" <word>>;
+
+let variable the set to stream stream index=<my stream index>;
+execute <set to stream <word>>;
+
+variable length:integer;
+let variable length=value integer 0;    # we initialize the result
+
+let variable the read from stream source stream index=<my stream index>;
+let variable the read from stream max size=value integer 1; # we read character by character
+
+variable letter:string;
+
+variable increment length:code;
+let variable increment length=value code
+{
+    execute <add "integer" <length> 1>;
+    let variable length=<the add result "integer">;
+};
+
+variable terminate iteration (X:compare_result):code;
+let variable terminate iteration lower=value code
+{
+    execute <increment length>;
+};
+let variable terminate iteration greater=value code
+{
+    execute <increment length>;
+};
+let variable terminate iteration equal=value code
+{
+    let variable the break flag=value boolean true;
+};
+
+variable iterate (X:integer):code;
+let variable iterate (X:integer)=value code
+{
+    execute <read from stream "string">;
+    let variable letter = <the read from stream result "string">;
+    execute <compare "string" <letter> "">;
+    execute <terminate iteration <the compare result>>;
+};
+
+execute <iterate (X:integer)>;
+execute <print "length of the word" <word> "equals" <length>>;

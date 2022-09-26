@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+#include <iomanip>
 
 namespace chomik
 {    
@@ -2529,14 +2530,18 @@ namespace chomik
      */
     class generic_stream
     {
-    public:        
+    protected:
+        int max_size; // for reading
+    public:
+        generic_stream(): max_size{0} {}
+        void set_max_size(int ms) { max_size = ms; }                
         virtual ~generic_stream() {}
         virtual bool get_allows_input() const { return false; }
         virtual bool get_allows_output() const { return false; }
         virtual bool get_should_be_opened() const { return false; }
         virtual bool get_should_be_closed() const { return false; }
         virtual std::ostream& get_output_stream() { return std::cout; }
-        virtual std::istream& get_input_stream() { return std::cin; }
+        virtual std::istream& get_input_stream() { return std::cin; }        
         virtual std::string get_result() const { return ""; }
         virtual void set_result(const std::string & r) {}
         virtual std::string read_string() { return ""; }
@@ -2561,7 +2566,7 @@ namespace chomik
     {
     public:
         virtual bool get_allows_input() const override { return true; }
-        virtual std::string read_string() override { std::string word; std::cin >> word; return word; }
+        virtual std::string read_string() override { std::string word; std::cin >> std::setw(max_size) >> word; return word; }
     };
     
     class generic_stream_file: public generic_stream
@@ -2610,7 +2615,7 @@ namespace chomik
         virtual std::string get_result() const override { return string_stream.str(); }
         virtual void set_result(const std::string & r) override { string_stream.clear(); string_stream.str(r); }
         
-        virtual std::string read_string() override { std::string word; string_stream >> word; return word; }
+        virtual std::string read_string() override { std::string word; string_stream >> std::setw(max_size) >> word; return word; }
     };
     
     class generic_stream_random_number_stream: public generic_stream
