@@ -141,7 +141,10 @@ nonempty_list_of_name_items: name_item nonempty_list_of_name_items
             
         | name_item { $$ = chomik_create_list_of_name_items($1, NULL); /* no need to destroy $1 !!! */ }
 
-assignment: T_LET T_VARIABLE name '=' value ';' { $$ = chomik_create_assignment_statement($3, $5, yylineno); /* no need to destroy $3 and $5 !!! */ }
+        
+optional_variable: T_VARIABLE |        
+        
+assignment: T_LET optional_variable name '=' value ';' { $$ = chomik_create_assignment_statement($3, $5, yylineno); /* no need to destroy $3 and $5 !!! */ }
 
 value: T_VALUE constant_value_literal { $$ = chomik_create_value_literal($2); /* no need to destroy $2 !!! */ }
     | '<' name '>' { $$ = chomik_create_variable_value($2); /* no need to destroy $2 !!! */ }
@@ -158,9 +161,12 @@ constant_value_literal:
         
 code_literal: '{' list_of_statements '}' { $$ = chomik_create_code_literal($2); /* no need to destroy $2 !!! */ }
 
-execute: T_EXECUTE '<' name '>' ';' { $$ = chomik_create_execute_variable_value_statement($3, yylineno); /* no need to destroy $3 !!! */ }
 
-        | T_EXECUTE value ';' { $$ = chomik_create_execute_value_statement($2, yylineno); /* no need to destroy $2 !!! */ }
+optional_execute: T_EXECUTE |
+
+
+execute: optional_execute '<' name '>' ';' { $$ = chomik_create_execute_variable_value_statement($3, yylineno); /* no need to destroy $3 !!! */ }
+        | optional_execute value ';' { $$ = chomik_create_execute_value_statement($2, yylineno); /* no need to destroy $2 !!! */ }
 
 expand: T_EXPAND '(' T_INT_LITERAL ')' ';' { $$ = chomik_create_expand_statement($3, yylineno); } 
 
