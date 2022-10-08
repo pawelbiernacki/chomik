@@ -497,9 +497,11 @@ chomik::parser the_parser{the_program};
 
 int main(int argc, char * argv[])
 {
+    int return_value = 0;
     if (argc != 2)
     {
         std::cerr << "usage: " << argv[0] << " <filename>\n";
+        return_value = 1;
     }
     else
     {
@@ -513,6 +515,7 @@ int main(int argc, char * argv[])
             
             if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
             {
+                TTF_Quit();
                 std::cerr << SDL_GetError() << "\n";
                 exit(1);
             }
@@ -521,13 +524,21 @@ int main(int argc, char * argv[])
             m.create_predefined_variables();
             m.create_predefined_streams();
                         
-            the_program.execute(m);            
-        }
-        
+            the_program.execute(m);      
+            
+            
+            chomik::generic_name gn;
+            gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+            gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("program"));
+            gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("return"));
+            chomik::signature s0{gn};
+                        
+            return_value = m.get_variable_value_integer(s0);                        
+        }        
         
         SDL_Quit();            
         TTF_Quit();
     }
         
-    return 0;
+    return return_value;
 } 

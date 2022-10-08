@@ -18,9 +18,9 @@ AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc
 
 
 
-TESTS = ../tests/test1.chomik ../tests/test2.chomik
+TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik
 
-XFAIL_TESTS = 
+XFAIL_TESTS = ../tests/test3.chomik
 
 		
 lex.yy.c: scanner.l

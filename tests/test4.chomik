@@ -1,0 +1,6 @@
+#!/usr/local/bin/chomik
+
+# this test is supposed to succeed
+
+let the program return = value integer 0; # this is a predefined variable, it contains the value to be returned by the program
+

@@ -789,6 +789,12 @@ void chomik::machine::create_predefined_variables()
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_read_from_stream_max_size), 0));
     
     
+    generic_name gn16;
+    gn16.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn16.add_generic_name_item(std::make_shared<identifier_name_item>("program"));
+    gn16.add_generic_name_item(std::make_shared<identifier_name_item>("return"));
+    std::shared_ptr<signature> the_program_return=std::make_shared<signature>(gn16);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_program_return), 0));
 }
 
 void chomik::machine::create_predefined_types()
