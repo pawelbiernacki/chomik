@@ -336,11 +336,45 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 
-	while (1)
+    HTTP_CHOMIK_LOG_NOTICE("http_chomik started.");
+    pid_t f, pid;
+    
+    f = fork();
+    if (f < 0)
     {
-        HTTP_CHOMIK_LOG_NOTICE("http_chomik started.");
-        doprocessing();
+        exit(EXIT_FAILURE);
     }
 
+    if (setsid() < 0)
+        exit(EXIT_FAILURE);
+	
+	signal(SIGCHLD, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+
+    pid = fork();
+	
+	if (pid < 0)
+        exit(EXIT_FAILURE);
+    
+    if (pid > 0)
+        exit(EXIT_SUCCESS);
+	
+	umask(0);
+    
+    chdir("/root");
+	
+	int x;
+    for (x = sysconf(_SC_OPEN_MAX); x>=0; x--)
+    {
+        close (x);
+    }
+        
+    openlog("chomik", LOG_PID|LOG_CONS, LOG_USER);
+
+            
+    syslog(LOG_INFO, PACKAGE_STRING " daemon is running");
+    
+    doprocessing();
+    
     return EXIT_SUCCESS;	
 }
