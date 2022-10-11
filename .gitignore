@@ -18,5 +18,8 @@ src/scanner.c
 src2/.deps/
 src2/.libs/
 src2/sdl_chomik
+src3/.deps/
+src3/.libs/
+src3/http_chomik
 
 
