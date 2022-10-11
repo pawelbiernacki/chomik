@@ -26,6 +26,8 @@ namespace http_chomik
         void handle_main(std::ostream & message_stream);
         void handle_incorrect_uri(std::ostream & message_stream);
         void handle_code(std::ostream & message_stream, std::smatch & m);
+        void handle_chomik_image(std::ostream & message_stream);
+        void handle_stylesheet(std::ostream & message_stream);
         
         void send_message(const std::string & message);
     };

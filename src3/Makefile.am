@@ -12,4 +12,7 @@ AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 \
 	-I.. -I../inc \
 	-DDATADIR=\"$(datadir)\"
 
+http_chomik_DATA = \
+	../image/chomik.png \
+	../css/chomik.css
 

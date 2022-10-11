@@ -101,6 +101,7 @@ AC_CHECK_LIB(SDL2_ttf, TTF_Init, [], [
 
 AC_CONFIG_FILES([Makefile
                  3d/Makefile
+                 css/Makefile
                  examples/Makefile
                  font/Makefile
                  image/Makefile

@@ -72,8 +72,11 @@ void http_chomik::server::handle_main(std::ostream & message_stream)
 {
     message_stream 
         << "<html>"    
-        << "<head><meta charset=\"UTF-8\"></head>"
-        << "<body><h1>Welcome to our http_chomik server</h1><h3>by Paweł Biernacki</h3><form><textarea cols=\"80\" rows=\"50\" name=\"code\">&lt;print \"hello world\"&gt;;</textarea><input type=\"submit\" value=\"run\"/></form></body>"
+        << "<head><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"chomik.css\"></head>"
+        << "<body><image src=\"chomik.png\"/><h1>Welcome to our http_chomik server</h1><h3>by Paweł Biernacki</h3><form>"
+        << "<textarea cols=\"80\" rows=\"40\" name=\"code\">&lt;print \"hello world\"&gt;;</textarea>"
+        << "<input style=\"background-color:red;\" type=\"submit\" value=\"run\"/></form><br/>"
+        << "<a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";
 }
 
@@ -82,11 +85,40 @@ void http_chomik::server::handle_incorrect_uri(std::ostream & message_stream)
 {
     message_stream 
         << "<html>"    
-        << "<body><h1>Sorry, http_chomik does not understand this URI</h1></body>"
+        << "<head><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"chomik.css\"></head>"
+        << "<body><h1>Sorry, http_chomik does not understand this URI</h1><br/><a href=\"/\">Return</a><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";
 }
 
 
+void http_chomik::server::handle_chomik_image(std::ostream & message_stream)
+{
+    std::stringstream chomik_image_location_stream;
+    
+    chomik_image_location_stream << DATADIR << "/http_chomik/" << "chomik.png";
+    std::ifstream chomik_image_stream(chomik_image_location_stream.str(), std::ios_base::binary);
+    char buffer[1];
+    
+    while (chomik_image_stream.read(buffer, 1))
+    {
+        message_stream << buffer[0];        
+    }
+}
+
+
+void http_chomik::server::handle_stylesheet(std::ostream & message_stream)
+{
+    std::stringstream chomik_css_location_stream;
+    
+    chomik_css_location_stream << DATADIR << "/http_chomik/" << "chomik.css";
+    std::ifstream chomik_image_stream(chomik_css_location_stream.str());
+    char buffer[1];
+
+    while (chomik_image_stream.read(buffer, 1))
+    {
+        message_stream << buffer[0];        
+    }    
+}
 
 
 static void doprocessing_client(int sock) 
@@ -131,6 +163,18 @@ static void doprocessing_client(int sock)
     if (uri == "/")
     {
         my_server.handle_main(message_stream);        
+    }
+    else
+    if (uri == "/chomik.png")
+    {
+        my_server.handle_chomik_image(message_stream);
+        response_type="image/png";
+    }
+    else
+    if (uri == "/chomik.css")
+    {
+        my_server.handle_stylesheet(message_stream);
+        response_type="text/css";        
     }
     else
     if (std::smatch m; std::regex_search(uri, m, code_regex))
@@ -275,7 +319,8 @@ void http_chomik::server::handle_code(std::ostream & message_stream, std::smatch
     
     message_stream 
         << "<html>"    
-        << "<body><h3>Result:</h3><pre>";
+        << "<head><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"chomik.css\"></head>"
+        << "<body><image src=\"chomik.png\"/><h3>Result:</h3><pre>";
     
     if (the_parser.parse_string(decoded_code_stream.str(), error_stream)==0)
     {
@@ -293,7 +338,7 @@ void http_chomik::server::handle_code(std::ostream & message_stream, std::smatch
         message_stream << error_stream.str();
     }
     
-    message_stream << "</pre></body>"
+    message_stream << "</pre><a href=\"/\">Return</a><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";    
 }
 
