@@ -75,7 +75,7 @@ void http_chomik::server::handle_main(std::ostream & message_stream)
         << "<head><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"chomik.css\"></head>"
         << "<body><image src=\"chomik.png\"/><h1>Welcome to our http_chomik server</h1><h3>by Paweł Biernacki</h3><form>"
         << "<textarea cols=\"80\" rows=\"40\" name=\"code\">&lt;print \"hello world\"&gt;;</textarea>"
-        << "<input style=\"background-color:red;\" type=\"submit\" value=\"run\"/></form><br/>"
+        << "<button type=\"submit\">run</button></form><br/>"
         << "<a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";
 }
@@ -86,7 +86,7 @@ void http_chomik::server::handle_incorrect_uri(std::ostream & message_stream)
     message_stream 
         << "<html>"    
         << "<head><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"chomik.css\"></head>"
-        << "<body><h1>Sorry, http_chomik does not understand this URI</h1><br/><a href=\"/\">Return</a><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
+        << "<body><h1>Sorry, http_chomik does not understand this URI</h1><br/><button onclick=\"history.back()\">go back</button><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";
 }
 
@@ -338,7 +338,7 @@ void http_chomik::server::handle_code(std::ostream & message_stream, std::smatch
         message_stream << error_stream.str();
     }
     
-    message_stream << "</pre><a href=\"/\">Return</a><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
+    message_stream << "</pre><button onclick=\"history.back()\">go back</button><br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a></body>"
         << "</html>";    
 }
 
