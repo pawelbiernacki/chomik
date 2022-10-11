@@ -1,0 +1,12 @@
+/**
+\page sandbox Sandbox
+
+You may test the http_chomik under the following address:
+
+\htmlonly
+<a href="http://www.perkun.org:5001">http://www.perkun.org:5001</a><br/>
+\endhtmlonly
+
+In the sandbox mode you cannot open files (stringstreams are created instead) and "include" is ignored.
+
+*/

@@ -1,7 +1,7 @@
 /**
 \page what_is_chomik What is Chomik?
 
-Chomik is an experimental and minimalistic programming language. You may use it in your own C++ projects. The chomik tarball contains also a program sdl_chomik.
+Chomik is an experimental and minimalistic programming language. You may use it in your own C++ projects. The chomik tarball contains also sdl_chomik and http_chomik.
 
 \htmlonly
 <a href="../resources/pdf/chomik_0_1.pdf">chomik_0_1.pdf</a><br/>
@@ -12,4 +12,7 @@ The sdl_chomik is an example how to extend chomik creating your own chomik diale
 how to write simple games in sdl_chomik. The below image is a screenshot from this "game";
 
 \image html Screenshot_20220425_175316.png
+
+The http_chomik is used to provide sandbox service. It is also an extension of the chomik language.
+
 */
