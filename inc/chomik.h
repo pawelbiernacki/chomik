@@ -2650,7 +2650,7 @@ namespace chomik
      */
     class machine
     {
-    private:
+    protected:
         std::vector<std::shared_ptr<const statement>> vector_of_type_definiton_statements;
         std::vector<std::shared_ptr<const statement>> vector_of_variable_definition_statements;
         
@@ -2667,8 +2667,9 @@ namespace chomik
         std::map<std::string, std::shared_ptr<variable_with_value>> map_signature_string_representation_to_variable_with_value;
         
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
-        
+                
     public:
+        virtual bool get_can_create_files() const { return true; }
         
         int get_max_enum_type_index(const std::string & tn) const;
         
@@ -2878,6 +2879,7 @@ namespace chomik
         parser(program & p);
                 
         int parse(const char * filename);
+        int parse_string(const std::string & code, std::ostream & error_stream);
                 
         void copy_list_of_statements_to_the_program(list_of_statements * const l);
     };

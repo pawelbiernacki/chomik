@@ -240,9 +240,15 @@ extern "C" void chomik_open_file(const char * f);
 extern "C" void chomik_close_file();
 extern "C" int yyparse();
 
+std::ostream *chomik_current_nonstandard_error_stream=nullptr;
+extern "C" int chomik_standard_yyerror_on;
+extern "C" void chomik_read_from_string(const char * b, int len);
+
 int chomik::parser::parse(const char * filename)
 {
     chomik_open_file(filename);
+    
+    chomik_standard_yyerror_on = 1;
 
     int i = yyparse();
 
@@ -253,6 +259,32 @@ int chomik::parser::parse(const char * filename)
 
     return i;
 }
+
+
+
+
+int chomik::parser::parse_string(const std::string & code, std::ostream & error_stream)
+{
+    chomik_current_nonstandard_error_stream = &error_stream;
+    chomik_standard_yyerror_on = 0;
+    
+    chomik_read_from_string(code.c_str(), code.length());
+    
+    int i = yyparse();
+
+    if (i != 0)
+        error_stream << "error" << "\n";
+    
+    return i;
+}
+
+
+extern "C" void chomik_nonstandard_yyerror(unsigned line_number, const char * message)
+{
+    *chomik_current_nonstandard_error_stream << "line " << line_number << ": " << message << "\n";    
+}
+
+
 
 chomik::parser::parser(program & p): my_program{p}
 {
@@ -968,7 +1000,14 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 && vector_of_items[3]->get_it_is_identifier("filestream")
                 && vector_of_items[4]->get_it_is_string())
             {                
-                m.add_stream(std::make_unique<generic_stream_file_output>(vector_of_items[4]->get_value_string()));
+                if (m.get_can_create_files())
+                {
+                    m.add_stream(std::make_unique<generic_stream_file_output>(vector_of_items[4]->get_value_string()));
+                }
+                else
+                {
+                    m.add_stream(std::make_unique<generic_stream_stringstream>());
+                }
                 
                 generic_name gn2;
                 gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));

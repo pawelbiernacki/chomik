@@ -9,6 +9,10 @@ void chomik_pop_buffer_data(const char ** filename_ptr, unsigned * line_number_p
 void chomik_open_file(const char * f);
 void chomik_close_file();
 
+int chomik_standard_yyerror_on = 1;
+
+void chomik_nonstandard_yyerror(unsigned line_number, const char * message);
+
 %}
 
 
@@ -79,6 +83,8 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 
 
 <INCLUDE>\"([^\\\"]|\\.)*\" {                                                             
+                                if (chomik_standard_yyerror_on)
+                                {
                                 const char * p = yytext+1;                        
                                 char * name_of_file_to_include = malloc(strlen(yytext+1)+1); 
                                 char *t = name_of_file_to_include;
@@ -105,6 +111,7 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
                                 yylineno = 1;
                                 
                                 BEGIN(INITIAL);
+                                }
                             }
                             
 <INCLUDE>.
@@ -113,6 +120,14 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 \"([^\\\"]|\\.)*\"		{ 
 
                         const char * p = yytext+1;                        
+                        
+                        if (strlen(yytext+1) > 65536)
+                        {
+                            /* looks like an attack */
+                            yytext="the string is too long";                            
+                        }
+                        
+                        
                         yylval_param->value_string = malloc(strlen(yytext+1)+1); 
                         char * t = yylval_param->value_string;
                         while (*p != '\0')
@@ -160,13 +175,20 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 
 void chomik_open_file(const char * f)
 {
-	yyin = fopen( f, "r" );
-	if (yyin ==  NULL)
-	{
-		fprintf(stderr, "unable to open file %s\n", f);
-		exit(EXIT_FAILURE);
-	}
-	chomik_push_buffer_data(f, yylineno);
+    if (chomik_standard_yyerror_on)
+    {    
+        yyin = fopen( f, "r" );
+        if (yyin ==  NULL)
+        {
+            fprintf(stderr, "unable to open file %s\n", f);
+            exit(EXIT_FAILURE);
+        }
+        chomik_push_buffer_data(f, yylineno);
+    }
+    else
+    {
+        chomik_nonstandard_yyerror(0, "no include allowed here");
+    }
 	
 	/*printf("opening file %s\n", f);*/
 	
@@ -175,16 +197,44 @@ void chomik_open_file(const char * f)
 void chomik_close_file()
 {
     const char * f = "unknown";
-    chomik_pop_buffer_data(&f,&yylineno);
+        
+    if (chomik_standard_yyerror_on)
+    {    
+        chomik_pop_buffer_data(&f,&yylineno);
     
     /*printf("closing file %s\n", f);*/
     
-	fclose(yyin);
+        fclose(yyin);
+    }
+    else
+    {
+        /* we read from a buffer */
+    }
 }
 
 char chomik_current_file[1024] = "";
 
+void chomik_standard_yyerror(char const *s)
+{
+    fprintf (stderr, "file %s, line %i: %s\n", chomik_current_file, yylineno, s);
+}
+
+void chomik_read_from_string(const char * b, int len)
+{    
+    if (yy_scan_string(b) == NULL)
+    {
+        chomik_nonstandard_yyerror(0, "unable to read the buffer");    
+    }
+}
+
 void yyerror (char const *s) {
-   fprintf (stderr, "file %s, line %i: %s\n", chomik_current_file, yylineno, s);
+   if (chomik_standard_yyerror_on)
+   {
+        chomik_standard_yyerror(s);
+   }
+   else
+   {
+        chomik_nonstandard_yyerror(yylineno, s);
+   }
 }
 

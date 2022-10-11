@@ -109,5 +109,6 @@ AC_CONFIG_FILES([Makefile
                  inc/Makefile
                  src/Makefile
                  src2/Makefile
+                 src3/Makefile
                  tests/Makefile libchomik.pc ])
 AC_OUTPUT
