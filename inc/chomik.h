@@ -2799,6 +2799,8 @@ namespace chomik
         int get_amount_of_streams() const { return vector_of_streams.size(); }
         
         generic_stream& get_stream(int i) { return *vector_of_streams[i]; }
+                
+        static std::ostream *current_compilation_error_stream, *current_runtime_warning_stream;
     };
     
     /**

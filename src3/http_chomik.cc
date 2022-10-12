@@ -293,7 +293,9 @@ chomik::parser the_parser{the_program};
 void http_chomik::server::handle_code(std::ostream & message_stream, std::smatch & m)
 {
     std::stringstream code(m[1]);
-    std::stringstream decoded_code_stream, error_stream;
+    std::stringstream decoded_code_stream, 
+        error_stream, // this is for compilation errors
+        error_stream2;  // this is for runtime errors
     std::string c,h;
     
     while (code >> std::setw(1) >> c)
@@ -325,13 +327,15 @@ void http_chomik::server::handle_code(std::ostream & message_stream, std::smatch
     if (the_parser.parse_string(decoded_code_stream.str(), error_stream)==0)
     {
         http_chomik::machine m;
-
+        chomik::machine::current_runtime_warning_stream = &error_stream2;
+        
         m.create_predefined_types();
         m.create_predefined_variables();
         m.create_predefined_streams();
+        
         the_program.execute(m);           
         
-        message_stream << m.get_stream(0).get_result();
+        message_stream << m.get_stream(0).get_result() << error_stream2.str();
     }
     else
     {

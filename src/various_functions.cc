@@ -10,6 +10,8 @@
 #define DEBUG(X)
 #endif
 
+#define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
+
 std::ostream & operator<<(std::ostream & s, const chomik::placeholder_with_value & x)
 {
     x.report(s);
@@ -240,7 +242,7 @@ extern "C" void chomik_open_file(const char * f);
 extern "C" void chomik_close_file();
 extern "C" int yyparse();
 
-std::ostream *chomik_current_nonstandard_error_stream=nullptr;
+std::ostream *chomik::machine::current_compilation_error_stream=&std::cerr, *chomik::machine::current_runtime_warning_stream = &std::cerr;
 extern "C" int chomik_standard_yyerror_on;
 extern "C" void chomik_read_from_string(const char * b, int len);
 
@@ -265,7 +267,7 @@ int chomik::parser::parse(const char * filename)
 
 int chomik::parser::parse_string(const std::string & code, std::ostream & error_stream)
 {
-    chomik_current_nonstandard_error_stream = &error_stream;
+    chomik::machine::current_compilation_error_stream = &error_stream;
     chomik_standard_yyerror_on = 0;
     
     chomik_read_from_string(code.c_str(), code.length());
@@ -281,7 +283,7 @@ int chomik::parser::parse_string(const std::string & code, std::ostream & error_
 
 extern "C" void chomik_nonstandard_yyerror(unsigned line_number, const char * message)
 {
-    *chomik_current_nonstandard_error_stream << "line " << line_number << ": " << message << "\n";    
+    *chomik::machine::current_compilation_error_stream << "line " << line_number << ": " << message << "\n";    
 }
 
 
@@ -1123,12 +1125,12 @@ void chomik::signature::execute_predefined_create(machine & m) const
             }
         }
             
-        std::cerr << "warning: unknown create variable\n";        
+        CHOMIK_STDERR("warning: unknown create variable\n");        
         for (auto & i: vector_of_items)
         {
-            std::cerr << *i << ' ';
+            CHOMIK_STDERR(*i << ' ');
         }    
-        std::cerr << '\n';    
+        CHOMIK_STDERR('\n');    
 }
 
 
@@ -1169,12 +1171,12 @@ void chomik::signature::execute_predefined_set(machine & m) const
             }
         }
         
-    std::cerr << "warning: unknown set variable\n";        
+    CHOMIK_STDERR("warning: unknown set variable\n");        
     for (auto & i: vector_of_items)
     {
-        std::cerr << *i << ' ';
+        CHOMIK_STDERR(*i << ' ');
     }    
-    std::cerr << '\n';             
+    CHOMIK_STDERR('\n');             
 }
 
 
@@ -1223,12 +1225,12 @@ void chomik::signature::execute_predefined_get(machine & m) const
             }
         }
                 
-        std::cerr << "warning: unknown get variable\n";        
+        CHOMIK_STDERR("warning: unknown get variable\n");        
         for (auto & i: vector_of_items)
         {
-            std::cerr << *i << ' ';
+            CHOMIK_STDERR(*i << ' ');
         }    
-        std::cerr << '\n';         
+        CHOMIK_STDERR('\n');         
 }
 
 void chomik::signature::execute_predefined_read(machine & m) const
@@ -1371,12 +1373,12 @@ void chomik::signature::execute_predefined_read(machine & m) const
                 return;
             }
         }
-        std::cerr << "warning: unknown read variable\n";        
+        CHOMIK_STDERR("warning: unknown read variable\n");        
         for (auto & i: vector_of_items)
         {
-            std::cerr << *i << ' ';
+            CHOMIK_STDERR(*i << ' ');
         }    
-        std::cerr << '\n';         
+        CHOMIK_STDERR('\n');         
 }
 
 void chomik::signature::execute_predefined_compare(machine & m) const
@@ -1493,12 +1495,12 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                     return;
             }
         }
-    std::cerr << "warning: unknown compare variable\n";        
+    CHOMIK_STDERR("warning: unknown compare variable\n");        
     for (auto & i: vector_of_items)
     {
-        std::cerr << *i << ' ';
+        CHOMIK_STDERR(*i << ' ');
     }    
-    std::cerr << '\n';         
+    CHOMIK_STDERR('\n');         
 }
 
 
@@ -1532,12 +1534,12 @@ void chomik::signature::execute_predefined_add(machine & m) const
                 }
             }
         }
-    std::cerr << "warning: unknown add variable\n";        
+    CHOMIK_STDERR("warning: unknown add variable\n");        
     for (auto & i: vector_of_items)
     {
-        std::cerr << *i << ' ';
+        CHOMIK_STDERR(*i << ' ');
     }    
-    std::cerr << '\n';         
+    CHOMIK_STDERR('\n');         
 }
 
 void chomik::signature::execute_predefined_substract(machine & m) const
@@ -1570,12 +1572,12 @@ void chomik::signature::execute_predefined_substract(machine & m) const
                 }
             }
         }
-    std::cerr << "warning: unknown substract variable\n";        
+    CHOMIK_STDERR("warning: unknown substract variable\n");        
     for (auto & i: vector_of_items)
     {
-        std::cerr << *i << ' ';
+        CHOMIK_STDERR(*i << ' ');
     }    
-    std::cerr << '\n';         
+    CHOMIK_STDERR('\n');         
 }
 
 
@@ -2115,7 +2117,7 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
     }
     else
     {
-        std::cerr << "warning: type_instance " << name << " is unknown\n";
+        CHOMIK_STDERR("warning: type_instance " << name << " is unknown\n");
     }
     
     return variable_with_value::actual_memory_representation_type::NONE;

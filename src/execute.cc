@@ -8,6 +8,7 @@
 #define DEBUG(X)
 #endif
 
+#define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
 
 void chomik::code::execute(machine & m) const
 {
@@ -371,19 +372,19 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                 switch (m.get_actual_memory_representation_type_of_the_variable(s))
                 {
                     case variable_with_value::actual_memory_representation_type::INTEGER:
-                        std::cerr << "warning: cannot execute an integer!\n";
+                        CHOMIK_STDERR("warning: cannot execute an integer!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::FLOAT:
-                        std::cerr << "warning: cannot execute a float!\n";
+                        CHOMIK_STDERR("warning: cannot execute a float!\n");
                         break;
 
                     case variable_with_value::actual_memory_representation_type::STRING:
-                        std::cerr << "warning: cannot execute a string!\n";
+                        CHOMIK_STDERR("warning: cannot execute a string!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::ENUM:
-                        std::cerr << "warning: cannot execute a float!\n";
+                        CHOMIK_STDERR("warning: cannot execute a float!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::CODE:
@@ -431,19 +432,19 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                         switch (m.get_actual_memory_representation_type_of_the_variable(s))
                         {
                             case variable_with_value::actual_memory_representation_type::INTEGER:
-                                std::cerr << "warning: cannot execute an integer!\n";
+                                CHOMIK_STDERR("warning: cannot execute an integer!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::FLOAT:
-                                std::cerr << "warning: cannot execute a float!\n";
+                                CHOMIK_STDERR("warning: cannot execute a float!\n");
                                 break;
 
                             case variable_with_value::actual_memory_representation_type::STRING:
-                                std::cerr << "warning: cannot execute a string!\n";
+                                CHOMIK_STDERR("warning: cannot execute a string!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::ENUM:
-                                std::cerr << "warning: cannot execute an enum!\n";
+                                CHOMIK_STDERR("warning: cannot execute an enum!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::CODE:
@@ -573,7 +574,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
                     break;
                     
                 default:
-                    std::cerr << "internal error\n"; // this  should never happen
+                    CHOMIK_STDERR("internal error\n"); // this  should never happen
             }
                                                 
             if (the_break_flag)
@@ -599,7 +600,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
                     break;
                     
                 default:
-                    std::cerr << "internal error\n"; // this  should never happen
+                    CHOMIK_STDERR("internal error\n"); // this  should never happen
             }
                                                 
             if (the_break_flag)
