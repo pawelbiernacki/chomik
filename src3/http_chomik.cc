@@ -19,6 +19,10 @@ int my_port = 5001;
 bool my_port_known = false;
 
 
+//#define CHOMIK_DONT_FORK_FOR_TEST_PURPOSES
+
+
+
 void http_chomik::machine::create_predefined_streams()
 {
     // we do not call the original implementation here!
@@ -385,6 +389,9 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 
+#ifdef CHOMIK_DONT_FORK_FOR_TEST_PURPOSES	
+    std::cerr << "warning: this version is not suitable for the production!\n";
+#else	
     HTTP_CHOMIK_LOG_NOTICE("http_chomik started.");
     pid_t f, pid;
     
@@ -419,9 +426,9 @@ int main(int argc, char * argv[])
     }
         
     openlog("chomik", LOG_PID|LOG_CONS, LOG_USER);
-
             
     syslog(LOG_INFO, PACKAGE_STRING " daemon is running");
+#endif    
     
     doprocessing();
     

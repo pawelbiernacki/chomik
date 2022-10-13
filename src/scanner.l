@@ -70,7 +70,9 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 "float"                 { return T_FLOAT; }
 "string"                { return T_STRING; }
 "code"                  { return T_CODE; }
-"include"               { BEGIN(INCLUDE); }
+"include"               { 
+                            BEGIN(INCLUDE); 
+                        }
 
 {IDENTIFIER}  			{ yylval_param->value_string = strdup(yytext); return T_IDENTIFIER; }
 
@@ -110,7 +112,12 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
                                                                                                                                 
                                 yylineno = 1;
                                 
-                                BEGIN(INITIAL);
+                                    BEGIN(INITIAL);
+                                }
+                                else
+                                {
+                                    /*fprintf(stderr, "include %s", yytext);*/
+                                    BEGIN(INITIAL);
                                 }
                             }
                             
@@ -161,12 +168,19 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 
 
  <<EOF>>                {
-                        chomik_close_file();
-                        yypop_buffer_state();                        
-                        
-                            if ( !YY_CURRENT_BUFFER )
+                            if (chomik_standard_yyerror_on)
                             {
-                            yyterminate();
+                                chomik_close_file();
+                                yypop_buffer_state();                        
+                        
+                                if ( !YY_CURRENT_BUFFER )
+                                {
+                                    yyterminate();
+                                }
+                            }
+                            else
+                            {
+                                    yyterminate();                            
                             }
                         }
 

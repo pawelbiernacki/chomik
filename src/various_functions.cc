@@ -248,10 +248,10 @@ extern "C" void chomik_read_from_string(const char * b, int len);
 
 int chomik::parser::parse(const char * filename)
 {
+    chomik_standard_yyerror_on = 1;
+    
     chomik_open_file(filename);
     
-    chomik_standard_yyerror_on = 1;
-
     int i = yyparse();
 
     if (i != 0)
