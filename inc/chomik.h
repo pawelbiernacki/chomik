@@ -2567,6 +2567,7 @@ namespace chomik
     public:
         virtual bool get_allows_input() const override { return true; }
         virtual std::string read_string() override { std::string word; std::cin >> std::setw(max_size) >> word; return word; }
+        virtual int read_integer() override { int n; std::cin >> std::setw(max_size) >> n; return n; }
     };
     
     class generic_stream_file: public generic_stream
