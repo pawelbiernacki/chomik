@@ -111,5 +111,5 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src2/Makefile
                  src3/Makefile
-                 tests/Makefile libchomik.pc ])
+                 tests/Makefile libchomik.pc libhttpchomik.pc])
 AC_OUTPUT

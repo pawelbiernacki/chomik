@@ -1,10 +1,16 @@
 
 
-bin_PROGRAMS = http_chomik
+bin_PROGRAMS = http_chomik fancy_http_chomik
 
-http_chomik_SOURCES = http_chomik.cc
+lib_LTLIBRARIES = libhttpchomik.la
 
-http_chomik_LDADD = -L../src -lchomik
+libhttpchomik_la_SOURCES = machine.cc server.cc wrapper_base.cc
+
+http_chomik_SOURCES = http_chomik.cc 
+
+
+http_chomik_LDADD = -L../src -lchomik -lhttpchomik
+
 
 http_chomikdir = $(datadir)/http_chomik
 
@@ -16,3 +22,5 @@ http_chomik_DATA = \
 	../image/chomik.png \
 	../css/chomik.css
 
+fancy_http_chomik_SOURCES = fancy_http_chomik.cc
+fancy_http_chomik_LDADD = -L../src -lchomik -lhttpchomik

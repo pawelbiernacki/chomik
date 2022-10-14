@@ -4,8 +4,8 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: @PACKAGE_NAME@                            
-Description: Experimental programming language
+Description: HTTP server for Chomik
 Version: @PACKAGE_VERSION@
 URL: https://www.perkun.org/chomik/index.html
 Cflags: -I${includedir}
-Libs: -L${libdir} -lchomik
+Libs: -L${libdir} -lchomik -lhttpchomik

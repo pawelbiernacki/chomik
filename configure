@@ -16394,7 +16394,7 @@ done
 
 
 
-ac_config_files="$ac_config_files Makefile 3d/Makefile css/Makefile examples/Makefile font/Makefile image/Makefile doc/Makefile dox/Makefile inc/Makefile src/Makefile src2/Makefile src3/Makefile tests/Makefile libchomik.pc"
+ac_config_files="$ac_config_files Makefile 3d/Makefile css/Makefile examples/Makefile font/Makefile image/Makefile doc/Makefile dox/Makefile inc/Makefile src/Makefile src2/Makefile src3/Makefile tests/Makefile libchomik.pc libhttpchomik.pc"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -17523,6 +17523,7 @@ do
     "src3/Makefile") CONFIG_FILES="$CONFIG_FILES src3/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "libchomik.pc") CONFIG_FILES="$CONFIG_FILES libchomik.pc" ;;
+    "libhttpchomik.pc") CONFIG_FILES="$CONFIG_FILES libhttpchomik.pc" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
