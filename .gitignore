@@ -20,8 +20,8 @@ src2/.libs/
 src2/sdl_chomik
 src3/.deps/
 src3/.libs/
-src3/http_chomik
-src3/fancy_http_chomik
+src4/http_chomik
+src4/fancy_http_chomik
 src3/libhttpchomik.la
 libhttpchomik.pc
 
