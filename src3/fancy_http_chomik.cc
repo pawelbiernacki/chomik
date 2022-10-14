@@ -141,8 +141,37 @@ void fancy_http_chomik::server::add_html_navbar(std::ostream & message_stream)
         << "<li><a class=\"dropdown-item\" onclick=\"setExampleAssigningVariablesOfEnumerationType(); return false;\">Assigning variables of enumeration type</a></li>\n"                        
         << "<li><a class=\"dropdown-item\" onclick=\"setExamplePrintingWithImplicitLoopForASingleEnumeration(); return false;\">Printing with implicit loop for a single enumeration</a></li>\n"
         << "<li><a class=\"dropdown-item\" onclick=\"setExampleEnumerationWithPlaceholders(); return false;\">Enumeration with placeholders</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExamplePrintingEnumerationWithPlaceholders(); return false;\">Printing enumeration with placeholders</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleRecursiveEnumerations(); return false;\">Recursive enumerations</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleCyclicRecursiveEnumerations(); return false;\">Cyclic recursive enumerations</a></li>\n"        
         << "</ul>\n"
         << "</li>\n"
+
+
+        << "<li class=\"nav-item dropdown\">\n"
+        << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink7\">Comparisons</a>\n"
+        << "<ul class=\"dropdown-menu\" aria-labelledby=\"navbarDropdownMenuLink7\">\n"
+        << "<li><a class=\"dropdown-item\" onclick=\"setExamplePrintCompareResult(); return false;\">Compare_result built-in type</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleComparingIntegers(); return false;\">Comparing integers</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleComparingStrings(); return false;\">Comparing strings</a></li>\n"        
+        << "</ul>\n"
+        << "</li>\n"
+
+        << "<li class=\"nav-item dropdown\">\n"
+        << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink8\">Arithmetic operations</a>\n"
+        << "<ul class=\"dropdown-menu\" aria-labelledby=\"navbarDropdownMenuLink8\">\n"
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleAddingIntegers(); return false;\">Adding integers</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleSubstractingIntegers(); return false;\">Substracting integers</a></li>\n"        
+        << "</ul>\n"
+        << "</li>\n"
+        
+        << "<li class=\"nav-item dropdown\">\n"
+        << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink9\">Writing to stringstreams</a>\n"
+        << "<ul class=\"dropdown-menu\" aria-labelledby=\"navbarDropdownMenuLink9\">\n"
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleCreatingAStringStream(); return false;\">Creating a stringstream</a></li>\n"        
+        << "</ul>\n"
+        << "</li>\n"
+
         << "</ul>\n"
         << "</div>\n"
     
@@ -243,7 +272,35 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
         << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir};\\nexpand(1);\\n<print (X:person)>;\\n\"; }\n"
         
         << "function setExampleEnumerationWithPlaceholders()\n"        
-        << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir}, place={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};\\ntype information={(X:person) likes (Y:place)};\\nexpand(1);\\n\"; }\n"        
+        << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir}, place={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};\\ntype information={(X:person) likes (Y:place)};\\nexpand(2);\\n\"; }\n"        
+
+        << "function setExamplePrintingEnumerationWithPlaceholders()\n"        
+        << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir}, place={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};\\ntype information={(X:person) likes (Y:place)};\\nexpand(2);\\n<print (I:information)>;\\n\"; }\n"        
+
+        << "function setExampleRecursiveEnumerations()\n"        
+        << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir}, place={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};\\ntype information={(X:person) likes (Y:place), not (I:information)};\\nexpand(3);\\n<print (I:information)>;\\n\"; }\n"        
+
+        << "function setExampleCyclicRecursiveEnumerations()\n"        
+        << "{ document.getElementById(\"code\").value=\"type person={Gotrek, Gwaigilion, Gerrudir}, place={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};\\ntype information={(X:person) is in (Y:place), (X:person) has told (Y:person) that (I:information), (X:person) has done (A:action)};\\ntype action={tell (X:person) that (I:information), go to (X:place)};\\nexpand(3);\\n<print (I:information)>;\\n\"; }\n"        
+        
+        << "function setExamplePrintCompareResult()\n"        
+        << "{ document.getElementById(\"code\").value=\"<print (X:compare_result)>;\\n\"; }\n"        
+
+        << "function setExampleComparingIntegers()\n"        
+        << "{ document.getElementById(\"code\").value=\"variable do something depending on (X:compare_result):code;\\nlet do something depending on lower=value code { <print \\\"it is lower\\\">;};\\nlet do something depending on equal=value code { <print \\\"it is equal\\\">;};\\nlet do something depending on greater=value code { <print \\\"it is greater\\\">;};\\n<compare \\\"integer\\\" 1 2>;\\n<do something depending on <the compare result>>;\\n\"; }\n"        
+
+        << "function setExampleComparingStrings()\n"        
+        << "{ document.getElementById(\"code\").value=\"variable do something depending on (X:compare_result):code;\\nlet do something depending on lower=value code { <print \\\"it is lower\\\">;};\\nlet do something depending on equal=value code { <print \\\"it is equal\\\">;};\\nlet do something depending on greater=value code { <print \\\"it is greater\\\">;};\\n<compare \\\"string\\\" \\\"alpha\\\" \\\"alpha\\\">;\\n<do something depending on <the compare result>>;\\n\"; }\n"        
+
+        << "function setExampleAddingIntegers()\n"        
+        << "{ document.getElementById(\"code\").value=\"<add \\\"integer\\\" 2 2>;\\n<print <the add result \\\"integer\\\">>;\"; }\n"        
+
+        << "function setExampleSubstractingIntegers()\n"        
+        << "{ document.getElementById(\"code\").value=\"<substract \\\"integer\\\" 2 2>;\\n<print <the add result \\\"integer\\\">>;\"; }\n"        
+
+    
+        << "function setExampleCreatingAStringStream()\n"        
+        << "{ document.getElementById(\"code\").value=\"<create new output stringstream>;\\nvariable my stream index:integer;\\nlet my stream index=<the created stream index>;\\nlet the print target stream index =  <my stream index>;\\nlet the print end of line = value string \\\"\\\";\\nlet the get from stream stream index = <the created stream index>;\\nexecute <print \\\"alpha\\\" \\\"beta\\\" \\\".\\\">;\\nlet the print target stream index=value integer 0;\\nlet the print end of line=value string \\\"\\\\n\\\";\\nlet the get from stream stream index = <my stream index>;\\n<get from stream>;\\n<print <the get from stream result>>;\\n\"; }\n"        
         
         << "</script>";
         
@@ -266,7 +323,7 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
     add_html_default_chomik_code(message_stream);
         
         message_stream << "</textarea>"        
-        << "<button type=\"submit\">Run</button><br/>"
+        << "<button class=\"btn btn-danger\" type=\"submit\">Run</button><br/>"
         << "</form>";
         
         message_stream << "</div>\n"
@@ -280,6 +337,38 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
 }
 
 
+void fancy_http_chomik::server::add_html_body_for_incorrect_uri(std::ostream & message_stream)
+{
+    message_stream
+        << "<nav class=\"navbar navbar-expand-lg navbar-dark bg-primary\">\n"
+        << "<div class=\"container-fluid\">\n"
+        << "<a class=\"navbar-brand\" href=\"/\"><img src=\"chomik.png\" alt=""></a>\n"
+            
+        << "</div>\n"
+        << "</nav>\n";        
+    
+    message_stream
+        << "<div class=\"container\">\n";        
+
+    message_stream
+
+        // main
+        << "<div class=\"row\">\n"
+        << "<div class=\"col-1\">\n"        
+        << "</div>\n"
+        
+        << "<div class=\"col-10\">\n";
+        
+    message_stream << "Sorry, fancy_http_chomik does not understand this URI";
+    
+    message_stream << "</div>\n"
+        << "<div class=\"col-1\">\n"
+        << "<button class=\"btn btn-primary\" onclick=\"history.back()\">Go Back</button>"
+        << "</div>\n"
+        << "</div>\n"
+        << "</div>\n";
+        
+}
 
 void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_stream, const std::string & decoded_code, std::stringstream & error_stream, std::stringstream & error_stream2)
 {
@@ -337,7 +426,7 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
     }    
     message_stream << "</div>\n"
         << "<div class=\"col-1\">\n"
-        << "<button onclick=\"history.back()\">Go Back</button>"
+        << "<button class=\"btn btn-primary\" onclick=\"history.back()\">Go Back</button>"
         << "</div>\n"
         << "</div>\n"
         << "</div>\n";

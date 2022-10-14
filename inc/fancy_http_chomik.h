@@ -16,6 +16,7 @@ namespace fancy_http_chomik
         
         virtual void add_html_body_for_code(std::ostream & message_stream, const std::string & decoded_code, std::stringstream & error_stream, std::stringstream & error_stream2);
 
+        virtual void add_html_body_for_incorrect_uri(std::ostream & message_stream) override;
         
         void add_html_common_scripts(std::ostream & message_stream);
         

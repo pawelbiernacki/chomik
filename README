@@ -18,3 +18,6 @@ Chomik allows polimorphism without the need of creating a class hierarchy.
 
 The package contains also sdl_chomik, which is an example how to use the libchomik library in your own C++ projects.
 The sdl_chomik is a chomik extension based on the SDL2 library.
+
+There is also http_chomik with a companion library libhttpchomik, an HTTP server used as sandbox for simple Chomik programs,
+and fancy_http_chomik, an example how to extend http_chomik.
