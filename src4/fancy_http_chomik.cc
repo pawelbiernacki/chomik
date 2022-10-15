@@ -392,7 +392,7 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
         << "<div class=\"col-1\">\n"        
         << "</div>\n"
         
-        << "<div class=\"col-10\">\n";
+        << "<div class=\"col-10\"><div class=\"text-start\"><pre>\n";
     
     if (the_parser.parse_string(decoded_code, error_stream)==0)
     {
@@ -412,10 +412,42 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
         x << my_machine->get_stream(0).get_result() << error_stream2.str();
         
         x.seekg(0);
-        std::string x3;
-        while (std::getline(x, x3))
+        std::string line;
+        while (std::getline(x, line))
         {
-            message_stream << "<div class=\"text-start\">" << x3 << "</div>";
+            std::stringstream x2{line};
+            char letter;
+
+            
+            for (int s=0; s<line.length(); s++)
+            {
+                letter = line[s];
+                if (letter=='<')
+                {
+                    message_stream << "&lt;";
+                }
+                else
+                if (letter=='>')
+                {
+                    message_stream << "&gt;";
+                }
+                else
+                if (letter=='&')
+                {
+                    message_stream << "&amp;";
+                }
+                else
+                if (letter == ' ')
+                {
+                    message_stream << " ";
+                }
+                else
+                {
+                    message_stream << letter;
+                }
+            }
+            
+            message_stream << "\n";
         }
         
         
@@ -424,7 +456,7 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
     {
         message_stream << error_stream.str();
     }    
-    message_stream << "</div>\n"
+    message_stream << "</pre></div></div>\n"
         << "<div class=\"col-1\">\n"
         << "<button class=\"btn btn-primary\" onclick=\"history.back()\">Go Back</button>"
         << "</div>\n"
