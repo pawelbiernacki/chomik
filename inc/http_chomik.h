@@ -70,7 +70,15 @@ namespace http_chomik
         virtual void add_html_body_for_code(std::ostream & message_stream, const std::string & decoded_code, std::stringstream & error_stream, 
                                             std::stringstream & error_stream2);
         
+        /**
+         * This method converts the program output to HTML. 
+         */
+        void add_html_for_program_output(std::istream & source, std::ostream & message_stream);
         
+        
+        /**
+         * You might want to redefine this if you want to run the program for a different chomik dialect which requires a special machine.
+         */
         virtual void create_a_new_machine(std::unique_ptr<machine> & target);
         
         

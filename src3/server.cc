@@ -108,6 +108,45 @@ void http_chomik::server::create_a_new_machine(std::unique_ptr<machine> & target
     target = std::move(std::make_unique<http_chomik::machine>());
 }
 
+void http_chomik::server::add_html_for_program_output(std::istream & source, std::ostream & message_stream)
+{
+        std::string line;
+        while (std::getline(source, line))
+        {
+            std::stringstream x2{line};
+            char letter;
+            
+            for (int s=0; s<line.length(); s++)
+            {
+                letter = line[s];
+                if (letter=='<')
+                {
+                    message_stream << "&lt;";
+                }
+                else
+                if (letter=='>')
+                {
+                    message_stream << "&gt;";
+                }
+                else
+                if (letter=='&')
+                {
+                    message_stream << "&amp;";
+                }
+                else
+                if (letter == ' ')
+                {
+                    message_stream << " ";
+                }
+                else
+                {
+                    message_stream << letter;
+                }
+            }
+            
+            message_stream << "\n";
+        }    
+}
 
 void http_chomik::server::add_html_body_for_code(std::ostream & message_stream, const std::string & decoded_code, std::stringstream & error_stream, std::stringstream & error_stream2)
 {
@@ -125,9 +164,14 @@ void http_chomik::server::add_html_body_for_code(std::ostream & message_stream, 
         my_machine->create_predefined_variables();
         my_machine->create_predefined_streams();
         
-        the_program.execute(*my_machine);           
+        the_program.execute(*my_machine);   
+
+        std::stringstream program_output_stream;
         
-        message_stream << my_machine->get_stream(0).get_result() << error_stream2.str();
+        program_output_stream << my_machine->get_stream(0).get_result() << error_stream2.str();
+        program_output_stream.seekg(0);
+        
+        add_html_for_program_output(program_output_stream, message_stream);        
     }
     else
     {

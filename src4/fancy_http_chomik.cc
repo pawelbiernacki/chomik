@@ -420,45 +420,8 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
         x << my_machine->get_stream(0).get_result() << error_stream2.str();
         
         x.seekg(0);
-        std::string line;
-        while (std::getline(x, line))
-        {
-            std::stringstream x2{line};
-            char letter;
-
-            
-            for (int s=0; s<line.length(); s++)
-            {
-                letter = line[s];
-                if (letter=='<')
-                {
-                    message_stream << "&lt;";
-                }
-                else
-                if (letter=='>')
-                {
-                    message_stream << "&gt;";
-                }
-                else
-                if (letter=='&')
-                {
-                    message_stream << "&amp;";
-                }
-                else
-                if (letter == ' ')
-                {
-                    message_stream << " ";
-                }
-                else
-                {
-                    message_stream << letter;
-                }
-            }
-            
-            message_stream << "\n";
-        }
         
-        
+        add_html_for_program_output(x, message_stream);                
     }
     else
     {
@@ -471,10 +434,6 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
         << "</div>\n"
         << "</div>\n";
         
-    
-    
-    
-    
     // "<br/><br/><a href=\"https://www.perkun.org/chomik\">https://www.perkun.org/chomik</a>";    
 }
 
