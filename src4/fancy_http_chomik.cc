@@ -296,7 +296,7 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
         << "{ document.getElementById(\"code\").value=\"<add \\\"integer\\\" 2 2>;\\n<print <the add result \\\"integer\\\">>;\"; }\n"        
 
         << "function setExampleSubstractingIntegers()\n"        
-        << "{ document.getElementById(\"code\").value=\"<substract \\\"integer\\\" 2 2>;\\n<print <the add result \\\"integer\\\">>;\"; }\n"        
+        << "{ document.getElementById(\"code\").value=\"<substract \\\"integer\\\" 2 2>;\\n<print <the substract result \\\"integer\\\">>;\"; }\n"        
 
     
         << "function setExampleCreatingAStringStream()\n"        
