@@ -166,9 +166,11 @@ void fancy_http_chomik::server::add_html_navbar(std::ostream & message_stream)
         << "</li>\n"
         
         << "<li class=\"nav-item dropdown\">\n"
-        << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink9\">Writing to stringstreams</a>\n"
+        << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink9\">Stringstreams</a>\n"
         << "<ul class=\"dropdown-menu\" aria-labelledby=\"navbarDropdownMenuLink9\">\n"
         << "<li><a class=\"dropdown-item\" onclick=\"setExampleCreatingAStringStream(); return false;\">Creating a stringstream</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExamplePrintingToAStringStream(); return false;\">Printing to a stringstream</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleGettingFromAStringStream(); return false;\">Getting result from a stringstream</a></li>\n"        
         << "</ul>\n"
         << "</li>\n"
 
@@ -298,9 +300,15 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
         << "function setExampleSubstractingIntegers()\n"        
         << "{ document.getElementById(\"code\").value=\"<substract \\\"integer\\\" 2 2>;\\n<print <the substract result \\\"integer\\\">>;\"; }\n"        
 
-    
+
         << "function setExampleCreatingAStringStream()\n"        
-        << "{ document.getElementById(\"code\").value=\"<create new output stringstream>;\\nvariable my stream index:integer;\\nlet my stream index=<the created stream index>;\\nlet the print target stream index =  <my stream index>;\\nlet the print end of line = value string \\\"\\\";\\nlet the get from stream stream index = <the created stream index>;\\nexecute <print \\\"alpha\\\" \\\"beta\\\" \\\".\\\">;\\nlet the print target stream index=value integer 0;\\nlet the print end of line=value string \\\"\\\\n\\\";\\nlet the get from stream stream index = <my stream index>;\\n<get from stream>;\\n<print <the get from stream result>>;\\n\"; }\n"        
+        << "{ document.getElementById(\"code\").value=\"<create new output stringstream>;\\nvariable my stream index:integer;\\nlet my stream index=<the created stream index>;\\n\"; }\n"        
+        
+        << "function setExamplePrintingToAStringStream()\n"        
+        << "{ document.getElementById(\"code\").value=\"<create new output stringstream>;\\nvariable my stream index:integer;\\nlet my stream index=<the created stream index>;\\nlet the print target stream index =  <my stream index>;\\nlet the print end of line = value string \\\"\\\";\\n<print \\\"alpha\\\" \\\"beta\\\" \\\".\\\">;\\nlet the print target stream index=value integer 0;\\nlet the print end of line=value string \\\"\\\\n\\\";\\n\"; }\n"        
+
+        << "function setExampleGettingFromAStringStream()\n"        
+        << "{ document.getElementById(\"code\").value=\"<create new output stringstream>;\\nvariable my stream index:integer;\\nlet my stream index=<the created stream index>;\\nlet the print target stream index =  <my stream index>;\\nlet the print end of line = value string \\\"\\\";\\n<print \\\"alpha\\\" \\\"beta\\\" \\\".\\\">;\\nlet the print target stream index=value integer 0;\\nlet the print end of line=value string \\\"\\\\n\\\";\\nlet the get from stream stream index = <my stream index>;\\n<get from stream>;\\n<print <the get from stream result>>;\\n\"; }\n"        
         
         << "</script>";
         
