@@ -1,0 +1,22 @@
+/**
+\page what_is_fancy_http_chomik What is fancy_http_chomik?
+
+fancy_http_chomik is an extension of http_chomik built on top of the libraries:
+- libchomik
+- libhttpchomik
+
+It is using the bootstrap library (no need to download it).
+
+It is providing the sandbox service:
+\htmlonly
+<a href="http://www.perkun.org:5001">http://www.perkun.org:5001</a><br/>
+\endhtmlonly
+
+If you want to create something similar please take a look at the src4/fancy_http_chomik.cc as well as inc/fancy_http_chomik.h.
+
+The simplest way to do it is to inherit the http_chomik::server class, override some virtual functions of it and build your project linking against the libchomik and libhttpchomik libraries.
+
+
+*/
+  
+ 

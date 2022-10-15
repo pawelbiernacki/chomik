@@ -1,18 +1,19 @@
 /**
 \page what_is_chomik What is Chomik?
 
-Chomik is an experimental and minimalistic programming language. You may use it in your own C++ projects. The chomik tarball contains also sdl_chomik and http_chomik.
+Chomik is an experimental and minimalistic programming language. You may use it in your own C++ projects. The chomik repository contains the source codes for:
+- chomik
+- sdl_chomik
+- http_chomik
+- fancy_http_chomik
+- libchomik library
+- libhttpchomik library
 
+chomik is a Chomik interpreter. It has no conditional instruction and no loop instructions, no classes. In spite of that the Chomik language is quite powerful.
+
+Here is the documentation of Chomik:
 \htmlonly
 <a href="../resources/pdf/chomik_0_1.pdf">chomik_0_1.pdf</a><br/>
 \endhtmlonly
-
-
-The sdl_chomik is an example how to extend chomik creating your own chomik dialects. The tarball also contains a script example1.sdl_chomik, which demonstrates 
-how to write simple games in sdl_chomik. The below image is a screenshot from this "game";
-
-\image html Screenshot_20220425_175316.png
-
-The http_chomik is used to provide sandbox service. It is also an extension of the chomik language.
 
 */

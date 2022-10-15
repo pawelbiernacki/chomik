@@ -1,0 +1,12 @@
+/**
+\page what_is_sdl_chomik What is sdl_chomik?
+
+sdl_chomik is a chomik dialect requiring the libraries:
+- SDL2
+- SDL2_image
+- SDL2_ttf
+
+It is an example how to extend chomik creating your own chomik dialects. It can be used to create simple 2D games written entirely in it. 
+
+*/
+ 

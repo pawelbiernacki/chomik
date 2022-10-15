@@ -1,0 +1,9 @@
+/**
+\page what_is_http_chomik What is http_chomik?
+
+http_chomik is used to provide the sandbox service. It is extendible itself. An example how to extend it is fancy_http_chomik.
+
+If you want to build your own application on top of http_chomik you will want to link against the library libhttpchomik provided together with the chomik repository.
+
+*/
+  
