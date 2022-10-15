@@ -111,7 +111,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "substract", "the", "set"
+    "print", "create", "get", "read", "compare", "add", "subtract", "the", "set"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -788,11 +788,11 @@ void chomik::machine::create_predefined_variables()
 
     generic_name gn12;
     gn12.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-    gn12.add_generic_name_item(std::make_shared<identifier_name_item>("substract"));
+    gn12.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
     gn12.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
     gn12.add_generic_name_item(std::make_shared<name_item_string>("integer"));
-    std::shared_ptr<signature> the_substract_result_integer=std::make_shared<signature>(gn12);
-    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_substract_result_integer), 0));
+    std::shared_ptr<signature> the_subtract_result_integer=std::make_shared<signature>(gn12);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_subtract_result_integer), 0));
 
     generic_name gn13;
     gn13.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
@@ -1542,7 +1542,7 @@ void chomik::signature::execute_predefined_add(machine & m) const
     CHOMIK_STDERR('\n');         
 }
 
-void chomik::signature::execute_predefined_substract(machine & m) const
+void chomik::signature::execute_predefined_subtract(machine & m) const
 {
         if (vector_of_items.size() == 4)
         {
@@ -1554,7 +1554,7 @@ void chomik::signature::execute_predefined_substract(machine & m) const
                 {                                
                     generic_name gn2;
                     gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("substract"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
                     gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
                     gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
                 
@@ -1572,7 +1572,7 @@ void chomik::signature::execute_predefined_substract(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown substract variable\n");        
+    CHOMIK_STDERR("warning: unknown subtract variable\n");        
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -1620,9 +1620,9 @@ void chomik::signature::execute_predefined(machine & m) const
         execute_predefined_add(m);
     }
     else
-    if (get_it_has_prefix("substract"))
+    if (get_it_has_prefix("subtract"))
     {
-        execute_predefined_substract(m);
+        execute_predefined_subtract(m);
     }
     else
     if (get_it_has_prefix("set"))

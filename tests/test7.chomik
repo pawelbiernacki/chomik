@@ -1,6 +1,6 @@
 #!/usr/local/bin/chomik
 
-# this test checks the substraction of integers
+# this test checks the subtraction of integers
 
 variable return 1 on wrong result (X:compare_result_type):code;
 let return 1 on wrong result equal=value code
@@ -17,8 +17,8 @@ let return 1 on wrong result greater=value code
 };
 
 
-<substract "integer" 2 2>;
+<subtract "integer" 2 2>;
 
-<compare "integer" <the substract result "integer"> 0>;
+<compare "integer" <the subtract result "integer"> 0>;
 <return 1 on wrong result <the compare result>>;
  
