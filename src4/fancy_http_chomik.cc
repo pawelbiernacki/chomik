@@ -161,7 +161,7 @@ void fancy_http_chomik::server::add_html_navbar(std::ostream & message_stream)
         << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink8\">Arithmetic operations</a>\n"
         << "<ul class=\"dropdown-menu\" aria-labelledby=\"navbarDropdownMenuLink8\">\n"
         << "<li><a class=\"dropdown-item\" onclick=\"setExampleAddingIntegers(); return false;\">Adding integers</a></li>\n"        
-        << "<li><a class=\"dropdown-item\" onclick=\"setExampleSubstractingIntegers(); return false;\">Substracting integers</a></li>\n"        
+        << "<li><a class=\"dropdown-item\" onclick=\"setExampleSubtractingIntegers(); return false;\">Subtracting integers</a></li>\n"        
         << "</ul>\n"
         << "</li>\n"
         
@@ -297,7 +297,7 @@ void fancy_http_chomik::server::add_html_body(std::ostream & message_stream)
         << "function setExampleAddingIntegers()\n"        
         << "{ document.getElementById(\"code\").value=\"<add \\\"integer\\\" 2 2>;\\n<print <the add result \\\"integer\\\">>;\"; }\n"        
 
-        << "function setExampleSubstractingIntegers()\n"        
+        << "function setExampleSubtractingIntegers()\n"        
         << "{ document.getElementById(\"code\").value=\"<subtract \\\"integer\\\" 2 2>;\\n<print <the subtract result \\\"integer\\\">>;\"; }\n"        
 
 
