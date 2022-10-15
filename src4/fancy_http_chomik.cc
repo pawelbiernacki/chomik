@@ -63,7 +63,7 @@ void fancy_http_chomik::server::add_html_navbar(std::ostream & message_stream)
         << "<span class=\"navbar-toggler-icon\"></span>\n"
         << "</button>\n"
         
-        << "<div class=\"collapse navbar-collapse\">\n"
+        << "<div class=\"collapse navbar-collapse\" id=\"navbarNavDropdown\">\n"
         << "<ul class=\"navbar-nav dropdown\">\n"
         << "<li class=\"nav-item dropdown\">\n"
         << "<a class=\"nav-link dropdown-toggle\" role=\"button\" data-bs-toggle=\"dropdown\" aria-current=\"page\" id=\"navbarDropdownMenuLink\">Basic examples</a>\n"        
