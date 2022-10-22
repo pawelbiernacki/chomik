@@ -93,7 +93,8 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(inc_HEADERS) $(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(inc_HEADERS) $(noinst_HEADERS) \
+	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
@@ -145,7 +146,7 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(incdir)"
-HEADERS = $(inc_HEADERS)
+HEADERS = $(inc_HEADERS) $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -237,6 +238,8 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SDL2_CFLAGS = @SDL2_CFLAGS@
 SDL2_LIBS = @SDL2_LIBS@
+SDL2_TTF_CFLAGS = @SDL2_TTF_CFLAGS@
+SDL2_TTF_LIBS = @SDL2_TTF_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -298,7 +301,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-inc_HEADERS = chomik.h sdl_chomik.h
+inc_HEADERS = chomik.h sdl_chomik.h http_chomik.h 
+noinst_HEADERS = fancy_http_chomik.h
 incdir = /usr/local/include
 all: all-am
 

@@ -90,7 +90,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = chomik$(EXEEXT)
-XFAIL_TESTS =
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -498,6 +497,8 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SDL2_CFLAGS = @SDL2_CFLAGS@
 SDL2_LIBS = @SDL2_LIBS@
+SDL2_TTF_CFLAGS = @SDL2_TTF_CFLAGS@
+SDL2_TTF_LIBS = @SDL2_TTF_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -566,7 +567,10 @@ libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.
 chomik_SOURCES = chomik.cc
 chomik_LDADD = libchomik.la
 AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc 
-TESTS = ../tests/test1.chomik ../tests/test2.chomik
+TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik ../tests/test5.chomik ../tests/test6.chomik \
+	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik
+
+XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 all: all-am
 
 .SUFFIXES:
@@ -973,6 +977,55 @@ recheck: all
 ../tests/test2.chomik.log: ../tests/test2.chomik
 	@p='../tests/test2.chomik'; \
 	b='../tests/test2.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test3.chomik.log: ../tests/test3.chomik
+	@p='../tests/test3.chomik'; \
+	b='../tests/test3.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test4.chomik.log: ../tests/test4.chomik
+	@p='../tests/test4.chomik'; \
+	b='../tests/test4.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test5.chomik.log: ../tests/test5.chomik
+	@p='../tests/test5.chomik'; \
+	b='../tests/test5.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test6.chomik.log: ../tests/test6.chomik
+	@p='../tests/test6.chomik'; \
+	b='../tests/test6.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test7.chomik.log: ../tests/test7.chomik
+	@p='../tests/test7.chomik'; \
+	b='../tests/test7.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test8.chomik.log: ../tests/test8.chomik
+	@p='../tests/test8.chomik'; \
+	b='../tests/test8.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test9.chomik.log: ../tests/test9.chomik
+	@p='../tests/test9.chomik'; \
+	b='../tests/test9.chomik'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

@@ -241,6 +241,8 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 RANLIB = @RANLIB@
 SDL2_CFLAGS = @SDL2_CFLAGS@
 SDL2_LIBS = @SDL2_LIBS@
+SDL2_TTF_CFLAGS = @SDL2_TTF_CFLAGS@
+SDL2_TTF_LIBS = @SDL2_TTF_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -303,9 +305,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 sdl_chomik_SOURCES = sdl_chomik.cc
-sdl_chomik_LDADD = -L../src -lchomik @SDL2_LIBS@
+sdl_chomik_LDADD = -L../src -lchomik @SDL2_LIBS@ @SDL2_TTF_LIBS@
 sdl_chomikdir = $(datadir)/sdl_chomik
-AM_CXXFLAGS = @CXXFLAGS@ \
+AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 \
 	-I.. -I../inc \
 	-DDATADIR=\"$(datadir)\"
 
