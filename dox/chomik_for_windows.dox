@@ -1,0 +1,26 @@
+/**
+\page chomik_for_windows Chomik for Windows.
+
+Here are the binaries of chomik and sdl_chomik for Windows:
+\htmlonly
+<a href="../resources/binaries/chomik_for_windows.zip">chomik_for_windows.zip</a><br/>
+\endhtmlonly
+
+They require the following DLLs (win32 versions):
+- libfreetype-6.dll  
+- libgcc_s_sjlj-1.dll  
+- libharfbuzz-0.dll  
+- libjpeg.dll  
+- libpng16-16.dll  
+- libtiff.dll  
+- libwinpthread-1.dll  
+- SDL2.dll  
+- SDL2_image.dll  
+- SDL2_ttf.dll  
+- zlib1.dll 
+
+
+
+*/
+ 
+ 
