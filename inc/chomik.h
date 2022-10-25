@@ -304,6 +304,8 @@ namespace chomik
         void execute_predefined_compare(machine & m) const;
         void execute_predefined_add(machine & m) const;
         void execute_predefined_subtract(machine & m) const;
+        void execute_predefined_multiply(machine & m) const;
+        void execute_predefined_divide(machine & m) const;        
         void execute_predefined_set(machine & m) const;
     public:
         signature(const generic_name & gn, machine & m, generator & g);

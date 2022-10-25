@@ -111,7 +111,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "the", "set"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -829,6 +829,24 @@ void chomik::machine::create_predefined_variables()
     gn16.add_generic_name_item(std::make_shared<identifier_name_item>("return"));
     std::shared_ptr<signature> the_program_return=std::make_shared<signature>(gn16);
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_program_return), 0));
+    
+    
+    generic_name gn17;
+    gn17.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn17.add_generic_name_item(std::make_shared<identifier_name_item>("multiply"));
+    gn17.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    gn17.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+    std::shared_ptr<signature> the_multiply_result_integer=std::make_shared<signature>(gn17);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_multiply_result_integer), 1));
+
+    generic_name gn18;
+    gn18.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn18.add_generic_name_item(std::make_shared<identifier_name_item>("divide"));
+    gn18.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    gn18.add_generic_name_item(std::make_shared<name_item_string>("float"));
+    std::shared_ptr<signature> the_divide_result_float=std::make_shared<signature>(gn18);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_divide_result_float), 1));
+    
 }
 
 void chomik::machine::create_predefined_types()
@@ -1426,6 +1444,45 @@ void chomik::signature::execute_predefined_compare(machine & m) const
             }
             else
             if (vector_of_items[1]->get_it_is_string() 
+                && vector_of_items[2]->get_it_is_float()
+                && vector_of_items[3]->get_it_is_float())
+            {                
+                if (vector_of_items[1]->get_value_string() == "float")
+                {                                
+                    generic_name gn2;
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
+                
+                    signature the_compare_result{gn2};    
+                    
+                    std::string s = "";
+                    
+                    float a = vector_of_items[2]->get_value_float();
+                    float b = vector_of_items[3]->get_value_float();
+                    
+                    DEBUG("got " << a << " and " << b);
+                    
+                    if (a < b)
+                    {
+                        s = "lower";
+                    }
+                    else
+                    if (a > b)
+                    {
+                        s = "greater";
+                    }
+                    else
+                    {
+                        s = "equal";    // comparison of floats for equality makes little sense, but we allow it
+                    }
+                
+                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);                                        
+                    return;
+                }
+            }                
+            else
+            if (vector_of_items[1]->get_it_is_string() 
                 && vector_of_items[2]->get_it_is_enum()
                 && vector_of_items[3]->get_it_is_enum())
             {                
@@ -1502,6 +1559,86 @@ void chomik::signature::execute_predefined_compare(machine & m) const
     }    
     CHOMIK_STDERR('\n');         
 }
+
+
+void chomik::signature::execute_predefined_multiply(machine & m) const
+{
+        if (vector_of_items.size() == 4)
+        {
+            if (vector_of_items[1]->get_it_is_string() 
+                && vector_of_items[2]->get_it_is_integer()
+                && vector_of_items[3]->get_it_is_integer())
+            {                
+                if (vector_of_items[1]->get_value_string() == "integer")
+                {                                
+                    generic_name gn2;
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("multiply"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+                    gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+                
+                    signature the_multiply_result{gn2};    
+                    
+                    std::string s = "";
+                    
+                    int a = vector_of_items[2]->get_value_integer();
+                    int b = vector_of_items[3]->get_value_integer();
+                    
+                    DEBUG("signature::execute_predefined_multiply got " << a << " and " << b);
+                                    
+                    m.get_variable_with_value(the_multiply_result).assign_value_integer(a*b);
+                    return;
+                }
+            }
+        }
+    CHOMIK_STDERR("warning: unknown multiply variable\n");        
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }    
+    CHOMIK_STDERR('\n');             
+}
+
+void chomik::signature::execute_predefined_divide(machine & m) const
+{
+        if (vector_of_items.size() == 4)
+        {
+            if (vector_of_items[1]->get_it_is_string() 
+                && vector_of_items[2]->get_it_is_integer()
+                && vector_of_items[3]->get_it_is_integer())
+            {                
+                if (vector_of_items[1]->get_value_string() == "float")
+                {                                
+                    generic_name gn2;
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("divide"));
+                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+                    gn2.add_generic_name_item(std::make_shared<name_item_string>("float"));
+                
+                    signature the_divide_result{gn2};    
+                    
+                    std::string s = "";
+                    
+                    int a = vector_of_items[2]->get_value_integer();
+                    int b = vector_of_items[3]->get_value_integer();
+                    
+                    DEBUG("signature::execute_predefined_divide got " << a << " and " << b);
+                    
+                    if (b!=0)
+                    {
+                        m.get_variable_with_value(the_divide_result).assign_value_float(a/b);                        
+                    }
+                                    
+                    return;
+                }
+            }
+        }
+    CHOMIK_STDERR("warning: unknown divide variable\n");        
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }    
+    CHOMIK_STDERR('\n');             }
 
 
 void chomik::signature::execute_predefined_add(machine & m) const
@@ -1625,6 +1762,16 @@ void chomik::signature::execute_predefined(machine & m) const
         execute_predefined_subtract(m);
     }
     else
+    if (get_it_has_prefix("multiply"))
+    {
+        execute_predefined_multiply(m);
+    }
+    else
+    if (get_it_has_prefix("divide"))
+    {
+        execute_predefined_divide(m);
+    }
+    else
     if (get_it_has_prefix("set"))
     {
         execute_predefined_set(m);
@@ -1666,6 +1813,11 @@ std::string chomik::generic_literal_placeholder::get_actual_text_representation(
 
 void chomik::generic_literal_placeholder::add_placeholders_to_generator(generator & g) const
 {
+    // TODO implement
+    if (!g.get_has_placeholder(placeholder))
+    {
+        
+    }
 }
 
 void chomik::type_definition_statement::expand(machine & m, int depth) const
