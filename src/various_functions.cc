@@ -1626,7 +1626,7 @@ void chomik::signature::execute_predefined_divide(machine & m) const
                     
                     if (b!=0)
                     {
-                        m.get_variable_with_value(the_divide_result).assign_value_float(a/b);                        
+                        m.get_variable_with_value(the_divide_result).assign_value_float(static_cast<double>(a)/static_cast<double>(b));                        
                     }
                                     
                     return;
