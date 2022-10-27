@@ -29,8 +29,8 @@ variable move my text:code;
 
 let variable move my text = value code
 {
-    execute <substract "integer" <x> 1>;
-    let variable x=<the substract result "integer">;
+    execute <subtract "integer" <x> 1>;
+    let variable x=<the subtract result "integer">;
     execute <compare "integer" <x> -200>;
     execute <reset my text <the compare result>>;
 };

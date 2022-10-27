@@ -1023,43 +1023,142 @@ std::string chomik::generic_value_variable_value::get_actual_enum_value(machine 
     return m.get_variable_value_enum(s);
 }
 
+std::unique_ptr<chomik::signature_common_data> chomik::signature::our_common_data=std::make_unique<signature_common_data>();
+
+chomik::signature_common_data::signature_common_data()
+{    
+    generic_name_the_print_target_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_print_target_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
+    generic_name_the_print_target_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("target"));
+    generic_name_the_print_target_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_print_target_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+            
+    generic_name_the_print_separator.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_print_separator.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
+    generic_name_the_print_separator.add_generic_name_item(std::make_shared<identifier_name_item>("separator"));
+
+    generic_name_the_print_end_of_line.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_print_end_of_line.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
+    generic_name_the_print_end_of_line.add_generic_name_item(std::make_shared<identifier_name_item>("end"));
+    generic_name_the_print_end_of_line.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    generic_name_the_print_end_of_line.add_generic_name_item(std::make_shared<identifier_name_item>("line"));
+
+    generic_name_the_created_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_created_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
+    generic_name_the_created_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_created_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("set"));
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("to"));
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_set_to_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
+    generic_name_the_get_from_stream_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+
+    generic_name_the_get_from_stream_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_from_stream_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_from_stream_result.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_get_from_stream_result.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_get_from_stream_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
+
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("source"));
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
+    generic_name_the_read_from_stream_source_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
+
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_read_from_stream_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_read_from_stream_result_string.add_generic_name_item(std::make_shared<name_item_string>("string"));
+    
+    
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("max"));
+    generic_name_the_read_from_stream_max_size.add_generic_name_item(std::make_shared<identifier_name_item>("size"));
+
+    generic_name_the_compare_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_compare_result.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
+    generic_name_the_compare_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
+
+    generic_name_the_multiply_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_multiply_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("multiply"));
+    generic_name_the_multiply_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_multiply_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+                
+
+    generic_name_the_divide_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_divide_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("divide"));
+    generic_name_the_divide_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_divide_result_float.add_generic_name_item(std::make_shared<name_item_string>("float"));
+
+
+    generic_name_the_add_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_add_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("add"));
+    generic_name_the_add_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_add_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+
+
+    generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
+    generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+    
+    signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
+    signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
+    signature_the_print_end_of_line = std::make_unique<signature>(generic_name_the_print_end_of_line);
+    signature_the_created_stream_index = std::make_unique<signature>(generic_name_the_created_stream_index);
+    signature_the_set_to_stream_stream_index = std::make_unique<signature>(generic_name_the_set_to_stream_stream_index);
+    signature_the_get_from_stream_stream_index = std::make_unique<signature>(generic_name_the_get_from_stream_stream_index);
+    signature_the_get_from_stream_result = std::make_unique<signature>(generic_name_the_get_from_stream_result);    
+    signature_the_read_from_stream_source_stream_index = std::make_unique<signature>(generic_name_the_read_from_stream_source_stream_index);    
+    signature_the_read_from_stream_result_integer = std::make_unique<signature>(generic_name_the_read_from_stream_result_integer);
+    signature_the_read_from_stream_result_string = std::make_unique<signature>(generic_name_the_read_from_stream_result_string);
+    signature_the_read_from_stream_max_size = std::make_unique<signature>(generic_name_the_read_from_stream_max_size);    
+    signature_the_compare_result = std::make_unique<signature>(generic_name_the_compare_result);
+    signature_the_multiply_result_integer = std::make_unique<signature>(generic_name_the_multiply_result_integer);
+    signature_the_divide_result_float = std::make_unique<signature>(generic_name_the_divide_result_float);    
+    signature_the_add_result_integer = std::make_unique<signature>(generic_name_the_add_result_integer);
+    signature_the_subtract_result_integer = std::make_unique<signature>(generic_name_the_subtract_result_integer);
+    
+}
+
 
 void chomik::signature::execute_predefined_print(machine & m) const
 {
-        // check the print target stream index
-        generic_name gn;
-        gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-        gn.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
-        gn.add_generic_name_item(std::make_shared<identifier_name_item>("target"));
-        gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-        gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-        signature the_print_target_stream_index{gn};
-                
-        int index = m.get_variable_with_value(the_print_target_stream_index).get_value_integer();
+        int index = m.get_variable_with_value(*our_common_data->signature_the_print_target_stream_index).get_value_integer();
         
         DEBUG("value of the print target stream index " << index);
         
         if (index >= 0 && index < m.get_amount_of_streams())
         {
-            generic_name gn2;
-            gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-            gn2.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
-            gn2.add_generic_name_item(std::make_shared<identifier_name_item>("separator"));
-            signature the_print_separator{gn2};
-            
-            std::string separator = m.get_variable_with_value(the_print_separator).get_value_string();
+            std::string separator = m.get_variable_with_value(*our_common_data->signature_the_print_separator).get_value_string();
             
             DEBUG("the print separator is \"" << separator << "\"");
-
-            generic_name gn3;
-            gn3.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-            gn3.add_generic_name_item(std::make_shared<identifier_name_item>("print"));
-            gn3.add_generic_name_item(std::make_shared<identifier_name_item>("end"));
-            gn3.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
-            gn3.add_generic_name_item(std::make_shared<identifier_name_item>("line"));
-            signature the_print_end_of_line{gn3};
             
-            std::string end_of_line = m.get_variable_with_value(the_print_end_of_line).get_value_string();
+            std::string end_of_line = m.get_variable_with_value(*our_common_data->signature_the_print_end_of_line).get_value_string();
             
             generic_stream& gs{m.get_stream(index)};
             
@@ -1104,17 +1203,10 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 {
                     m.add_stream(std::make_unique<generic_stream_stringstream>());
                 }
-                
-                generic_name gn2;
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
-                signature the_created_stream_index{gn2};    
-                
+                                
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
-                m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+                m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
                 
                 return;
             }
@@ -1125,17 +1217,10 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 && vector_of_items[4]->get_it_is_string())
             {
                 m.add_stream(std::make_unique<generic_stream_stringstream>(vector_of_items[4]->get_value_string()));
-
-                generic_name gn2;
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
-                signature the_created_stream_index{gn2};    
                 
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
-                m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+                m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
                 
                 return;
             }
@@ -1149,16 +1234,9 @@ void chomik::signature::execute_predefined_create(machine & m) const
             {
                 m.add_stream(std::make_unique<generic_stream_stringstream>());
                 
-                generic_name gn2;
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
-                signature the_created_stream_index{gn2};    
-                
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
-                m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+                m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
                 
                 return;
             }
@@ -1180,16 +1258,9 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 {                
                     m.add_stream(std::make_unique<generic_stream_random_number_stream>(vector_of_items[7]->get_value_integer(), vector_of_items[8]->get_value_integer()));
                 
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
-                    signature the_created_stream_index{gn2};    
-                
                     DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
-                    m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                
+                    m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                
                     return;
                 }
             }
@@ -1205,16 +1276,10 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 && vector_of_items[6]->get_it_is_string())  // enum type name
             {
                 m.add_stream(std::make_unique<generic_stream_random_enum_stream>(vector_of_items[6]->get_value_string(), m));
-                generic_name gn2;
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn2.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
-                signature the_created_stream_index{gn2};    
                 
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
-                m.get_variable_with_value(the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                                
+                m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                                
                 return;
             }
         }
@@ -1238,17 +1303,8 @@ void chomik::signature::execute_predefined_set(machine & m) const
             {
                 
                 //the set to stream result stream index
-                generic_name gn;
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("set"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("to"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-                
-                signature the_set_to_stream_index{gn};
-                
-                int index = m.get_variable_with_value(the_set_to_stream_index).get_value_integer();
+
+                int index = m.get_variable_with_value(*our_common_data->signature_the_set_to_stream_stream_index).get_value_integer();
         
                 DEBUG("value of the set to stream stream index " << index);
                 if (index >= 0 && index < m.get_amount_of_streams())
@@ -1283,36 +1339,18 @@ void chomik::signature::execute_predefined_get(machine & m) const
                 && vector_of_items[2]->get_it_is_identifier("stream"))
             {
                 
-                //the get from stream result stream index
-                generic_name gn;
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-                
-                signature the_get_from_stream_stream_index{gn};
-                
-                int index = m.get_variable_with_value(the_get_from_stream_stream_index).get_value_integer();
+                //the get from stream result stream index                
+                int index = m.get_variable_with_value(*our_common_data->signature_the_get_from_stream_stream_index).get_value_integer();
         
                 DEBUG("value of the get from stream stream index " << index);
                 if (index >= 0 && index < m.get_amount_of_streams())
                 {
                     generic_stream& gs{m.get_stream(index)};                        
                                 
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                
-                    signature the_get_from_stream_result{gn2};    
                 
                     DEBUG("assign value string " << gs.get_result());
                 
-                    m.get_variable_with_value(the_get_from_stream_result).assign_value_string(gs.get_result());                                    
+                    m.get_variable_with_value(*our_common_data->signature_the_get_from_stream_result).assign_value_string(gs.get_result());                                    
                     return;
                 }
                 return;
@@ -1337,111 +1375,47 @@ void chomik::signature::execute_predefined_read(machine & m) const
             {
                 
                 if (vector_of_items[3]->get_value_string() == "integer")
-                {
-                generic_name gn;
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("source"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-                
-                signature the_read_from_stream_source_stream_index{gn};
-                
-                int index = m.get_variable_with_value(the_read_from_stream_source_stream_index).get_value_integer();
+                {                
+                int index = m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_source_stream_index).get_value_integer();
         
                 DEBUG("value of the read from stream source stream index " << index);
                     if (index >= 0 && index < m.get_amount_of_streams())
                     {
                     generic_stream& gs{m.get_stream(index)};                        
-                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
-                    signature the_read_from_stream_result{gn2};    
-                    
+                                                    
                     int s = gs.read_integer();
                                     
                     DEBUG("read " << s);
                 
-                    m.get_variable_with_value(the_read_from_stream_result).assign_value_integer(s);
+                    m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_result_integer).assign_value_integer(s);
                     return;
                     }                
                 }
                 else
                 if (vector_of_items[3]->get_value_string() == "string")
-                {                
-                
-                generic_name gn;
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("source"));
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
-                gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-                
-                signature the_read_from_stream_source_stream_index{gn};
-                
-                int index = m.get_variable_with_value(the_read_from_stream_source_stream_index).get_value_integer();
+                {                                
+                int index = m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_source_stream_index).get_value_integer();
         
                 DEBUG("value of the print target stream index " << index);
                     if (index >= 0 && index < m.get_amount_of_streams())
                     {
-                    generic_stream& gs{m.get_stream(index)};                        
-                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("string"));
+                    generic_stream& gs{m.get_stream(index)};                                                    
                     
-                    
-                    generic_name gn3;
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("max"));
-                    gn3.add_generic_name_item(std::make_shared<identifier_name_item>("size"));
-
-                    
-                    signature the_read_from_stream_max_size{gn3};                
-                    int max_size = m.get_variable_with_value(the_read_from_stream_max_size).get_value_integer();
-                    
-                    signature the_read_from_stream_result{gn2};    
-                    
+                    int max_size = m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_max_size).get_value_integer();
+                                                            
                     gs.set_max_size(max_size);
                     
                     std::string s = gs.read_string();
                                     
                     DEBUG("read " << s);
                 
-                    m.get_variable_with_value(the_read_from_stream_result).assign_value_string(s);
+                    m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_result_string).assign_value_string(s);
                     return;
                     }
                 }
                 else
                 {
-                    generic_name gn;
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("read"));
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("from"));
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("source"));
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));        
-                    gn.add_generic_name_item(std::make_shared<identifier_name_item>("index"));        
-                
-                    signature the_read_from_stream_source_stream_index{gn};
-                
-                    int index = m.get_variable_with_value(the_read_from_stream_source_stream_index).get_value_integer();
+                    int index = m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_source_stream_index).get_value_integer();
         
                     DEBUG("value of the print target stream index " << index);
                     if (index >= 0 && index < m.get_amount_of_streams())
@@ -1486,13 +1460,6 @@ void chomik::signature::execute_predefined_compare(machine & m) const
             {                
                 if (vector_of_items[1]->get_value_string() == "integer")
                 {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
-                
-                    signature the_compare_result{gn2};    
-                    
                     std::string s = "";
                     
                     int a = vector_of_items[2]->get_value_integer();
@@ -1514,7 +1481,7 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                         s = "equal";
                     }
                 
-                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);                                        
+                    m.get_variable_with_value(*our_common_data->signature_the_compare_result).assign_value_enum(s);                                        
                     return;
                 }
             }
@@ -1525,13 +1492,6 @@ void chomik::signature::execute_predefined_compare(machine & m) const
             {                
                 if (vector_of_items[1]->get_value_string() == "float")
                 {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
-                
-                    signature the_compare_result{gn2};    
-                    
                     std::string s = "";
                     
                     float a = vector_of_items[2]->get_value_float();
@@ -1553,7 +1513,7 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                         s = "equal";    // comparison of floats for equality makes little sense, but we allow it
                     }
                 
-                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);                                        
+                    m.get_variable_with_value(*our_common_data->signature_the_compare_result).assign_value_enum(s);                                        
                     return;
                 }
             }                
@@ -1562,13 +1522,6 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                 && vector_of_items[2]->get_it_is_enum()
                 && vector_of_items[3]->get_it_is_enum())
             {                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
-                
-                    signature the_compare_result{gn2};
-                    
                     std::string s = "";
                     std::string a = vector_of_items[2]->get_value_enum();
                     std::string b = vector_of_items[3]->get_value_enum();
@@ -1589,21 +1542,14 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                         s = "equal";
                     }                    
                     
-                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);
+                    m.get_variable_with_value(*our_common_data->signature_the_compare_result).assign_value_enum(s);
                     return;
             }
             else
             if (vector_of_items[1]->get_it_is_string() 
                 && vector_of_items[2]->get_it_is_string()
                 && vector_of_items[3]->get_it_is_string())
-            {                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("compare"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));                    
-                
-                    signature the_compare_result{gn2};
-                    
+            {                                    
                     std::string s = "";
                     std::string a = vector_of_items[2]->get_value_string();
                     std::string b = vector_of_items[3]->get_value_string();
@@ -1624,7 +1570,7 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                         s = "equal";
                     }                    
                     
-                    m.get_variable_with_value(the_compare_result).assign_value_enum(s);
+                    m.get_variable_with_value(*our_common_data->signature_the_compare_result).assign_value_enum(s);
                     return;
             }
         }
@@ -1646,15 +1592,7 @@ void chomik::signature::execute_predefined_multiply(machine & m) const
                 && vector_of_items[3]->get_it_is_integer())
             {                
                 if (vector_of_items[1]->get_value_string() == "integer")
-                {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("multiply"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
-                
-                    signature the_multiply_result{gn2};    
-                    
+                {                                                    
                     std::string s = "";
                     
                     int a = vector_of_items[2]->get_value_integer();
@@ -1662,7 +1600,7 @@ void chomik::signature::execute_predefined_multiply(machine & m) const
                     
                     DEBUG("signature::execute_predefined_multiply got " << a << " and " << b);
                                     
-                    m.get_variable_with_value(the_multiply_result).assign_value_integer(a*b);
+                    m.get_variable_with_value(*our_common_data->signature_the_multiply_result_integer).assign_value_integer(a*b);
                     return;
                 }
             }
@@ -1685,14 +1623,6 @@ void chomik::signature::execute_predefined_divide(machine & m) const
             {                
                 if (vector_of_items[1]->get_value_string() == "float")
                 {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("divide"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("float"));
-                
-                    signature the_divide_result{gn2};    
-                    
                     std::string s = "";
                     
                     int a = vector_of_items[2]->get_value_integer();
@@ -1702,7 +1632,7 @@ void chomik::signature::execute_predefined_divide(machine & m) const
                     
                     if (b!=0)
                     {
-                        m.get_variable_with_value(the_divide_result).assign_value_float(static_cast<double>(a)/static_cast<double>(b));                        
+                        m.get_variable_with_value(*our_common_data->signature_the_divide_result_float).assign_value_float(static_cast<double>(a)/static_cast<double>(b));                        
                     }
                                     
                     return;
@@ -1727,14 +1657,6 @@ void chomik::signature::execute_predefined_add(machine & m) const
             {                
                 if (vector_of_items[1]->get_value_string() == "integer")
                 {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("add"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
-                
-                    signature the_add_result{gn2};    
-                    
                     std::string s = "";
                     
                     int a = vector_of_items[2]->get_value_integer();
@@ -1742,7 +1664,7 @@ void chomik::signature::execute_predefined_add(machine & m) const
                     
                     DEBUG("signature::execute_predefined_add got " << a << " and " << b);
                                     
-                    m.get_variable_with_value(the_add_result).assign_value_integer(a+b);
+                    m.get_variable_with_value(*our_common_data->signature_the_add_result_integer).assign_value_integer(a+b);
                     return;
                 }
             }
@@ -1764,15 +1686,7 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
                 && vector_of_items[3]->get_it_is_integer())
             {                
                 if (vector_of_items[1]->get_value_string() == "integer")
-                {                                
-                    generic_name gn2;
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
-                    gn2.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
-                    gn2.add_generic_name_item(std::make_shared<name_item_string>("integer"));
-                
-                    signature the_add_result{gn2};    
-                    
+                {                                                    
                     std::string s = "";
                     
                     int a = vector_of_items[2]->get_value_integer();
@@ -1780,7 +1694,7 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
                     
                     DEBUG("got " << a << " and " << b);
                                     
-                    m.get_variable_with_value(the_add_result).assign_value_integer(a-b);                                        
+                    m.get_variable_with_value(*our_common_data->signature_the_subtract_result_integer).assign_value_integer(a-b);                                        
                     return;
                 }
             }

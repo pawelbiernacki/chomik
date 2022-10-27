@@ -301,6 +301,9 @@ namespace chomik
     
     class generic_name;
     class machine;
+    class signature_common_data;
+    
+    
     
     /**
      * A signature is an actual "name" of a variable.
@@ -308,7 +311,10 @@ namespace chomik
      */
     class signature
     {
-    private:
+    private:       
+        static std::unique_ptr<signature_common_data> our_common_data;
+        
+        
         std::vector<std::shared_ptr<signature_item>> vector_of_items;
         
         bool get_it_has_prefix(const std::string & pattern) const;
@@ -337,8 +343,7 @@ namespace chomik
         
         void execute_predefined(machine & m) const;
         
-        const std::vector<std::shared_ptr<signature_item>> & get_vector_of_items() const { return vector_of_items; }
-        
+        const std::vector<std::shared_ptr<signature_item>> & get_vector_of_items() const { return vector_of_items; }            
     };
     
     
@@ -812,6 +817,54 @@ namespace chomik
         void get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const;        
                 
     };
+    
+    
+    /**
+     * These class contains constant objects and for the optimization purpose their creation has been moved to the class constructor.
+     */
+    class signature_common_data
+    {
+    private:
+        friend class signature;
+        generic_name        generic_name_the_print_target_stream_index,
+                            generic_name_the_print_separator,
+                            generic_name_the_print_end_of_line,
+                            generic_name_the_created_stream_index,
+                            generic_name_the_set_to_stream_stream_index,
+                            generic_name_the_get_from_stream_stream_index,
+                            generic_name_the_get_from_stream_result,
+                            generic_name_the_read_from_stream_source_stream_index,
+                            generic_name_the_read_from_stream_result_integer,
+                            generic_name_the_read_from_stream_result_string,
+                            generic_name_the_read_from_stream_max_size,
+                            generic_name_the_compare_result,
+                            generic_name_the_multiply_result_integer,
+                            generic_name_the_divide_result_float,
+                            generic_name_the_add_result_integer,
+                            generic_name_the_subtract_result_integer;
+                            
+        std::unique_ptr<signature>  signature_the_print_target_stream_index,
+                                    signature_the_print_separator,
+                                    signature_the_print_end_of_line,
+                                    signature_the_created_stream_index,
+                                    signature_the_set_to_stream_stream_index,
+                                    signature_the_get_from_stream_stream_index,
+                                    signature_the_get_from_stream_result,
+                                    signature_the_read_from_stream_source_stream_index,
+                                    signature_the_read_from_stream_result_integer,
+                                    signature_the_read_from_stream_result_string,
+                                    signature_the_read_from_stream_max_size,
+                                    signature_the_compare_result,
+                                    signature_the_multiply_result_integer,
+                                    signature_the_divide_result_float,
+                                    signature_the_add_result_integer,
+                                    signature_the_subtract_result_integer;
+    public:
+        signature_common_data();
+        ~signature_common_data() {}
+    };
+    
+    
 
     template <typename TYPE>    
     class simple_name_item: public generic_name_item
