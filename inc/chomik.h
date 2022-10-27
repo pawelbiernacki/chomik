@@ -2792,6 +2792,8 @@ namespace chomik
         virtual void set_result(const std::string & r) override { string_stream.clear(); string_stream.str(r); }
         
         virtual std::string read_string() override { std::string word; string_stream >> std::setw(max_size) >> word; return word; }
+        
+        virtual int read_integer() override { int v; string_stream >> v; return v; }
     };
     
     class generic_stream_random_number_stream: public generic_stream
