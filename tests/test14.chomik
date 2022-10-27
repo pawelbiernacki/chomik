@@ -1,0 +1,78 @@
+#!/usr/local/bin/chomik
+
+# this test checks the nested "infinite" loops
+# it sets the break flag after the comparison of the counter indicates it is equal 10
+
+
+variable break on (X:compare_result_type):code;
+let break on equal=value code
+{
+    let the break flag = value boolean true;
+};
+let break on lower=value code {};
+let break on greater=value code
+{
+    let the break flag = value boolean true;    # this assignment is not necessary! it is just to be on the safe side...
+};
+
+
+variable return 1 on wrong result (X:compare_result_type):code;
+let return 1 on wrong result equal=value code
+{
+    let the program return = value integer 0;
+};
+let return 1 on wrong result lower=value code
+{
+    let the program return = value integer 1;
+};
+let return 1 on wrong result greater=value code
+{
+    let the program return = value integer 1;
+};
+
+
+variable alpha counter:integer, beta counter:integer, gamma counter:integer;
+let alpha counter = value integer 0;
+let beta counter = value integer 0;
+let gamma counter = value integer 0;
+
+variable alpha (X:integer):code;
+let alpha (B:integer)=value code
+{
+    let alpha counter = value integer [(B:integer)];        
+    
+    <print "the alpha counter equals" <alpha counter>>; 
+    
+    <beta (Y:integer)>;
+    let the break flag = value boolean false;
+    
+    <beta (Z:integer)>;
+    let the break flag = value boolean false;
+        
+    <compare "integer" <alpha counter> 3>; 
+    <break on <the compare result>>;        
+};
+
+
+variable beta (S:integer):code;
+let beta (X:integer)=value code
+{
+    let beta counter = value integer [(X:integer)];
+    <print "the beta counter equals" <beta counter>>;
+    
+    <add "integer" <gamma counter> 1>;
+    let gamma counter = <the add result "integer">;        
+    
+    <compare "integer" <beta counter> 3>;
+    <break on <the compare result>>;
+};
+
+
+
+<alpha (Q:integer)>; # here we run the iteration
+
+let the break flag=value boolean false; # after we did the loop it is a good habit to reset the break flag
+                                        # the break flag is a predefined boolean variable, by default it equals false
+
+<compare "integer" <gamma counter> 32>;
+<return 1 on wrong result <the compare result>>;

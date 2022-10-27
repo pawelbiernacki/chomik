@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libchomik.la
 
 
 libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc execute.cc get_actual_code_value.cc \
-		get_result_replacing_placeholders.cc various_functions.cc
+		get_result_replacing_placeholders.cc various_functions.cc generators.cc
 
 
 chomik_SOURCES = chomik.cc
@@ -19,7 +19,8 @@ AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc
 
 
 TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik ../tests/test5.chomik ../tests/test6.chomik \
-	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik
+	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik \
+	../tests/test13.chomik ../tests/test14.chomik
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 

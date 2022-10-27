@@ -92,7 +92,10 @@ host_triplet = @host@
 bin_PROGRAMS = chomik$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -134,7 +137,8 @@ libchomik_la_LIBADD =
 am_libchomik_la_OBJECTS = scanner.lo parser.lo parser_functions.lo \
 	scanner_functions.lo report.lo make_copy_with_replacements.lo \
 	execute.lo get_actual_code_value.lo \
-	get_result_replacing_placeholders.lo various_functions.lo
+	get_result_replacing_placeholders.lo various_functions.lo \
+	generators.lo
 libchomik_la_OBJECTS = $(am_libchomik_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -159,6 +163,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/chomik.Po ./$(DEPDIR)/execute.Plo \
+	./$(DEPDIR)/generators.Plo \
 	./$(DEPDIR)/get_actual_code_value.Plo \
 	./$(DEPDIR)/get_result_replacing_placeholders.Plo \
 	./$(DEPDIR)/make_copy_with_replacements.Plo \
@@ -562,13 +567,14 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libchomik.la
 libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc execute.cc get_actual_code_value.cc \
-		get_result_replacing_placeholders.cc various_functions.cc
+		get_result_replacing_placeholders.cc various_functions.cc generators.cc
 
 chomik_SOURCES = chomik.cc
 chomik_LDADD = libchomik.la
 AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc 
 TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik ../tests/test5.chomik ../tests/test6.chomik \
-	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik
+	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik \
+	../tests/test13.chomik ../tests/test14.chomik
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 all: all-am
@@ -704,6 +710,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chomik.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/execute.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generators.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get_actual_code_value.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get_result_replacing_placeholders.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/make_copy_with_replacements.Plo@am__quote@ # am--include-marker
@@ -1051,6 +1058,20 @@ recheck: all
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test13.chomik.log: ../tests/test13.chomik
+	@p='../tests/test13.chomik'; \
+	b='../tests/test13.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test14.chomik.log: ../tests/test14.chomik
+	@p='../tests/test14.chomik'; \
+	b='../tests/test14.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -1152,6 +1173,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/chomik.Po
 	-rm -f ./$(DEPDIR)/execute.Plo
+	-rm -f ./$(DEPDIR)/generators.Plo
 	-rm -f ./$(DEPDIR)/get_actual_code_value.Plo
 	-rm -f ./$(DEPDIR)/get_result_replacing_placeholders.Plo
 	-rm -f ./$(DEPDIR)/make_copy_with_replacements.Plo
@@ -1208,6 +1230,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/chomik.Po
 	-rm -f ./$(DEPDIR)/execute.Plo
+	-rm -f ./$(DEPDIR)/generators.Plo
 	-rm -f ./$(DEPDIR)/get_actual_code_value.Plo
 	-rm -f ./$(DEPDIR)/get_result_replacing_placeholders.Plo
 	-rm -f ./$(DEPDIR)/make_copy_with_replacements.Plo

@@ -143,6 +143,7 @@ void chomik::generic_literal_placeholder::report(std::ostream & s) const
     s << "[(" << placeholder << ':' << *type_name << ")]";
 }
 
+
 void chomik::generator::report(std::ostream & s) const
 {
     bool first = true;
@@ -173,12 +174,17 @@ void chomik::generator::report(std::ostream & s) const
     }
     if (memory.size() > 0)
     {
-        s << "\n";
-        s << "placeholders memory:\n";
+        s << " ";
+        s << "placeholders memory:";
         for (auto & i: memory)
         {
             i->report(s);
+            s << " ";
         }
+    }
+    if (auto o=my_father.lock())
+    {
+        s << "(father: " << *o << ")";        
     }
 }
 
@@ -218,4 +224,36 @@ void chomik::assignment_source_code_pattern::report(std::ostream & s) const
 void chomik::assignment_source_variable_value::report(std::ostream & s) const
 {
     s << "variable value";
+}
+
+void chomik::mapping_generator::report(std::ostream & s) const
+{
+    s << "created in " << my_filename << " line " << line_number << ":";
+
+    for (auto i=map_child_placeholder_to_father_placeholder.begin(); i!=map_child_placeholder_to_father_placeholder.end(); i++)
+    {
+        s << i->first << "->" << i->second << " ";
+    }
+    
+    if (auto o = my_father.lock())
+    {
+        s << " (";
+        o->report(s);
+        s << ")";
+    }
+}
+
+
+void chomik::matching_protocol::report(std::ostream & s) const
+{
+    s << "matching protocol ";
+    
+    for (auto a=map_placeholder_names_to_integer.begin(); a!=map_placeholder_names_to_integer.end(); a++)
+    {
+        s << a->first << "->" << a->second << " ";
+    }
+    for (auto a=map_placeholder_names_to_placeholder_names.begin(); a!=map_placeholder_names_to_placeholder_names.end(); a++)
+    {
+        s << a->first << "->" << a->second << " ";
+    }
 }

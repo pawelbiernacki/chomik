@@ -1,0 +1,35 @@
+#!/usr/local/bin/chomik
+
+# this test checks the "infinite" loop
+# it sets the break flag after the comparison of the counter indicates it is equal 10
+
+# it was designed to catch a generator's problem
+
+variable break on (X:compare_result_type):code;
+let break on equal=value code
+{
+    let the break flag = value boolean true;
+};
+let break on lower=value code {};
+let break on greater=value code
+{
+    let the break flag = value boolean true;    # this assignment is not necessary! it is just to be on the safe side...
+};
+
+
+variable do something (X:integer):code;
+let do something (B:integer)=value code
+{
+    let counter = value integer [(B:integer)];        
+    
+    <print "the counter equals" <counter>>; 
+        
+    <compare "integer" <counter> 10>; 
+    <break on <the compare result>>;      
+};
+
+<do something (A:integer)>; # here we run the iteration
+
+let the break flag=value boolean false; # after we did the loop it is a good habit to reset the break flag
+                                        # the break flag is a predefined boolean variable, by default it equals false
+

@@ -12,6 +12,13 @@
 
 #define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
 
+
+std::ostream & operator<<(std::ostream & s, const chomik::basic_generator & g)
+{
+    g.report(s);
+    return s;
+}
+
 std::ostream & operator<<(std::ostream & s, const chomik::placeholder_with_value & x)
 {
     x.report(s);
@@ -97,6 +104,12 @@ std::ostream & operator<<(std::ostream & s, const chomik::signature & x)
 }
 
 
+std::ostream & operator<<(std::ostream & s, const chomik::matching_protocol & x)
+{
+    x.report(s);
+    return s;
+}
+
 
 int chomik::generic_stream_random_number_stream::read_integer()
 {
@@ -146,12 +159,12 @@ void chomik::variable_with_value_code::get_value_code(code & target) const
     
 }
 
-std::string chomik::placeholder_name_item::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::placeholder_name_item::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     return g.get_actual_text_representation_of_a_placeholder(placeholder);
 }
 
-std::string chomik::variable_value_name_item::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::variable_value_name_item::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
     return m.get_actual_text_representation_of_a_variable(s);
@@ -216,12 +229,12 @@ bool chomik::predefined_variables::get_variable_is_predefined(const std::string 
 
 
 
-std::string chomik::generic_value_placeholder::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::generic_value_placeholder::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     return g.get_actual_text_representation_of_a_placeholder(placeholder);
 }
 
-std::string chomik::generic_name::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::generic_name::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     std::stringstream s;
     for (auto & i: vector_of_name_items)
@@ -231,7 +244,7 @@ std::string chomik::generic_name::get_actual_text_representation(machine & m, ge
     return s.str();
 }
 
-std::string chomik::generic_literal_code::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::generic_literal_code::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     std::stringstream s;
     my_code_pointer->report(s);
@@ -309,20 +322,20 @@ void chomik::signature::add_content(std::shared_ptr<signature_item> && i)
     vector_of_items.push_back(std::move(i));
 }
 
-void chomik::name_item_string::add_content_to_signature(signature & target, machine & m, generator & g) const
+void chomik::name_item_string::add_content_to_signature(signature & target, machine & m, basic_generator & g) const
 {
-    target.add_content(std::make_shared<simple_value_string_signature_item>(my_value));
+    target.add_content(std::make_shared<simple_value_string_signature_item>(*this, my_value));
 }
 
 
-void chomik::identifier_name_item::add_content_to_signature(signature & target, machine & m, generator & g) const
+void chomik::identifier_name_item::add_content_to_signature(signature & target, machine & m, basic_generator & g) const
 {
-    target.add_content(std::make_shared<simple_value_enum_signature_item>(identifier));
+    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
 }
 
 void chomik::identifier_name_item::add_content_to_signature(signature & target) const
 {
-    target.add_content(std::make_shared<simple_value_enum_signature_item>(identifier));
+    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
 }
 
 std::string chomik::machine::get_variable_value_enum(const signature & vn) const
@@ -411,26 +424,28 @@ chomik::variable_with_value::actual_memory_representation_type chomik::machine::
     return variable_with_value::actual_memory_representation_type::NONE; // this happens when the variable is not represented in the memory
 }
 
-void chomik::placeholder_name_item::add_content_to_signature(signature & target, machine & m, generator & g) const
+void chomik::placeholder_name_item::add_content_to_signature(signature & target, machine & m, basic_generator & g) const
 {    
+    DEBUG("checking whether " << g << " has placeholder " << placeholder);    
+    
     if (g.get_has_placeholder_with_value(placeholder))
     {
         switch (g.get_placeholder_with_value(placeholder).get_representation_type())
         {
             case variable_with_value::actual_memory_representation_type::INTEGER:
-                target.add_content(std::make_shared<simple_value_integer_signature_item>(g.get_placeholder_value_integer(placeholder)));
+                target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, g.get_placeholder_value_integer(placeholder)));
                 break;
                 
             case variable_with_value::actual_memory_representation_type::FLOAT:
-                target.add_content(std::make_shared<simple_value_float_signature_item>(g.get_placeholder_value_float(placeholder)));
+                target.add_content(std::make_shared<simple_value_float_signature_item>(*this, g.get_placeholder_value_float(placeholder)));
                 break;
 
             case variable_with_value::actual_memory_representation_type::STRING:
-                target.add_content(std::make_shared<simple_value_string_signature_item>(g.get_placeholder_value_string(placeholder)));
+                target.add_content(std::make_shared<simple_value_string_signature_item>(*this, g.get_placeholder_value_string(placeholder)));
                 break;                
                 
             case variable_with_value::actual_memory_representation_type::ENUM:
-                target.add_content(std::make_shared<simple_value_enum_signature_item>(g.get_placeholder_value_enum(placeholder)));
+                target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, g.get_placeholder_value_enum(placeholder)));
                 break;                
                 
             case variable_with_value::actual_memory_representation_type::CODE:
@@ -438,34 +453,82 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
                 break;                
         }
     }
+    else
+    {
+        DEBUG("no, it doesn't");                        
+        
+    }
     
 }
 
 
-bool chomik::simple_value_integer_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+bool chomik::simple_value_integer_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
+    DEBUG("get_match for " << gni << " against " << value);
+    
+    
     if (gni.get_is_integer())
     {
+        DEBUG(gni << " is an integer");
         return gni.get_match_integer(value);
     }
     else
     if (gni.get_is_placeholder())
     {
-        if (target.get_is_placeholder_bound_as_integer(gni.get_placeholder_name()))             // this is necessary since we might use the same placeholder twice
+        const auto * gni2 = static_cast<const placeholder_name_item*>(&gni);
+        
+        
+        DEBUG(gni << " is a placeholder of type " << gni2->get_type());
+        
+        if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
         {
-            return value == target.get_placeholder_value_integer(gni.get_placeholder_name());
+            DEBUG("it has a placeholder with value " << g);
+            
+            switch (gni2->get_type().get_actual_memory_representation_type(m))
+            {
+                case variable_with_value::actual_memory_representation_type::INTEGER:
+                    if (target.get_is_placeholder_bound_as_integer(gni.get_placeholder_name()))      // this is necessary since we might use the same placeholder twice
+                    {                                                
+                        return value == target.get_placeholder_value_integer(gni.get_placeholder_name());
+                    }
+                    else
+                    {                        
+                        DEBUG("looking for " << gni.get_placeholder_name() << ", translated to " 
+                            << g.convert_childs_placeholder_name_to_father(gni.get_placeholder_name()));
+                        
+                        DEBUG("placeholder value " << g.get_placeholder_value_integer(gni.get_placeholder_name()));
+                        
+                        if (value == g.get_placeholder_value_integer(gni.get_placeholder_name()))
+                        {
+                            target.bind_placeholder_as_integer(gni.get_placeholder_name(), value);
+                            return target.get_is_successful();                            
+                        }
+                        else
+                        {
+                            target.bind_placeholder_as_integer(gni.get_placeholder_name(), value);
+                        }
+                        return false;
+                    }
+                    break;
+                    
+                default:
+                    // TODO - implement me
+                    break;
+            }
         }
         else
         {
-            target.bind_placeholder_as_integer(gni.get_placeholder_name(), value);
-            return target.get_is_successful();
+            DEBUG("the generator " << g << " has no placeholder " << gni.get_placeholder_name());
+            
+            target.bind_placeholder_as_placeholder(gni.get_placeholder_name(), source.get_placeholder_name());
+            return false;
         }
     }    
     return false;
 }
 
 
-bool chomik::simple_value_float_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+bool chomik::simple_value_float_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
     if (gni.get_is_float())
     {
@@ -488,7 +551,7 @@ bool chomik::simple_value_float_signature_item::get_match(const generic_name_ite
 }
 
 
-bool chomik::simple_value_string_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+bool chomik::simple_value_string_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
     if (gni.get_is_string())
     {
@@ -511,7 +574,7 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
 }
 
 
-bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item & gni, const machine & m, const generator & g, matching_protocol & target) const
+bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
     if (gni.get_is_identifier())
     {
@@ -533,14 +596,13 @@ bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item
     return false;
 }
 
-bool chomik::assignment_event::get_match(const signature & s, const machine & m, const generator & g) const
+bool chomik::assignment_event::get_match(const signature & s, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
     DEBUG("checking whether it is matching the signature " << s);
     DEBUG("my event - " << *this);
     
     auto sv{s.get_vector_of_items()};   // this signature must contain actual values
-    auto sq{my_assignment_target->get_vector_of_name_items()};  // this signature may contain placeholders
-    matching_protocol mp;
+    auto sq{my_assignment_target->get_vector_of_name_items()};  // this signature may contain placeholders    
     
     if (sv.size() != sq.size())
     {
@@ -554,17 +616,20 @@ bool chomik::assignment_event::get_match(const signature & s, const machine & m,
     {
         DEBUG("check whether " << **sv_iterator << " matches " << **sq_iterator);        
         
-        if (!(*sv_iterator)->get_match(**sq_iterator, m, g, mp))
+        if (!(*sv_iterator)->get_match(**sq_iterator, m, g, target))
         {
             result = false;
-            break;
+            // we had a break here, now we don't, since we might use the matching protocol
         }        
     }        
+    
+    DEBUG("matching result = " << (result ? "true":"false"));
+    
     return result;
 }
 
 
-void chomik::variable_value_name_item::add_content_to_signature(signature & target, machine & m, generator & g) const
+void chomik::variable_value_name_item::add_content_to_signature(signature & target, machine & m, basic_generator & g) const
 {
     signature x{*name, m, g};
     
@@ -573,19 +638,19 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
         switch (m.get_actual_memory_representation_type_of_the_variable(x))
         {
             case variable_with_value::actual_memory_representation_type::INTEGER:
-                target.add_content(std::make_shared<simple_value_integer_signature_item>(m.get_variable_value_integer(x)));
+                target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, m.get_variable_value_integer(x)));
                 break;
                 
             case variable_with_value::actual_memory_representation_type::FLOAT:
-                target.add_content(std::make_shared<simple_value_float_signature_item>(m.get_variable_value_float(x)));
+                target.add_content(std::make_shared<simple_value_float_signature_item>(*this, m.get_variable_value_float(x)));
                 break;
                 
             case variable_with_value::actual_memory_representation_type::STRING:
-                target.add_content(std::make_shared<simple_value_string_signature_item>(m.get_variable_value_string(x)));
+                target.add_content(std::make_shared<simple_value_string_signature_item>(*this, m.get_variable_value_string(x)));
                 break;
                 
             case variable_with_value::actual_memory_representation_type::ENUM:
-                target.add_content(std::make_shared<simple_value_enum_signature_item>(m.get_variable_value_enum(x)));
+                target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, m.get_variable_value_enum(x)));
                 break;
                                 
             case variable_with_value::actual_memory_representation_type::CODE:
@@ -603,26 +668,28 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
             const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
             DEBUG("found " << *a);
             
-            if (a->get_match(x, m, g))
+            matching_protocol mprotocol;
+                        
+            if (a->get_match(x, m, g, mprotocol))
             {
                 DEBUG("it is matching our signature !!!");
                                 
                 switch (a->get_source().get_actual_memory_representation_type())
                 {
                     case variable_with_value::actual_memory_representation_type::INTEGER:
-                        target.add_content(std::make_shared<simple_value_integer_signature_item>(a->get_source().get_actual_integer_value(m, g)));
+                        target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, a->get_source().get_actual_integer_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::FLOAT:
-                        target.add_content(std::make_shared<simple_value_float_signature_item>(a->get_source().get_actual_float_value(m, g)));
+                        target.add_content(std::make_shared<simple_value_float_signature_item>(*this, a->get_source().get_actual_float_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::STRING:
-                        target.add_content(std::make_shared<simple_value_string_signature_item>(a->get_source().get_actual_string_value(m, g)));
+                        target.add_content(std::make_shared<simple_value_string_signature_item>(*this, a->get_source().get_actual_string_value(m, g)));
                         break;
                         
                     case variable_with_value::actual_memory_representation_type::ENUM:
-                        target.add_content(std::make_shared<simple_value_enum_signature_item>(a->get_source().get_actual_identifier_value(m, g)));
+                        target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, a->get_source().get_actual_identifier_value(m, g)));
                         break;
                                             
                     case variable_with_value::actual_memory_representation_type::CODE:
@@ -630,19 +697,26 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                 }
                 
                 break;
-            }            
+            }
+            else
+            {
+                DEBUG("it is not matching our signature !!!");
+                
+            }
         }                
     }
     
 }
 
 
-chomik::signature::signature(const generic_name & gn, machine & m, generator & g)
-{
+chomik::signature::signature(const generic_name & gn, machine & m, basic_generator & g)
+{    
     for (auto &i: gn.get_vector_of_name_items())
     {
         i->add_content_to_signature(*this, m, g);
     }
+    
+    DEBUG("the signature constructor produced " << *this);
 }
 
 chomik::signature::signature(const generic_name & gn)
@@ -653,13 +727,13 @@ chomik::signature::signature(const generic_name & gn)
     }
 }
 
-chomik::variable_with_value::actual_memory_representation_type chomik::generic_value_placeholder::get_actual_memory_representation_type(machine & m, generator & g) const
+chomik::variable_with_value::actual_memory_representation_type chomik::generic_value_placeholder::get_actual_memory_representation_type(machine & m, basic_generator & g) const
 {
     return type_name->get_actual_memory_representation_type(m);
 }
 
 
-chomik::variable_with_value::actual_memory_representation_type chomik::generic_value_variable_value::get_actual_memory_representation_type(machine & m, generator & g) const
+chomik::variable_with_value::actual_memory_representation_type chomik::generic_value_variable_value::get_actual_memory_representation_type(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
     
@@ -901,8 +975,10 @@ void chomik::machine::create_predefined_streams()
     
 }
 
-int chomik::generic_literal_placeholder::get_actual_integer_value(machine & m, generator & g) const
+int chomik::generic_literal_placeholder::get_actual_integer_value(machine & m, basic_generator & g) const
 {
+    DEBUG("get generic literal placeholder value for " << placeholder << ", generator " << g);
+    
     if (g.get_has_placeholder_with_value(placeholder))
     {
         DEBUG("got " << g.get_placeholder_value_integer(placeholder));
@@ -917,14 +993,14 @@ int chomik::generic_literal_placeholder::get_actual_integer_value(machine & m, g
 }
 
 
-std::string chomik::generic_literal_placeholder::get_actual_string_value(machine & m, generator & g) const
+std::string chomik::generic_literal_placeholder::get_actual_string_value(machine & m, basic_generator & g) const
 { 
     return g.get_placeholder_with_value(placeholder).get_value_enum();     
 }
 
 
 
-int chomik::generic_value_variable_value::get_actual_integer_value(machine & m, generator & g) const
+int chomik::generic_value_variable_value::get_actual_integer_value(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
     int v{m.get_variable_value_integer(s)};
@@ -935,13 +1011,13 @@ int chomik::generic_value_variable_value::get_actual_integer_value(machine & m, 
 }
 
 
-std::string chomik::generic_value_variable_value::get_actual_string_value(machine & m, generator & g) const
+std::string chomik::generic_value_variable_value::get_actual_string_value(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
     return m.get_variable_value_string(s);
 }
 
-std::string chomik::generic_value_variable_value::get_actual_enum_value(machine & m, generator & g) const
+std::string chomik::generic_value_variable_value::get_actual_enum_value(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
     return m.get_variable_value_enum(s);
@@ -1800,24 +1876,20 @@ bool chomik::signature::get_is_predefined(const machine & m) const
 }
 
 
-void chomik::execute_variable_value_statement::add_placeholders_to_generator(generator & g) const
+void chomik::execute_variable_value_statement::add_placeholders_to_generator(basic_generator & g) const
 {
     name->add_placeholders_to_generator(g);
 }
 
 
-std::string chomik::generic_literal_placeholder::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::generic_literal_placeholder::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     return "hallo";
 }
 
-void chomik::generic_literal_placeholder::add_placeholders_to_generator(generator & g) const
+void chomik::generic_literal_placeholder::add_placeholders_to_generator(basic_generator & g) const
 {
     // TODO implement
-    if (!g.get_has_placeholder(placeholder))
-    {
-        
-    }
 }
 
 void chomik::type_definition_statement::expand(machine & m, int depth) const
@@ -1946,7 +2018,7 @@ void chomik::variable_definition::expand(machine & m, int depth) const
     else
     if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
     {
-        for (g.initialize(m); !g.get_terminated(); g.increment())
+        for (g.initialize(m); !g.get_terminated(); g.increment(m))
         {
             if (g.get_is_valid())
             {
@@ -1978,7 +2050,7 @@ void chomik::type_definition::expand(machine & m, int depth, std::shared_ptr<typ
     body->expand(m, depth, name, e);    
 }
 
-void chomik::generic_range_boundary_variable_value::add_placeholders_to_generator(generator & g) const
+void chomik::generic_range_boundary_variable_value::add_placeholders_to_generator(basic_generator & g) const
 {
     for (auto & i: name->get_vector_of_name_items())
     {
@@ -2010,7 +2082,7 @@ void chomik::type_definition_body_range::expand(machine & m, int depth, const st
 }
 
 
-void chomik::placeholder_name_item::add_placeholders_to_generator(generator & g) const
+void chomik::placeholder_name_item::add_placeholders_to_generator(basic_generator & g) const
 {
     if (!g.get_has_placeholder(placeholder))
     {
@@ -2039,12 +2111,12 @@ std::string chomik::signature::get_string_representation() const
     return s.str();
 }
 
-void chomik::variable_value_name_item::add_placeholders_to_generator(generator & g) const
+void chomik::variable_value_name_item::add_placeholders_to_generator(basic_generator & g) const
 {
     name->add_placeholders_to_generator(g);
 }
 
-void chomik::generic_name::add_placeholders_to_generator(generator & g) const
+void chomik::generic_name::add_placeholders_to_generator(basic_generator & g) const
 {
     /*
     std::cout << "generic_name::add_placeholders_to_generator ";
@@ -2064,12 +2136,12 @@ void chomik::generic_name::add_placeholders_to_generator(generator & g) const
     }
 }
 
-void chomik::generic_literal_code::add_placeholders_to_generator(generator & g) const
+void chomik::generic_literal_code::add_placeholders_to_generator(basic_generator & g) const
 {
     my_code_pointer->add_placeholders_to_generator(g);
 }
 
-void chomik::code::add_placeholders_to_generator(generator & g) const
+void chomik::code::add_placeholders_to_generator(basic_generator & g) const
 {
     //std::cout << "adding placeholders to generator - code ";
     //body->report(std::cout);
@@ -2077,7 +2149,7 @@ void chomik::code::add_placeholders_to_generator(generator & g) const
     body->add_placeholders_to_generator(g);
 }
 
-void chomik::list_of_statements::add_placeholders_to_generator(generator & g) const
+void chomik::list_of_statements::add_placeholders_to_generator(basic_generator & g) const
 {
     for (auto & i: vector_of_statements)
     {
@@ -2085,7 +2157,7 @@ void chomik::list_of_statements::add_placeholders_to_generator(generator & g) co
     }
 }
 
-void chomik::type_definition_statement::add_placeholders_to_generator(generator & g) const
+void chomik::type_definition_statement::add_placeholders_to_generator(basic_generator & g) const
 {
     for (auto & i: vector_of_type_definitions)
     {
@@ -2093,12 +2165,12 @@ void chomik::type_definition_statement::add_placeholders_to_generator(generator 
     }
 }
 
-void chomik::type_definition::add_placeholders_to_generator(generator & g) const
+void chomik::type_definition::add_placeholders_to_generator(basic_generator & g) const
 {
     body->add_placeholders_to_generator(g);
 }
 
-void chomik::variable_definition_statement::add_placeholders_to_generator(generator & g) const
+void chomik::variable_definition_statement::add_placeholders_to_generator(basic_generator & g) const
 {
     for (auto & i: vector_of_variable_definitions)
     {
@@ -2106,7 +2178,7 @@ void chomik::variable_definition_statement::add_placeholders_to_generator(genera
     }
 }
 
-void chomik::type_definition_body_enum::add_placeholders_to_generator(generator & g) const
+void chomik::type_definition_body_enum::add_placeholders_to_generator(basic_generator & g) const
 {
     for (auto & i: vector_of_names)
     {
@@ -2114,75 +2186,11 @@ void chomik::type_definition_body_enum::add_placeholders_to_generator(generator 
     }
 }
 
-void chomik::execute_value_statement::add_placeholders_to_generator(generator & g) const
+void chomik::execute_value_statement::add_placeholders_to_generator(basic_generator & g) const
 {
     value->add_placeholders_to_generator(g);
 }
 
-chomik::generator::generator(const generic_range & gr, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
-{
-    gr.add_placeholders_to_generator(*this);
-}
-
-chomik::generator::generator(const generic_value & gv, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
-{
-    gv.add_placeholders_to_generator(*this);
-}
-
-chomik::generator::generator(const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
-{
-}
-
-chomik::generator::generator(const generic_name & gn, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
-{
-    DEBUG("created a new generator in " << filename << " at " << line_number);
-    gn.add_placeholders_to_generator(*this);    
-    
-    DEBUG("generator::generator got a generic name " << gn);
-    DEBUG("created a new generator in " << filename << " at " << line_number << ", after initialization it is " << *this);
-}
-
-bool chomik::generator::get_is_valid()
-{
-    for (auto & i: memory)
-    {
-        if (!i->get_is_valid())
-            return false;
-    }
-    return true;
-}
-        
-void chomik::generator::add_placeholder(const std::string & p, std::shared_ptr<generic_type> && t)
-{    
-    //std::cout << "adding placeholder " << p << " to the generator\n";
-    
-    // TODO - check that it does not exist, or if it exists that it has identical type
-    
-    std::shared_ptr<generator_placeholder> x = std::make_shared<generator_placeholder>(p, std::move(t));
-    std::shared_ptr<generator_placeholder> x2{x};
-            
-    vector_of_placeholders.push_back(std::move(x));
-    auto [i, success] = map_placeholder_names_to_placeholders.insert(std::pair(p, std::move(x2)));
-    
-    if (!success)
-    {
-        throw std::runtime_error("unable to insert placeholder");
-    }    
-}
-
-
-bool chomik::generator::get_does_not_exceed_level(int max_level) const
-{
-    for (auto & i: memory)
-    {
-        if (i->get_exceeds_level(max_level))
-        {
-            DEBUG(*i << " exceeds level " << max_level << ", it has level " << i->get_level());
-            return false;
-        }
-    }
-    return true;
-}
 
 void chomik::type_definition_body_enum::expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const
 {   
@@ -2213,7 +2221,7 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
         else
         if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
         {
-            for (g.initialize(m); !g.get_terminated(); g.increment())
+            for (g.initialize(m); !g.get_terminated(); g.increment(m))
             {
                 if (g.get_is_valid())
                 {
@@ -2244,7 +2252,7 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
 }
 
 
-chomik::variable_with_value::actual_memory_representation_type chomik::generic_type_named::get_actual_memory_representation_type(machine & m) const 
+chomik::variable_with_value::actual_memory_representation_type chomik::generic_type_named::get_actual_memory_representation_type(const machine & m) const 
 {
     if (name == "integer")
         return variable_with_value::actual_memory_representation_type::INTEGER;
@@ -2276,116 +2284,6 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
 }
 
 
-void chomik::generator::initialize(machine & m)
-{
-    for (auto & i: vector_of_placeholders)
-    {
-        DEBUG("generator::initialize - add placeholder " << i->get_name() << " of type " << i->get_placeholder_type() << " to the generator");
-        
-        switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
-        {
-            case variable_with_value::actual_memory_representation_type::INTEGER:
-            {
-                const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
-                int f, l;
-                if (m.get_type_instance_is_known(type_name))
-                {
-                    m.get_first_and_last_iterators_for_range_type(type_name, f, l);
-                
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), f, l)};
-                                        
-                    DEBUG("it is a range " << f << ".." << l);
-                
-                    // std::cout << "it is a range " << f << ".." << l << "\n";
-        
-                    add_placeholder_with_value(std::move(x));
-                }
-                else
-                {
-                    // TODO we just assume it is infinite because there is no type instance - we should check whether the assumption is correct                                        
-                    DEBUG("it is infinite");
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_infinite_range>(i->get_name())};
-                    add_placeholder_with_value(std::move(x));
-                }
-            }
-            break;
-            case variable_with_value::actual_memory_representation_type::FLOAT:
-            {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 123.456)};
-        
-                add_placeholder_with_value(std::move(x));
-            }
-            break;
-            case variable_with_value::actual_memory_representation_type::STRING:
-            {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "hallo")};
-        
-                add_placeholder_with_value(std::move(x));
-            }
-            break;
-            
-            case variable_with_value::actual_memory_representation_type::ENUM:
-            {
-                const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
-                
-                std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f,l;
-                
-                // std::cout << "it is an enum of type " << type_name << "\n";
-                
-                if (m.get_type_instance_is_known(type_name))
-                {
-                    m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), f, l)};
-        
-                    add_placeholder_with_value(std::move(x));
-                }
-            }
-            break;
-            
-        }
-    }
-}
-
-void chomik::generator::increment()
-{
-    for (auto & i: memory)
-    {
-        i->increment();
-        if (i->get_is_valid())
-            break;
-        else
-            continue;
-    }
-}
-
-bool chomik::generator::get_terminated() const
-{
-    for (auto & i: memory)
-    {
-        if (!i->get_is_terminated())
-            return false;
-    }
-    return true;
-}
-
-bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small() const
-{
-    // TODO - take into account the informations about the target machine
-    return true;
-}
-
-
-bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_finite() const
-{
-    for (auto & i: vector_of_placeholders)
-    {
-        if (!i->get_type_is_finite())
-        {
-            return false;
-        }
-    }
-    return true;
-}
 
 
 void chomik::code::report(std::ostream & s) const
@@ -2499,16 +2397,22 @@ void chomik::program::add_statement(std::shared_ptr<statement> && s)
     my_code.add_statement(std::move(s));
 }
 
-chomik::description_of_a_cartesian_product::description_of_a_cartesian_product(const generator & g)
-{
-    for (auto & a: g.get_vector_of_placeholders())
-    {
-        vector_of_dimensions.push_back(std::make_unique<cartesian_product_dimension>(a->get_name(), a->get_placeholder_type().get_low_level_type_name(), 
-                                                                                     a->get_placeholder_type().get_is_finite()));        
-    }
+
+void chomik::program::execute(machine & m) const 
+{ 
+    auto s=std::make_shared<generator>(__FILE__, __LINE__);
+    
+    my_code.execute(m, s);             
+}        
+
+
+chomik::description_of_a_cartesian_product::description_of_a_cartesian_product(const basic_generator & g)
+{    
+    g.initialize_description_of_a_cartesian_product(*this);
+    
 }
 
-std::string chomik::generic_value_variable_value::get_actual_text_representation(machine & m, generator & g) const
+std::string chomik::generic_value_variable_value::get_actual_text_representation(machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
 
@@ -2588,21 +2492,31 @@ void chomik::type_instance_enum::add_type_instance_enum_value(const std::string 
 }
 
 
-void chomik::assignment_source_variable_value::get_actual_code_value(machine & m, generator & g, code & target) const
+void chomik::assignment_source_variable_value::get_actual_code_value(machine & m, basic_generator & g, code & target) const
 {
     DEBUG("got " << target);    
 }
 
-void chomik::assignment_source_code_pattern::get_actual_code_value(machine & m, generator & g, code & target) const
+void chomik::assignment_source_code_pattern::get_actual_code_value(machine & m, basic_generator & g, code & target) const
 {
     DEBUG("got " << target);
 }
 
-void chomik::assignment_source_literal_value::get_actual_code_value(machine & m, generator & g, code & target) const
+void chomik::assignment_source_literal_value::get_actual_code_value(machine & m, basic_generator & g, code & target) const
 {
     replacing_policy_literal p;
     my_value->get_actual_code_value(m, g, p, target);
+    
+    DEBUG("generator " << g);
         
     DEBUG("got " << target);
 }
 
+void chomik::matching_protocol::initialize_mapping(mapping_generator & target) const
+{
+    target.clear_mappings();
+    for (auto a=map_placeholder_names_to_placeholder_names.begin(); a!=map_placeholder_names_to_placeholder_names.end(); a++)
+    {
+        target.add_mapping(a->second, a->first);
+    }    
+}

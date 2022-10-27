@@ -24,4 +24,6 @@ src4/http_chomik
 src4/fancy_http_chomik
 src3/libhttpchomik.la
 libhttpchomik.pc
+tests/*.trs
+tests/*.log
 

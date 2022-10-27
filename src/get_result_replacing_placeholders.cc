@@ -8,7 +8,7 @@
 #define DEBUG(X)
 #endif
 
-void chomik::placeholder_name_item::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::placeholder_name_item::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
@@ -43,7 +43,7 @@ void chomik::placeholder_name_item::get_result_replacing_placeholders(machine & 
 }
 
 
-void chomik::variable_value_name_item::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::variable_value_name_item::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     generic_name gn;
 
@@ -93,7 +93,7 @@ void chomik::variable_value_name_item::get_result_replacing_placeholders(machine
 
 
 
-void chomik::generic_value_placeholder::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::generic_value_placeholder::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
@@ -130,7 +130,7 @@ void chomik::generic_value_placeholder::get_result_replacing_placeholders(machin
     }
 }
 
-void chomik::generic_literal_placeholder::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::generic_literal_placeholder::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
@@ -164,7 +164,7 @@ void chomik::generic_literal_placeholder::get_result_replacing_placeholders(mach
     }
 }
 
-void chomik::generic_name::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::generic_name::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     for (auto & i: vector_of_name_items)
     {
@@ -172,13 +172,13 @@ void chomik::generic_name::get_result_replacing_placeholders(machine & m, genera
     }
 }
 
-void chomik::identifier_name_item::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const
+void chomik::identifier_name_item::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     target.add_generic_name_item(std::make_unique<identifier_name_item>(identifier));
 }
 
 
-void chomik::generic_value_variable_value::get_result_replacing_placeholders(machine & m, generator & g, const replacing_policy & p, generic_name & target) const 
+void chomik::generic_value_variable_value::get_result_replacing_placeholders(machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const 
 {
     //std::cout << "generic_value_variable_value\n";
     //report(std::cout);

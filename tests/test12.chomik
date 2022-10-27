@@ -1,0 +1,26 @@
+#!/usr/local/bin/chomik
+
+# this test checks the division of integers
+
+variable return 1 on wrong result (X:compare_result_type):code;
+let return 1 on wrong result equal=value code
+{
+    let the program return = value integer 0;
+};
+let return 1 on wrong result lower=value code
+{
+    let the program return = value integer 1;
+};
+let return 1 on wrong result greater=value code
+{
+    let the program return = value integer 1;
+};
+
+
+<divide "float" 9 2>;
+
+<compare "float" <the divide result "float"> 4.5>;
+<return 1 on wrong result <the compare result>>;
+
+ 
+ 

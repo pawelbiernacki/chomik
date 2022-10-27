@@ -10,36 +10,38 @@
 
 #define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
 
-void chomik::code::execute(machine & m) const
+void chomik::code::execute(machine & m, std::shared_ptr<basic_generator> father) const
 {
     for (auto & i: body->get_vector_of_statements())
     {
-        i->execute(m, i);
+        i->execute(m, i, father);
     }
 }
 
-void chomik::type_definition_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::type_definition_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     std::shared_ptr<const statement> x{i};
     m.add_type_definition_statement(std::move(x));
 }
 
-void chomik::variable_definition_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::variable_definition_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     std::shared_ptr<const statement> x{i};
     m.add_variable_definition_statement(std::move(x));
 }
 
 
-void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(machine & m, generator & g) const
+void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(machine & m, std::shared_ptr<basic_generator> & g) const
 {
-        DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << g);
+        DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
 
         // it is a single variable, let us store it in memory
         
         // check whether we have it in the memory
         
-        std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, g);
+        std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, *g);
+        
+        DEBUG("code line number " << line_number << " signature " << *x);
         
         /*
         std::cout << "its signature is ";
@@ -55,18 +57,18 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
             switch (m.get_actual_memory_representation_type_of_the_variable(*x))
             {
                 case variable_with_value::actual_memory_representation_type::INTEGER:
-                    DEBUG("for value " << *value << " it is integer of value " << value->get_actual_integer_value(m, g));
-                    m.get_variable_with_value(*x).assign_value_integer(value->get_actual_integer_value(m, g));
+                    DEBUG("for value " << *value << " it is integer of value " << value->get_actual_integer_value(m, *g));
+                    m.get_variable_with_value(*x).assign_value_integer(value->get_actual_integer_value(m, *g));
                     break;
                     
                 case variable_with_value::actual_memory_representation_type::FLOAT:
                     //std::cout << "it is float\n";
-                    m.get_variable_with_value(*x).assign_value_float(value->get_actual_float_value(m, g));
+                    m.get_variable_with_value(*x).assign_value_float(value->get_actual_float_value(m, *g));
                     break;
                     
                 case variable_with_value::actual_memory_representation_type::STRING:
-                    DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, g));
-                    m.get_variable_with_value(*x).assign_value_string(value->get_actual_string_value(m, g));
+                    DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, *g));
+                    m.get_variable_with_value(*x).assign_value_string(value->get_actual_string_value(m, *g));
                     break;
                     
                 case variable_with_value::actual_memory_representation_type::CODE:
@@ -75,7 +77,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     
                     code ci;
                     replacing_policy_literal p;
-                    value->get_actual_code_value(m, g, p, ci);
+                    value->get_actual_code_value(m, *g, p, ci);
                     m.get_variable_with_value(*x).assign_value_code(ci);
                     
                     DEBUG("code line number " << line_number << ": the result code " << ci);
@@ -84,8 +86,8 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     
                 case variable_with_value::actual_memory_representation_type::ENUM:
                     //std::cout << "it is enum\n";
-                    DEBUG("code line number " << line_number << ": it is an enum " << value->get_actual_enum_value(m, g));
-                    m.get_variable_with_value(*x).assign_value_enum(value->get_actual_enum_value(m, g));
+                    DEBUG("code line number " << line_number << ": it is an enum " << value->get_actual_enum_value(m, *g));
+                    m.get_variable_with_value(*x).assign_value_enum(value->get_actual_enum_value(m, *g));
                     
                     break;                    
             }
@@ -99,12 +101,12 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
             // TODO: but should be declared, check its declaration type
             
             // check the value representation type
-            switch (value->get_actual_memory_representation_type(m, g))
+            switch (value->get_actual_memory_representation_type(m, *g))
             {
                 case variable_with_value::actual_memory_representation_type::INTEGER:
                 {
                     //std::cout << "it should be integer\n";
-                    auto y{std::make_shared<simple_variable_with_value_integer>(std::move(x), value->get_actual_integer_value(m, g))};
+                    auto y{std::make_shared<simple_variable_with_value_integer>(std::move(x), value->get_actual_integer_value(m, *g))};
                     m.add_variable_with_value(std::move(y));
 
                 }
@@ -113,15 +115,15 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                 case variable_with_value::actual_memory_representation_type::FLOAT:
                 {
                     //std::cout << "it should be float\n";
-                    auto y{std::make_shared<simple_variable_with_value_float>(std::move(x), value->get_actual_float_value(m, g))};
+                    auto y{std::make_shared<simple_variable_with_value_float>(std::move(x), value->get_actual_float_value(m, *g))};
                     m.add_variable_with_value(std::move(y));                    
                 }
                     break;
                     
                 case variable_with_value::actual_memory_representation_type::STRING:
                 {
-                    DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, g));
-                    auto y{std::make_shared<simple_variable_with_value_string>(std::move(x), value->get_actual_string_value(m, g))};                    
+                    DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, *g));
+                    auto y{std::make_shared<simple_variable_with_value_string>(std::move(x), value->get_actual_string_value(m, *g))};                    
                     m.add_variable_with_value(std::move(y));                    
                 }
                     break;
@@ -130,7 +132,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                 {
                     auto yc{std::make_unique<code>()};
                     replacing_policy_literal p;
-                    value->get_actual_code_value(m, g, p, *yc);
+                    value->get_actual_code_value(m, *g, p, *yc);
                                         
                     DEBUG("code line number " << line_number << ": got code " << *yc);
                                         
@@ -144,7 +146,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     {
                     //std::cout << "it should be enum\n";
                                         
-                    auto y{std::make_shared<simple_variable_with_value_enum>(std::move(x), value->get_actual_text_representation(m, g))};
+                    auto y{std::make_shared<simple_variable_with_value_enum>(std::move(x), value->get_actual_text_representation(m, *g))};
                     m.add_variable_with_value(std::move(y));
                     }    
                     break;                    
@@ -153,11 +155,11 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
 }
 
 
-void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, generator & g) const
+void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, std::shared_ptr<basic_generator> & g) const
 {
-        DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << g);
+        DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
                                 
-                std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, g);
+                std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, *g);
         
                 /*
                 std::cout << "its signature is ";
@@ -173,17 +175,17 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                     {
                         case variable_with_value::actual_memory_representation_type::INTEGER:
                             //std::cout << "it is integer\n";
-                            m.get_variable_with_value(*x).assign_value_integer(value->get_actual_integer_value(m, g));
+                            m.get_variable_with_value(*x).assign_value_integer(value->get_actual_integer_value(m, *g));
                             break;
                     
                         case variable_with_value::actual_memory_representation_type::FLOAT:
                             //std::cout << "it is float\n";
-                            m.get_variable_with_value(*x).assign_value_float(value->get_actual_float_value(m, g));
+                            m.get_variable_with_value(*x).assign_value_float(value->get_actual_float_value(m, *g));
                             break;
                     
                         case variable_with_value::actual_memory_representation_type::STRING:
                             //std::cout << "it is string\n";
-                            m.get_variable_with_value(*x).assign_value_string(value->get_actual_string_value(m, g));
+                            m.get_variable_with_value(*x).assign_value_string(value->get_actual_string_value(m, *g));
                             break;
                     
                         case variable_with_value::actual_memory_representation_type::CODE:
@@ -191,7 +193,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                             //std::cout << "it is code\n";
                             auto yc{std::make_unique<code>()};
                             replacing_policy_literal p;
-                            value->get_actual_code_value(m, g, p, *yc);
+                            value->get_actual_code_value(m, *g, p, *yc);
                                         
                             auto y{std::make_shared<variable_with_value_code>(std::move(x), std::move(yc))};
                     
@@ -201,7 +203,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                     
                         case variable_with_value::actual_memory_representation_type::ENUM:
                             //std::cout << "it is enum\n";
-                            m.get_variable_with_value(*x).assign_value_enum(value->get_actual_enum_value(m, g));
+                            m.get_variable_with_value(*x).assign_value_enum(value->get_actual_enum_value(m, *g));
                     
                             //std::cout << "assigned " << value->get_actual_enum_value(m, g) << "\n";
                             break;                    
@@ -210,12 +212,12 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                 else
                 {
                     //std::cout << "it is not represented in memory\n";
-                    switch (value->get_actual_memory_representation_type(m, g))
+                    switch (value->get_actual_memory_representation_type(m, *g))
                     {
                         case variable_with_value::actual_memory_representation_type::INTEGER:
                         {
                             //std::cout << "it should be integer\n";
-                            auto y{std::make_shared<simple_variable_with_value_integer>(std::move(x), value->get_actual_integer_value(m, g))};
+                            auto y{std::make_shared<simple_variable_with_value_integer>(std::move(x), value->get_actual_integer_value(m, *g))};
                             m.add_variable_with_value(std::move(y));
                         }
                         break;
@@ -223,7 +225,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                         case variable_with_value::actual_memory_representation_type::FLOAT:
                         {
                             //std::cout << "it should be float\n";
-                            auto y{std::make_shared<simple_variable_with_value_float>(std::move(x), value->get_actual_float_value(m, g))};
+                            auto y{std::make_shared<simple_variable_with_value_float>(std::move(x), value->get_actual_float_value(m, *g))};
                             m.add_variable_with_value(std::move(y));                    
                         }
                         break;
@@ -231,7 +233,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                         case variable_with_value::actual_memory_representation_type::STRING:
                         {
                             //std::cout << "it should be string\n";
-                            auto y{std::make_shared<simple_variable_with_value_string>(std::move(x), value->get_actual_string_value(m, g))};                    
+                            auto y{std::make_shared<simple_variable_with_value_string>(std::move(x), value->get_actual_string_value(m, *g))};                    
                             m.add_variable_with_value(std::move(y));                    
                         }
                         break;
@@ -241,7 +243,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                             //std::cout << "it should be code\n";
                             auto yc{std::make_unique<code>()};
                             replacing_policy_literal p;
-                            value->get_actual_code_value(m, g, p, *yc);
+                            value->get_actual_code_value(m, *g, p, *yc);
                     
                             auto y{std::make_shared<variable_with_value_code>(std::move(x), std::move(yc))};
                     
@@ -252,7 +254,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                         case variable_with_value::actual_memory_representation_type::ENUM:
                         {
                             //std::cout << "it should be enum\n";                                                                    
-                            auto y{std::make_shared<simple_variable_with_value_enum>(std::move(x), value->get_actual_text_representation(m, g))};
+                            auto y{std::make_shared<simple_variable_with_value_enum>(std::move(x), value->get_actual_text_representation(m, *g))};
                             m.add_variable_with_value(std::move(y));
                         }    
                         break;                    
@@ -260,20 +262,20 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
                 }                                    
 }
 
-void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, generator & g) const
+void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, std::shared_ptr<basic_generator> & g) const
 {
     // TODO - make the family of variables
     
-    DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << g);
+    DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
 
-    auto d{std::make_unique<description_of_a_cartesian_product>(g)};
+    auto d{std::make_unique<description_of_a_cartesian_product>(*g)};
     auto t{std::make_unique<generic_name>(*name)};
     
     
     if (value->get_is_literal())
     {    
         // we distinguish two cases - either a code with placeholders or (the second case) - any literal (float, integer, enum) or a code without placeholders
-        if (value->get_is_code_with_placeholders(m, g))
+        if (value->get_is_code_with_placeholders(m, *g))
         {        
             std::unique_ptr<generic_literal> v;
             value->get_literal_copy(v);
@@ -287,7 +289,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
         {
             std::unique_ptr<generic_literal> v;
             value->get_literal_copy(v);
-            auto s{std::make_unique<assignment_source_literal_value>(std::move(v), v->get_actual_memory_representation_type(m, g))};
+            auto s{std::make_unique<assignment_source_literal_value>(std::move(v), v->get_actual_memory_representation_type(m, *g))};
             auto a{std::make_unique<assignment_event>(std::move(t), std::move(d), std::move(s))};
             DEBUG("code line number " << line_number << ": an assignment " << *a);        
             
@@ -310,32 +312,35 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
     }
 }
 
-void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
-    generator g{*name, __FILE__, __LINE__};
+    std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
     
-    DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << g);
+    g->set_father(father);
+        
+    DEBUG("code line number " << line_number << ": " << *this);
+    DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
     DEBUG("code line number " << line_number << ": the assigned value is " << *value);
     
-    if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
     {
         // nothing to be done
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
+    if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
-        g.initialize(m);
+        g->initialize(m);
         execute_if_cartesian_product_has_one_item(m, g);
         
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small())
     {
         //std::cout << "it is an array of variables\n";
         
-        for (g.initialize(m); !g.get_terminated(); g.increment())
+        for (g->initialize(m); !g->get_terminated(); g->increment(m))
         {
-            if (g.get_is_valid())
+            if (g->get_is_valid())
             {                
                 execute_if_cartesian_product_is_finite_and_small(m, g);        
             }
@@ -353,9 +358,9 @@ void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const st
 
 
 
-void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_one_item(machine & m, generator & g) const
+void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_one_item(machine & m, std::shared_ptr<basic_generator> & g) const
 {
-        signature s{*name, m, g};    
+        signature s{*name, m, *g};    
         
         DEBUG("code line number " << line_number << ": got signature " << s);
         
@@ -402,11 +407,11 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
         }    
 }
 
-void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, generator & g) const
+void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, std::shared_ptr<basic_generator> & g) const
 {
                 generic_name name2;
                 replacing_policy_exhaustive p;
-                name->get_result_replacing_placeholders(m, g, p, name2);
+                name->get_result_replacing_placeholders(m, *g, p, name2);
     
                 /*
                 std::cout << "result replacing placeholders ";
@@ -414,7 +419,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                 std::cout << "\n";
                 */
                 
-                signature s{name2, m, g};
+                signature s{name2, m, *g};
                 //g.report(std::cout);
                 //s.report(std::cout);
                 
@@ -454,7 +459,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                                 m.get_variable_value_code(s, ci); 
                                 
                                 DEBUG("code line number " << line_number << ": code to be executed: " << ci);
-                                ci.execute(m);
+                                ci.execute(m, g);
                             }
                                 break;                                                                
                         }
@@ -467,11 +472,11 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
 }
 
 
-void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, generator & g) const
+void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, std::shared_ptr<basic_generator> & g) const
 {
-    signature s{*name, m, g};    
+    signature s{*name, m, *g};    
         
-    DEBUG("code line number " << line_number << ": got signature " << s);
+    DEBUG("code line number " << line_number << ": got signature " << s << ", while the generator is " << *g);
         
         if (s.get_is_predefined(m))
         {
@@ -491,12 +496,19 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
                 
                 DEBUG("iterate backwards through the assignment events (there are " << m.get_vector_of_assignment_events().size() << " of them)");
         
+                
+                std::shared_ptr<basic_generator> mg=std::make_shared<mapping_generator>(__FILE__, __LINE__);                
+                
+                mg->set_father(g);
+                
                 for (int i=m.get_vector_of_assignment_events().size()-1; i>=0; i--)
                 {
                     const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
                     DEBUG("found " << *a);
-            
-                    if (a->get_match(s, m, g))
+                                
+                    matching_protocol mprotocol;
+                    
+                    if (a->get_match(s, m, *g, mprotocol))
                     {
                         DEBUG("it is matching our signature !!!");
                                 
@@ -505,11 +517,12 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
                             case variable_with_value::actual_memory_representation_type::CODE:
                             {
                                 code c;
-                                a->get_source().get_actual_code_value(m, g, c);
+                                                                
+                                a->get_source().get_actual_code_value(m, *g, c);
                                 
                                 DEBUG("code line number " << line_number << ": it is a code " << c);
-                                                        
-                                c.execute(m);
+                                                                                        
+                                c.execute(m, mg);
                             }    
                             break;
                         
@@ -519,7 +532,39 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
                         }
                 
                         break;
-                    }            
+                    }
+                    else
+                    {
+                        DEBUG("it is not matching the signature !!!");
+                        DEBUG("our matching protocol is " << mprotocol);
+                        mg->initialize_mapping(mprotocol);
+ 
+                        matching_protocol mprotocol2;
+                        
+                        if (a->get_match(s, m, *mg, mprotocol2))
+                        {                    
+                            switch (a->get_source().get_actual_memory_representation_type())
+                            {
+                                case variable_with_value::actual_memory_representation_type::CODE:
+                                {
+                                    code c;
+                                                                
+                                    a->get_source().get_actual_code_value(m, *mg, c);
+                                
+                                    DEBUG("code line number " << line_number << ": it is a code " << c);
+                                                                                        
+                                    c.execute(m, mg);
+                                }    
+                                break;
+                        
+                                default:
+                                DEBUG("code line number " << line_number << ": error - we may only execute code!");
+                                break;
+                            }
+                
+                            break;
+                        }
+                    }
                 }                
             }
         }    
@@ -527,10 +572,16 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
 }
  
 
-void chomik::execute_variable_value_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::execute_variable_value_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     //std::cout << "execute_variable_value_statement::execute\n";
-    generator g{*name, __FILE__, __LINE__};
+    
+    std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
+            
+    g->set_father(father);
+    
+    DEBUG("created a generator " << *g);    
+    
 
     // "the break flag" is a predefined boolean variable used to terminate the implicit loops
     bool the_break_flag=false;
@@ -539,29 +590,29 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("break"));
     gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("flag"));
 
-    signature s{gn_the_break_flag, m, g};
+    signature s{gn_the_break_flag, m, *g};
     
     
-    if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
     {
         // nothing to be done
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
+    if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
-        g.initialize(m);
+        g->initialize(m);
         
         DEBUG("code line number " << line_number << ": execute variable value (single item)");
         
         execute_if_cartesian_product_has_one_item(m, g);
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small())
     {
         DEBUG("code line number " << line_number << ": execute variable value (small and finite loop)");
-        for (g.initialize(m); !g.get_terminated(); g.increment())
+        for (g->initialize(m); !g->get_terminated(); g->increment(m))
         {
-            if (g.get_is_valid())
+            if (g->get_is_valid())
             {
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
@@ -586,10 +637,12 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
         // unlimited
         // TODO - check the families of variables
         DEBUG("code line number " << line_number << ": execute variable value (infinite loop)");
-        for (g.initialize(m);; g.increment())
+        
+        
+        for (g->initialize(m);; g->increment(m))
         {
-            if (g.get_is_valid())
-            {        
+            if (g->get_is_valid())
+            {                                
                 execute_if_cartesian_product_is_large_or_infinite(m, g);
             }
                         
@@ -610,7 +663,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
 }
 
 
-void chomik::execute_value_statement::execute_if_cartesian_product_has_one_item(machine & m, generator & g) const
+void chomik::execute_value_statement::execute_if_cartesian_product_has_one_item(machine & m, basic_generator & g) const
 {    
     DEBUG("code line number " << line_number << ": for " << *this << " got generator " << g);
         
@@ -624,7 +677,7 @@ void chomik::execute_value_statement::execute_if_cartesian_product_has_one_item(
 }
 
 
-void chomik::execute_value_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, generator & g) const
+void chomik::execute_value_statement::execute_if_cartesian_product_is_finite_and_small(machine & m, basic_generator & g) const
 {
     DEBUG("code line number " << line_number << ": for " << *this << " got generator " << g);
                                 
@@ -639,14 +692,16 @@ void chomik::execute_value_statement::execute_if_cartesian_product_is_finite_and
 }
 
 
-void chomik::execute_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, generator & g) const
+void chomik::execute_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, basic_generator & g) const
 {
     // TODO implement
 }
 
-void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     generator g{*value, __FILE__, __LINE__};
+    
+    g.set_father(father);
     
     
     if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
@@ -673,11 +728,10 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
         std::cout << "\n";        
         */
         
-        for (; !g.get_terminated(); g.increment())
+        for (; !g.get_terminated(); g.increment(m))
         {
             if (g.get_is_valid())
-            {
-                
+            {                
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
         }
@@ -689,7 +743,7 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
     }    
 }
 
-void chomik::expand_statement::execute(machine & m, std::shared_ptr<const statement> && i) const
+void chomik::expand_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     m.expand(depth);
 }
