@@ -11,10 +11,10 @@ libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.
 
 chomik_SOURCES = chomik.cc
 
-
+chomik_LDFLAGS = @chomik_linker_flags@
 chomik_LDADD = libchomik.la
 
-AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc 
+AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc @chomik_compiler_flags@
 
 
 
@@ -39,4 +39,5 @@ parser.tab.h: parser.y
 clean-local:
 	rm -f parser.tab.h parser.tab.c lex.yy.c
 	
-	
+print_linker_flags:
+	@echo @chomik_linker_flags@

@@ -640,6 +640,12 @@ SDL2_TTF_LIBS
 SDL2_TTF_CFLAGS
 SDL2_LIBS
 SDL2_CFLAGS
+sdl_chomik_libs
+sdl_chomik_compiler_flags
+sdl_chomik_linker_flags
+chomik_compiler_flags
+chomik_linker_flags
+chomik_servers_dirs
 pkgconfigdir
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
@@ -783,6 +789,8 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_pkgconfigdir
+enable_chomik_servers
+enable_windows_build
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1432,6 +1440,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-chomik-servers          Build the http library and servers.
+  --enable-windows-build          Build for Windows.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -16146,6 +16156,48 @@ pkgconfigdir=$with_pkgconfigdir
 
 
 
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking --enable-chomik-servers argument" >&5
+$as_echo_n "checking --enable-chomik-servers argument... " >&6; }
+# Check whether --enable-chomik-servers was given.
+if test "${enable_chomik_servers+set}" = set; then :
+  enableval=$enable_chomik_servers; enable_chomik_servers=$enableval
+else
+  enable_chomik_servers="yes"
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_chomik_servers" >&5
+$as_echo "$enable_chomik_servers" >&6; }
+if test "$enable_chomik_servers" = "yes"; then
+  chomik_servers_dirs="src3 src4"
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking --enable-windows-build argument" >&5
+$as_echo_n "checking --enable-windows-build argument... " >&6; }
+# Check whether --enable-windows-build was given.
+if test "${enable_windows_build+set}" = set; then :
+  enableval=$enable_windows_build; enable_windows_build=$enableval
+else
+  enable_windows_build="no"
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_windows_build" >&5
+$as_echo "$enable_windows_build" >&6; }
+if test "$enable_windows_build" = "yes"; then
+  chomik_linker_flags="-static -static-libgcc -static-libstdc++"
+
+  chomik_compiler_flags="-static"
+
+  sdl_chomik_linker_flags="-static -static-libgcc -static-libstdc++"
+
+  sdl_chomik_compiler_flags="-static"
+
+  sdl_chomik_libs=" -lmingw32 -lSDL2main"
+
+fi
 
 # Checks for libraries.
 

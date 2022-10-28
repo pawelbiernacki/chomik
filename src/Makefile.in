@@ -147,6 +147,9 @@ am__v_lt_1 =
 am_chomik_OBJECTS = chomik.$(OBJEXT)
 chomik_OBJECTS = $(am_chomik_OBJECTS)
 chomik_DEPENDENCIES = libchomik.la
+chomik_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(chomik_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -531,6 +534,9 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
+chomik_compiler_flags = @chomik_compiler_flags@
+chomik_linker_flags = @chomik_linker_flags@
+chomik_servers_dirs = @chomik_servers_dirs@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -558,6 +564,9 @@ prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
 sbindir = @sbindir@
+sdl_chomik_compiler_flags = @sdl_chomik_compiler_flags@
+sdl_chomik_libs = @sdl_chomik_libs@
+sdl_chomik_linker_flags = @sdl_chomik_linker_flags@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
@@ -570,8 +579,9 @@ libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.
 		get_result_replacing_placeholders.cc various_functions.cc generators.cc
 
 chomik_SOURCES = chomik.cc
+chomik_LDFLAGS = @chomik_linker_flags@
 chomik_LDADD = libchomik.la
-AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc 
+AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc @chomik_compiler_flags@
 TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik ../tests/test5.chomik ../tests/test6.chomik \
 	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik \
 	../tests/test13.chomik ../tests/test14.chomik
@@ -700,7 +710,7 @@ libchomik.la: $(libchomik_la_OBJECTS) $(libchomik_la_DEPENDENCIES) $(EXTRA_libch
 
 chomik$(EXEEXT): $(chomik_OBJECTS) $(chomik_DEPENDENCIES) $(EXTRA_chomik_DEPENDENCIES) 
 	@rm -f chomik$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(chomik_OBJECTS) $(chomik_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(chomik_LINK) $(chomik_OBJECTS) $(chomik_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1293,6 +1303,9 @@ parser.tab.h: parser.y
 
 clean-local:
 	rm -f parser.tab.h parser.tab.c lex.yy.c
+
+print_linker_flags:
+	@echo @chomik_linker_flags@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

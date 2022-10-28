@@ -18,6 +18,32 @@ LT_INIT
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
+
+
+AC_MSG_CHECKING(--enable-chomik-servers argument)
+AC_ARG_ENABLE(chomik-servers,
+    [  --enable-chomik-servers          Build the http library and servers.],
+    [enable_chomik_servers=$enableval],
+    [enable_chomik_servers="yes"])
+AC_MSG_RESULT($enable_chomik_servers)
+if test "$enable_chomik_servers" = "yes"; then
+  AC_SUBST(chomik_servers_dirs, "src3 src4")
+fi
+
+AC_MSG_CHECKING(--enable-windows-build argument)
+AC_ARG_ENABLE(windows-build,
+    [  --enable-windows-build          Build for Windows.],
+    [enable_windows_build=$enableval],
+    [enable_windows_build="no"])
+AC_MSG_RESULT($enable_windows_build)
+if test "$enable_windows_build" = "yes"; then
+  AC_SUBST(chomik_linker_flags, "-static -static-libgcc -static-libstdc++")
+  AC_SUBST(chomik_compiler_flags, "-static")
+  AC_SUBST(sdl_chomik_linker_flags, "-static -static-libgcc -static-libstdc++")
+  AC_SUBST(sdl_chomik_compiler_flags, "-static")
+  AC_SUBST(sdl_chomik_libs, " -lmingw32 -lSDL2main")
+fi
+
 # Checks for libraries.
 
 # Checks for header files.
