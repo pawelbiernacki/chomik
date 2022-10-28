@@ -2434,3 +2434,93 @@ void chomik::matching_protocol::initialize_mapping(mapping_generator & target) c
         target.add_mapping(a->second, a->first);
     }    
 }
+
+
+
+void chomik::generic_stream::read_string_of_x_characters(std::string & target, unsigned x)
+{
+    std::stringstream target_stream;
+    unsigned char c;
+    unsigned len{0};
+    
+    while (read_char(c))
+    {
+        if (c < 0b10000000) 
+        {
+            if (len == 0 && c == ' ')
+            {
+                continue;
+            }            
+            
+            ++len;
+            if (x == 0 && c == ' ')
+            {
+                break;
+            }            
+            target_stream << c;
+            if (len==x)
+            {
+                break;
+            }
+        }
+        else if (c < 0b11000000) { 
+            // TODO - UTF-8 error
+            return;
+        }
+        else if (c < 0b11100000) {
+            ++len;
+            target_stream << c;
+            if (read_char(c))
+            {
+                target_stream << c;
+            }
+            if (len==x)
+            {
+                break;
+            }
+        }
+        else if (c < 0b11110000) {
+            ++len;
+            target_stream << c;
+            if (read_char(c))
+            {
+                target_stream << c;
+                if (read_char(c))
+                {
+                    target_stream << c;
+                }
+            }
+            if (len==x)
+            {
+                break;
+            }            
+        }
+        else if (c < 0b11111000) {
+            ++len;
+            target_stream << c;
+            if (read_char(c))
+            {
+                target_stream << c;
+                if (read_char(c))
+                {
+                    target_stream << c;
+                    if (read_char(c))
+                    {
+                        target_stream << c;
+                    }
+                }
+            }
+            if (len==x)
+            {
+                break;
+            }            
+        }
+        else {
+            // TODO - UTF-8 error!
+            return;
+        }        
+    }
+                
+    target = target_stream.str();
+}
+

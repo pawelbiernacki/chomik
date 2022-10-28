@@ -1,0 +1,49 @@
+#!/usr/local/bin/chomik
+
+# chomik support for the UTF-8 encoding
+
+variable return 1 on wrong result (X:compare_result_type):code;
+let return 1 on wrong result equal=value code
+{
+};
+let return 1 on wrong result lower=value code
+{
+    let the program return = value integer 1;
+};
+let return 1 on wrong result greater=value code
+{
+    let the program return = value integer 1;
+};
+
+
+<create new output stringstream>;
+let my stream index=<the created stream index>;
+
+let the print target stream index=<my stream index>;
+let the print end of line = value string "";
+let the print separator = value string "";
+<print "今日は" 1 2 3>;
+let the print target stream index=value integer 0; # back to the standard output
+let the print end of line = value string "\n";
+let the print separator = value string " ";
+
+
+let the read from stream max size=value integer 1; # we take one character at a time (UTF-8!)
+let the read from stream source stream index = <my stream index>;
+
+
+let the program return = value integer 0;
+    
+    
+<read from stream "string">;
+<compare "string" <the read from stream result "string"> "今">;
+<return 1 on wrong result <the compare result>>;
+
+<read from stream "string">;
+<compare "string" <the read from stream result "string"> "日">;
+<return 1 on wrong result <the compare result>>;
+
+<read from stream "string">;
+<compare "string" <the read from stream result "string"> "は">;
+<return 1 on wrong result <the compare result>>;
+
