@@ -9,12 +9,12 @@
 #endif
 
 
-void chomik::expand_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::expand_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     target = std::make_shared<expand_statement>(depth, line_number);
 }
 
-void chomik::execute_value_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::execute_value_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     std::unique_ptr<generic_literal_code> c = std::make_unique<generic_literal_code>();        
     
@@ -33,17 +33,17 @@ void chomik::execute_value_statement::make_copy_with_replacements(machine & m, b
     target = std::move(x);
 }
 
-void chomik::type_definition_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::type_definition_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     target = std::make_shared<type_definition_statement>(line_number);
 }
 
-void chomik::variable_definition_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::variable_definition_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     target = std::make_shared<variable_definition_statement>(line_number);
 }
 
-void chomik::execute_variable_value_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::execute_variable_value_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     auto x = std::make_shared<execute_variable_value_statement>(line_number);
     
@@ -54,7 +54,7 @@ void chomik::execute_variable_value_statement::make_copy_with_replacements(machi
     target = std::move(x);
 }
 
-void chomik::assignment_statement::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
+void chomik::assignment_statement::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const
 {
     std::shared_ptr<generic_value> t;
     value->make_copy_with_replacements(m, g, p, t);
@@ -72,7 +72,7 @@ void chomik::assignment_statement::make_copy_with_replacements(machine & m, basi
 }
 
 
-void chomik::generic_value_variable_value::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
+void chomik::generic_value_variable_value::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
     signature s{*name, m, g};
     
@@ -102,14 +102,14 @@ void chomik::generic_value_variable_value::make_copy_with_replacements(machine &
     }
 }
 
-void chomik::generic_value_literal::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
+void chomik::generic_value_literal::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
     std::unique_ptr<generic_literal> x;
     literal->make_copy_with_replacements(m, g, p, x);
     target = std::make_shared<generic_value_literal>(std::move(x));
 }
 
-void chomik::generic_literal_placeholder::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
+void chomik::generic_literal_placeholder::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
 {
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
@@ -146,7 +146,7 @@ void chomik::generic_literal_placeholder::make_copy_with_replacements(machine & 
     }
 }
 
-void chomik::generic_literal_code::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
+void chomik::generic_literal_code::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
 {
     code c;
     my_code_pointer->get_actual_code_value(m, g, p, c);
@@ -155,7 +155,7 @@ void chomik::generic_literal_code::make_copy_with_replacements(machine & m, basi
 }
 
 
-void chomik::generic_value_placeholder::make_copy_with_replacements(machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
+void chomik::generic_value_placeholder::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {

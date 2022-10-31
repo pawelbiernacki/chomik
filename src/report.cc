@@ -250,10 +250,10 @@ void chomik::matching_protocol::report(std::ostream & s) const
     
     for (auto a=map_placeholder_names_to_integer.begin(); a!=map_placeholder_names_to_integer.end(); a++)
     {
-        s << a->first << "->" << a->second << " ";
+        s << a->first << "-> integer " << a->second << " ";
     }
     for (auto a=map_placeholder_names_to_placeholder_names.begin(); a!=map_placeholder_names_to_placeholder_names.end(); a++)
     {
-        s << a->first << "->" << a->second << " ";
+        s << a->first << "-> placeholder " << a->second << " ";
     }
 }

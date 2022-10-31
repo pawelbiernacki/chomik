@@ -264,6 +264,8 @@ chomik::placeholder_with_value& chomik::generator::get_placeholder_with_value(co
 
 const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_value(const std::string & p) const
 {
+    DEBUG("get_placeholder_with_value for " << p);
+    
     if (auto o=my_father.lock())
     {
         if (o->get_has_placeholder_with_value(p))
@@ -271,10 +273,28 @@ const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_va
             return o->get_placeholder_with_value(p);
         }
     }
-    return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
+    DEBUG("let us find " << p << " locally");
+    
+    auto f = map_placeholder_names_to_placeholders_with_value.find(p); 
+    if (f == map_placeholder_names_to_placeholders_with_value.end())
+    {
+        std::stringstream message;
+        message << "no placeholder " << p << " found, got only ";
+        
+        for (auto q=map_placeholder_names_to_placeholders_with_value.begin(); q!=map_placeholder_names_to_placeholders_with_value.end(); q++)
+        {
+            message << q->first << " ";
+        }        
+        
+        throw std::runtime_error(message.str());        
+    }    
+    
+    DEBUG("got a placeholder " << *f->second);
+    
+    return *f->second;
 }
 
-chomik::simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", 0};
+chomik::simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", -1};
 
 bool chomik::mapping_generator::get_has_placeholder_with_value(const std::string & p) const
 { 
@@ -337,20 +357,49 @@ void chomik::mapping_generator::increment(machine & m)
     }
 }
 
+int chomik::generator::get_placeholder_value_integer(const std::string & p) const
+{
+    DEBUG("get placeholder " << p << " value integer");
 
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+    
+    const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
+    
+    int v = y.get_value();
+
+    DEBUG("result " << v);
+    
+    return v;
+}
 
 int chomik::basic_generator::get_placeholder_value_integer(const std::string & p) const 
 { 
     DEBUG("get placeholder " << p << " value integer");
+
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+    
+    const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
+    
+    int v = y.get_value();
+    
+    DEBUG("result " << v);
         
-    return get_placeholder_with_value(p).get_value_integer();     
+    return v;     
 }
         
 double chomik::basic_generator::get_placeholder_value_float(const std::string & p) const 
 { 
     DEBUG("get placeholder " << p << " value float");
     
-    return get_placeholder_with_value(p).get_value_float(); 
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+    
+    const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
+    
+    double v = y.get_value();
+    
+    DEBUG("result " << v);
+        
+    return v;     
 }
         
 std::string chomik::basic_generator::get_placeholder_value_string(const std::string & p) const 

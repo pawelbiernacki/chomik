@@ -1,0 +1,147 @@
+#!/usr/local/bin/chomik
+
+type 
+    search_argument_range=1..5; # we may have max 5 arguments in our query
+expand(1);
+
+variable object (X:integer) has attribute (Y:integer):boolean;
+
+let object (X:integer) has attribute (Y:integer)=value boolean false;
+
+# data:
+let object 1 has attribute 1=value boolean true;
+let object 1 has attribute 2=value boolean true;
+let object 1 has attribute 3=value boolean true;
+
+let object 2 has attribute 4=value boolean true;
+let object 2 has attribute 5=value boolean true;
+
+let object 3 has attribute 2=value boolean true;
+let object 3 has attribute 4=value boolean true;
+let object 3 has attribute 3=value boolean true;
+
+let max object id = value integer 10;
+
+# search
+
+variable search argument active (NUMBER:search_argument_range):boolean, search argument (NUMBER:search_argument_range):integer;
+let search argument active (NUMBER:search_argument_range)=value boolean false;
+
+variable search response (X:integer):boolean;
+let search response (X:integer)=value boolean false;
+
+
+variable stop search on (A:compare_result):code;
+let stop search on lower=value code {};
+let stop search on greater=value code {};
+let stop search on equal=value code { let the break flag = value boolean true; };
+
+variable current object id:integer;
+variable match the search argument (Q:boolean):code;
+let match the search argument true=value code {};
+let match the search argument false=value code { let search response <current object id>=value boolean false; };
+
+variable match result:boolean;
+let match result=value boolean false;
+
+
+variable on search argument (B:boolean) do processing:code;
+let on search argument false do processing = value code {};
+let on search argument true do processing = value code 
+{
+    let match result=<object <current object id> has attribute <search argument <current argument number>>>;
+    <match the search argument <match result>>;
+};
+
+
+variable on current object and current search attribute (X:search_argument_range) do processing:code;
+let on current object and current search attribute (X:search_argument_range) do processing = value code
+{
+    let variable current argument number=value integer [(X:search_argument_range)];
+    <on search argument <search argument active <current argument number>> do processing>;
+};
+
+
+
+variable for all objects (X:integer) do search:code;
+let for all objects (X:integer) do search=value code
+{
+    let current object id = value integer [(X:integer)];
+    let search response (X:integer)=value boolean true;
+    
+    <on current object and current search attribute (S:search_argument_range) do processing>;    
+
+    <compare "integer" (X:integer) <max object id>>;
+    <stop search on <the compare result>>;
+};
+
+variable search:code;
+let search =value code
+{
+    <for all objects (A:integer) do search>;
+    let the break flag = value boolean false;
+};
+
+variable on (B:boolean) print current object id:code;
+let on false print current object id=value code {};
+let on true print current object id=value code { <print "object" <current object id>>; };
+
+
+
+# printing out the response
+variable for all objects (P:integer) do print:code;
+
+let for all objects (P:integer) do print =value code
+{
+    let current object id = value integer [(P:integer)];
+
+    <on <search response <current object id>> print current object id>;
+    
+    <compare "integer" (P:integer) <max object id>>;
+    <stop search on <the compare result>>;
+};
+
+variable search response print:code;
+let search response print=value code
+{
+    <for all objects (Y:integer) do print>;
+    let the break flag=value boolean false;
+};
+
+# usage example:
+#
+# .. looking for objects with the attribute 2 and 3
+#
+let search argument active (NUMBER:search_argument_range)=value boolean false;
+let search argument 1=value integer 2;
+let search argument active 1=value boolean true;
+let search argument 2=value integer 3;
+let search argument active 2=value boolean true;
+let b=value boolean false;
+
+<search>;
+
+<search response print>;
+
+
+variable return 1 on wrong result (X:compare_result_type):code;
+let return 1 on wrong result equal=value code
+{    
+};
+let return 1 on wrong result lower=value code
+{
+    let the program return = value integer 1;
+};
+let return 1 on wrong result greater=value code
+{
+    let the program return = value integer 1;
+};
+
+let the program return = value integer 0;
+<compare "boolean" <search response 1> true>;
+<return 1 on wrong result <the compare result>>;
+<compare "boolean" <search response 2> false>;
+<return 1 on wrong result <the compare result>>;
+<compare "boolean" <search response 3> true>;
+<return 1 on wrong result <the compare result>>;
+
