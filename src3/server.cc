@@ -329,7 +329,8 @@ void http_chomik::server::do_processing(int my_port, http_chomik::wrapper_base &
         if (newsockfd < 0) 
         {
 			HTTP_CHOMIK_LOG_ERROR("http_chomik error on accept.");
-			exit(EXIT_FAILURE);
+            continue;
+			//exit(EXIT_FAILURE);
         }
       
         /* Create child process */
@@ -337,7 +338,9 @@ void http_chomik::server::do_processing(int my_port, http_chomik::wrapper_base &
 		
         if (pid < 0) {
 			HTTP_CHOMIK_LOG_ERROR("http_chomik error on fork.");
-            exit(EXIT_FAILURE);
+            close(newsockfd);
+            continue;
+            //exit(EXIT_FAILURE);
         }
       
         if (pid == 0) {
