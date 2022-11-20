@@ -252,8 +252,30 @@ void chomik::matching_protocol::report(std::ostream & s) const
     {
         s << a->first << "-> integer " << a->second << " ";
     }
+    for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
+    {
+        s << a->first << "-> string " << a->second << " ";
+    }
     for (auto a=map_placeholder_names_to_placeholder_names.begin(); a!=map_placeholder_names_to_placeholder_names.end(); a++)
     {
         s << a->first << "-> placeholder " << a->second << " ";
     }
+}
+
+
+void chomik::external_placeholder_generator::report(std::ostream & s) const
+{
+    s << "created in " << my_filename << " line " << line_number << ":";
+    
+    for (auto i=map_placeholder_names_to_placeholders_with_value.begin(); i!=map_placeholder_names_to_placeholders_with_value.end(); i++)
+    {
+        s << i->first << "->" << *i->second << " ";
+    }
+
+    if (auto o = my_father.lock())
+    {
+        s << " (";
+        o->report(s);
+        s << ")";
+    }    
 }

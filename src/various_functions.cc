@@ -593,14 +593,16 @@ bool chomik::simple_value_integer_signature_item::get_match(const generic_name_i
         }
         else
         {
-            DEBUG("the generator " << g << " has no placeholder " << gni.get_placeholder_name());
+            DEBUG("the generator " << g << " has no placeholder " << gni.get_placeholder_name());                        
             
             if (source.get_placeholder_name() != "")
             {            
+                DEBUG("bind " << gni.get_placeholder_name() << " to " << source.get_placeholder_name());
                 target.bind_placeholder_as_placeholder(gni.get_placeholder_name(), source.get_placeholder_name());
             }
             else
             {
+                DEBUG("bind " << gni.get_placeholder_name() << " as " << value);
                 target.bind_placeholder_as_integer(gni.get_placeholder_name(), value);
             }
             return false;
@@ -612,6 +614,8 @@ bool chomik::simple_value_integer_signature_item::get_match(const generic_name_i
 
 bool chomik::simple_value_float_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
+    DEBUG("get_match for " << gni << " against " << value);
+
     if (gni.get_is_float())
     {
         return gni.get_match_float(value);
@@ -635,6 +639,8 @@ bool chomik::simple_value_float_signature_item::get_match(const generic_name_ite
 
 bool chomik::simple_value_string_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
+    DEBUG("get_match for " << gni << " against " << value);
+    
     if (gni.get_is_string())
     {
         return gni.get_match_string(value);
@@ -642,14 +648,33 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
     else
     if (gni.get_is_placeholder())
     {
-        if (target.get_is_placeholder_bound_as_string(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
+        const auto * gni2 = static_cast<const placeholder_name_item*>(&gni);
+                
+        DEBUG(gni << " is a placeholder of type " << gni2->get_type());
+        
+        
+        if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
         {
-            return value == target.get_placeholder_value_string(gni.get_placeholder_name());   
+            const simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)> & pwv = static_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>&>(g.get_placeholder_with_value(gni.get_placeholder_name()));
+            
+            DEBUG("g has this placeholder with value " << pwv);
+                        
+            return value == pwv.get_value();
         }
         else
-        {
-            target.bind_placeholder_as_string(gni.get_placeholder_name(), value);
-            return target.get_is_successful();
+        {                        
+            if (target.get_is_placeholder_bound_as_string(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
+            {
+                DEBUG("the placeholder " << gni.get_placeholder_name() << " is bound as string");
+                DEBUG("check whether " << value << "==" << target.get_placeholder_value_string(gni.get_placeholder_name()));            
+                return value == target.get_placeholder_value_string(gni.get_placeholder_name());   
+            }
+            else
+            {
+                DEBUG("bind " << gni.get_placeholder_name() << " as " << value);
+                target.bind_placeholder_as_string(gni.get_placeholder_name(), value);
+                return target.get_is_successful();
+            }
         }
     }    
     return false;
@@ -658,6 +683,8 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
 
 bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
+    DEBUG("get_match for " << gni << " against " << value);
+    
     if (gni.get_is_identifier())
     {
         return gni.get_match_identifier(value);
@@ -680,7 +707,7 @@ bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item
 
 bool chomik::assignment_event::get_match(const signature & s, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
-    DEBUG("checking whether it is matching the signature " << s);
+    DEBUG("checking whether it is matching the signature " << s << " for " << g);
     DEBUG("my event - " << *this);
     
     auto sv{s.get_vector_of_items()};   // this signature must contain actual values
@@ -701,6 +728,7 @@ bool chomik::assignment_event::get_match(const signature & s, const machine & m,
         if (!(*sv_iterator)->get_match(**sq_iterator, m, g, target))
         {
             result = false;
+            DEBUG("no, " << **sv_iterator << " does not match " << **sq_iterator);
             // we had a break here, now we don't, since we might use the matching protocol
         }        
     }        
@@ -1080,7 +1108,13 @@ int chomik::generic_literal_placeholder::get_actual_integer_value(const machine 
 
 std::string chomik::generic_literal_placeholder::get_actual_string_value(const machine & m, basic_generator & g) const
 { 
-    return g.get_placeholder_with_value(placeholder).get_value_enum();     
+    DEBUG("get actual string value for " << placeholder);
+    DEBUG("got placeholder with value " << g.get_placeholder_with_value(placeholder));
+    DEBUG("the value is " << g.get_placeholder_with_value(placeholder).get_value_string());
+    
+    const simple_placeholder_with_value_and_report<std::string, 3> & x{static_cast<const simple_placeholder_with_value_and_report<std::string,3>&>(g.get_placeholder_with_value(placeholder))};
+    
+    return x.get_value();     
 }
 
 
@@ -2513,14 +2547,35 @@ void chomik::assignment_source_literal_value::get_actual_code_value(const machin
 
 void chomik::matching_protocol::initialize_mapping(mapping_generator & target) const
 {
+    DEBUG("initialize mapping");
+    
     target.clear_mappings();
     for (auto a=map_placeholder_names_to_placeholder_names.begin(); a!=map_placeholder_names_to_placeholder_names.end(); a++)
     {
+        DEBUG("add mapping " << a->second << " -> " << a->first);
         target.add_mapping(a->second, a->first);
     }    
 }
 
-
+void chomik::matching_protocol::initialize_mapping(external_placeholder_generator & target) const
+{
+    DEBUG("initialize mapping");
+    target.clear_mappings();
+    
+    for (auto a=map_placeholder_names_to_integer.begin(); a!=map_placeholder_names_to_integer.end(); a++)
+    {
+        DEBUG("add placeholder integer " << a->second << " -> " << a->first);
+        
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second));
+        
+    }    
+    for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
+    {
+        DEBUG("add placeholder string " << a->second << " -> " << a->first);
+        
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(a->first, a->second));
+    }        
+}
 
 void chomik::generic_stream::read_string_of_x_characters(std::string & target, unsigned x)
 {

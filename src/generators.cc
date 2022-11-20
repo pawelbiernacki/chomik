@@ -432,3 +432,78 @@ void chomik::mapping_generator::initialize_mapping(const matching_protocol & mp)
     DEBUG("initialize mapping");
     mp.initialize_mapping(*this);    
 }
+
+
+bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_finite() const 
+{     
+    if (auto o=my_father.lock())
+    {
+        return o->get_the_cartesian_product_of_placeholder_types_is_finite();
+    }
+    return false;
+}
+        
+bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_small() const 
+{ 
+    if (auto o=my_father.lock())
+    {
+        return o->get_the_cartesian_product_of_placeholder_types_is_small();
+    }
+    return false; 
+}
+        
+bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_empty() const 
+{ 
+    if (auto o=my_father.lock())
+    {
+        return o->get_the_cartesian_product_of_placeholder_types_is_empty();
+    }
+    return false; 
+}
+        
+bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_has_one_item() const 
+{ 
+    if (auto o=my_father.lock())
+    {
+        return o->get_the_cartesian_product_of_placeholder_types_has_one_item();
+    }
+    return false; 
+}
+
+
+chomik::external_placeholder_generator::external_placeholder_generator(const std::string & filename, unsigned new_line_number):
+    my_filename{filename},
+    line_number{new_line_number}
+{
+}
+
+
+void chomik::external_placeholder_generator::initialize(machine & m)
+{
+    // nothing to be done
+}
+
+
+void chomik::external_placeholder_generator::increment(machine & m)
+{
+    // nothing to be done
+}
+
+void chomik::external_placeholder_generator::initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const
+{
+}
+
+
+void chomik::external_placeholder_generator::initialize_mapping(const matching_protocol & mp)
+{
+    DEBUG("initialize mapping");
+    mp.initialize_mapping(*this);    
+}
+
+
+void chomik::external_placeholder_generator::clear_mappings()
+{
+    DEBUG("clear mappings");
+    memory.clear();
+    map_placeholder_names_to_placeholders_with_value.clear();
+}

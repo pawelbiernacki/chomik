@@ -404,6 +404,71 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                         break;                                                                
                 }                
             }
+            else
+            {
+                DEBUG("code line number " << line_number << ": it is not in memory");
+                DEBUG("iterate backwards through the assignment events (there are " << m.get_vector_of_assignment_events().size() << " of them)");
+                
+                std::shared_ptr<basic_generator> mg=std::make_shared<mapping_generator>(__FILE__, __LINE__);
+                
+                mg->set_father(g);
+                
+                for (int i=m.get_vector_of_assignment_events().size()-1; i>=0; i--)
+                {
+                    const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
+                    DEBUG("found " << *a);
+                                
+                    matching_protocol mprotocol;
+                    
+                    if (a->get_match(s, m, *g, mprotocol))
+                    {
+                        DEBUG("it is matching our signature !!!");
+                    }
+                    else
+                    {
+                        DEBUG("it is NOT matching our signature !!!");
+                        DEBUG("matching protocol is " << mprotocol);
+                        
+                        
+                        std::shared_ptr<basic_generator> mg2=std::make_shared<external_placeholder_generator>(__FILE__, __LINE__);
+                        mg2->set_father(mg);
+                        
+                        mg2->initialize_mapping(mprotocol);
+                        
+                        DEBUG("now the generator is " << *mg2);
+ 
+                        matching_protocol mprotocol2;
+                        
+                        if (a->get_match(s, m, *mg2, mprotocol2))
+                        {
+                            DEBUG("now it is matching our signature !!!");
+                            switch (a->get_source().get_actual_memory_representation_type())
+                            {
+                                case variable_with_value::actual_memory_representation_type::CODE:
+                                {
+                                    code c;
+                                                                
+                                    a->get_source().get_actual_code_value(m, *mg, c);
+                                
+                                    DEBUG("code line number " << line_number << ": it is a code " << c);
+                                                                                        
+                                    c.execute(m, mg2);
+                                }
+                                break;
+                        
+                                default:
+                                DEBUG("code line number " << line_number << ": error - we may only execute code!");
+                                break;
+                            }
+                        
+                        }
+                        else
+                        {
+                            DEBUG("it is still not matching our signature !!!");
+                        }
+                    }
+                }
+            }
         }    
 }
 
@@ -575,6 +640,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
 void chomik::execute_variable_value_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     //std::cout << "execute_variable_value_statement::execute\n";
+    DEBUG("make a generator for name " << *name);
     
     std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
             

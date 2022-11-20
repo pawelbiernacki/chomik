@@ -113,6 +113,7 @@ namespace chomik
     };
     
     class mapping_generator;
+    class external_placeholder_generator;
     class generator;
     
     /**
@@ -171,6 +172,8 @@ namespace chomik
         void report(std::ostream & s) const;
         
         void initialize_mapping(mapping_generator & target) const;
+        
+        void initialize_mapping(external_placeholder_generator & target) const;
         
         void copy_bound_placeholders(generator & target) const;
     };
@@ -1148,6 +1151,8 @@ namespace chomik
         virtual void report(std::ostream & s) const = 0;
         
         virtual void add_placeholder(const std::string & p, std::shared_ptr<generic_type> && t) {}
+        
+        virtual bool get_can_have_placeholders() const { return false; }
                 
         virtual int get_placeholder_value_integer(const std::string & p) const;
         
@@ -1157,13 +1162,13 @@ namespace chomik
         
         std::string get_placeholder_value_enum(const std::string & p) const;
         
-        virtual bool get_the_cartesian_product_of_placeholder_types_is_finite() const { return false; }
+        virtual bool get_the_cartesian_product_of_placeholder_types_is_finite() const;
         
-        virtual bool get_the_cartesian_product_of_placeholder_types_is_small() const { return false; }
+        virtual bool get_the_cartesian_product_of_placeholder_types_is_small() const;
         
-        virtual bool get_the_cartesian_product_of_placeholder_types_is_empty() const { return false; }
+        virtual bool get_the_cartesian_product_of_placeholder_types_is_empty() const;
         
-        virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const { return false; }
+        virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const;
         
         virtual void initialize(machine & m) = 0;
         
@@ -1185,7 +1190,7 @@ namespace chomik
     };
     
     /**
-     * 
+     * This is a mapping generator - it may redefine the father's placeholder names.
      */    
     class mapping_generator: public basic_generator
     {
@@ -1254,6 +1259,8 @@ namespace chomik
                 
         virtual void initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const override;
         
+        virtual bool get_can_have_placeholders() const { return true; }
+        
         virtual bool get_has_placeholder(const std::string & p) const override;
         
         virtual bool get_has_placeholder_with_value(const std::string & p) const override;
@@ -1306,6 +1313,64 @@ namespace chomik
         
         bool get_does_not_exceed_level(int max_level) const;
     };
+    
+    /**
+     * This is a kind of generator used when the external placeholders are involved.
+     * It is not really iterable.
+     */
+    class external_placeholder_generator: public basic_generator
+    {
+    private:
+        std::vector<std::shared_ptr<placeholder_with_value>> memory;
+        std::map<std::string, std::shared_ptr<placeholder_with_value>> map_placeholder_names_to_placeholders_with_value;
+        
+        const std::string my_filename;
+        const unsigned line_number;
+        
+    public:
+        external_placeholder_generator(const std::string & filename, unsigned new_line_number);
+        
+        virtual void report(std::ostream & s) const override;        
+        
+        virtual void initialize(machine & m) override;
+        
+        virtual void increment(machine & m) override;
+        
+        virtual void initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const override;
+        
+        virtual void initialize_mapping(const matching_protocol & mp) override;
+        
+        virtual bool get_has_placeholder_with_value(const std::string & p) const override 
+        {
+            return map_placeholder_names_to_placeholders_with_value.find(p) != map_placeholder_names_to_placeholders_with_value.end();
+        }
+
+        virtual placeholder_with_value& get_placeholder_with_value(const std::string & p) override
+        {
+            return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
+        }
+
+        virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const override
+        {
+            return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
+        }        
+        
+        void clear_mappings();
+        
+        void add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p)
+        {
+            std::shared_ptr<placeholder_with_value> p2{p};
+            auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
+            if (!success)
+            {
+                throw std::runtime_error("failed to insert a placeholder with value");
+            }
+            
+            memory.push_back(std::move(p));
+        }
+
+    };
+    
     
     class type_definition_body_enum: public type_definition_body
     {
