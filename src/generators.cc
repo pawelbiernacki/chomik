@@ -405,8 +405,16 @@ double chomik::basic_generator::get_placeholder_value_float(const std::string & 
 std::string chomik::basic_generator::get_placeholder_value_string(const std::string & p) const 
 { 
     DEBUG("get placeholder " << p << " value string");
+
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+
+    const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)>&>(x)};
     
-    return get_placeholder_with_value(p).get_value_string(); 
+    std::string v{y.get_value()};
+    
+    DEBUG("the placeholder value is \'" << v << "\'");
+    
+    return v;
 }
         
 std::string chomik::basic_generator::get_placeholder_value_enum(const std::string & p) const 

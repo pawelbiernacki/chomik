@@ -111,6 +111,8 @@ void chomik::generic_value_literal::make_copy_with_replacements(const machine & 
 
 void chomik::generic_literal_placeholder::make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
 {
+    DEBUG("check placeholder " << placeholder << " in " << g);
+    
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
         switch (g.get_placeholder_with_value(placeholder).get_representation_type())
@@ -123,7 +125,8 @@ void chomik::generic_literal_placeholder::make_copy_with_replacements(const mach
                 target = std::make_unique<simple_literal_float>(g.get_placeholder_value_float(placeholder));
                 break;
                 
-            case variable_with_value::actual_memory_representation_type::STRING:
+            case variable_with_value::actual_memory_representation_type::STRING:                
+                DEBUG("the placeholder " << placeholder << " has value string " << g.get_placeholder_value_string(placeholder));
                 target = std::make_unique<simple_literal_string>(g.get_placeholder_value_string(placeholder));
                 break;
                 

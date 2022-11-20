@@ -477,6 +477,8 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                 generic_name name2;
                 replacing_policy_exhaustive p;
                 name->get_result_replacing_placeholders(m, *g, p, name2);
+                                
+                DEBUG("name2 = " << name2);
     
                 /*
                 std::cout << "result replacing placeholders ";
@@ -487,6 +489,8 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                 signature s{name2, m, *g};
                 //g.report(std::cout);
                 //s.report(std::cout);
+                
+                DEBUG("signature = " << s);
                 
                 
                 if (s.get_is_predefined(m))
@@ -531,9 +535,90 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                     }
                     else
                     {
-                        // TODO - check the families of variables
+                        DEBUG("the signature is not represented in the memory");
+                        
+                        DEBUG("iterate backwards through the assignment events (there are " << m.get_vector_of_assignment_events().size() << " of them)");
+        
+                
+                        std::shared_ptr<basic_generator> mg=std::make_shared<mapping_generator>(__FILE__, __LINE__);                
+                
+                        mg->set_father(g);
+                
+                        for (int i=m.get_vector_of_assignment_events().size()-1; i>=0; i--)
+                        {
+                            const std::unique_ptr<assignment_event>& a{m.get_vector_of_assignment_events()[i]};
+                            DEBUG("found " << *a);
+                                
+                            matching_protocol mprotocol;
+                    
+                            if (a->get_match(s, m, *g, mprotocol))
+                            {
+                                DEBUG("it is matching our signature !!!");
+
+                                switch (a->get_source().get_actual_memory_representation_type())
+                                {
+                                    case variable_with_value::actual_memory_representation_type::CODE:
+                                    {
+                                    code c;
+                                                                
+                                    a->get_source().get_actual_code_value(m, *g, c);
+                                
+                                    DEBUG("code line number " << line_number << ": it is a code " << c);
+                                                                                        
+                                    c.execute(m, mg);
+                                    }    
+                                    break;
+                                
+                                    default:
+                                    DEBUG("code line number " << line_number << ": error - we may only execute code!");
+                                    break;
+                                }
+                
+                                break;                                
+                            }
+                            else
+                            {
+                                DEBUG("it is not matching our signature !!!");
+                                std::shared_ptr<basic_generator> mg2=std::make_shared<external_placeholder_generator>(__FILE__, __LINE__);
+                                mg2->set_father(mg);
+                        
+                                mg2->initialize_mapping(mprotocol);
+                        
+                                DEBUG("now the generator is " << *mg2);
+ 
+                                matching_protocol mprotocol2;
+                        
+                                if (a->get_match(s, m, *mg2, mprotocol2))
+                                {
+                                    DEBUG("now it is matching our signature !!!");
+                                    switch (a->get_source().get_actual_memory_representation_type())
+                                    {
+                                        case variable_with_value::actual_memory_representation_type::CODE:
+                                        {
+                                            code c;
+                                                                
+                                            a->get_source().get_actual_code_value(m, *mg2, c);
+                                
+                                            DEBUG("code line number " << line_number << ": it is a code " << c);
+                                                                                        
+                                            c.execute(m, mg2);
+                                        }
+                                        break;
+                        
+                                        default:
+                                            DEBUG("code line number " << line_number << ": error - we may only execute code!");
+                                        break;
+                                    }
+                        
+                                }
+                                else
+                                {
+                                    DEBUG("it is still not matching our signature !!!");
+                                }                                
+                            }
+                        }
                     }
-                }    
+                }
 }
 
 
@@ -680,6 +765,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
         {
             if (g->get_is_valid())
             {
+                DEBUG("generator " << *g);
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
             
