@@ -1133,7 +1133,11 @@ int chomik::generic_value_variable_value::get_actual_integer_value(const machine
 std::string chomik::generic_value_variable_value::get_actual_string_value(const machine & m, basic_generator & g) const
 {
     signature s{*name, m, g};
-    return m.get_variable_value_string(s);
+    std::string v{m.get_variable_value_string(s)};
+    
+    DEBUG("get string value for " << s << ", it equals " << v);
+    
+    return v;    
 }
 
 std::string chomik::generic_value_variable_value::get_actual_enum_value(const machine & m, basic_generator & g) const
@@ -1272,7 +1276,7 @@ void chomik::signature::execute_predefined_print(machine & m) const
         DEBUG("value of the print target stream index " << index);
         
         if (index >= 0 && index < m.get_amount_of_streams())
-        {
+        {                        
             std::string separator = m.get_variable_with_value(*our_common_data->signature_the_print_separator).get_value_string();
             
             DEBUG("the print separator is \"" << separator << "\"");
@@ -2664,3 +2668,10 @@ void chomik::generic_stream::read_string_of_x_characters(std::string & target, u
     target = target_stream.str();
 }
 
+
+std::string chomik::generic_value_literal::get_actual_string_value(const machine & m, basic_generator & g) const 
+{ 
+    auto x{literal->get_actual_string_value(m, g)};
+    DEBUG("actual string value \'" << x << "\'");
+    return x;
+}

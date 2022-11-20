@@ -61,7 +61,7 @@ namespace chomik
         
         virtual double get_value_float() const { return 0.0; }
         
-        virtual std::string get_value_string() const { return ""; }
+        virtual std::string get_value_string() const { return "?"; }
         
         virtual std::string get_value_enum() const { return ""; }        
         
@@ -1851,7 +1851,7 @@ namespace chomik
         
         virtual double get_actual_float_value(const machine & m, basic_generator & g) const override { return literal->get_actual_float_value(m, g); }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override { return literal->get_actual_string_value(m, g); }
+        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override;
                 
         virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const 
         {
@@ -1957,7 +1957,7 @@ namespace chomik
         
         virtual std::string get_value_string() const { return my_value; }
         
-        virtual std::string get_actual_string_value(machine & m, basic_generator & g) const { return my_value; }
+        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override { return my_value; }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const
         {
