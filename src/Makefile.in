@@ -584,7 +584,8 @@ chomik_LDADD = libchomik.la
 AM_CXXFLAGS = @CXXFLAGS@ -fconcepts -std=c++17 -I.. -I../inc @chomik_compiler_flags@
 TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tests/test4.chomik ../tests/test5.chomik ../tests/test6.chomik \
 	../tests/test7.chomik ../tests/test8.chomik ../tests/test9.chomik ../tests/test10.chomik ../tests/test11.chomik ../tests/test12.chomik \
-	../tests/test13.chomik ../tests/test14.chomik ../tests/test15.chomik ../tests/test16.chomik ../tests/test17.chomik ../tests/test18.chomik
+	../tests/test13.chomik ../tests/test14.chomik ../tests/test15.chomik ../tests/test16.chomik ../tests/test17.chomik ../tests/test18.chomik \
+	../tests/test19.chomik
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 all: all-am
@@ -1106,6 +1107,13 @@ recheck: all
 ../tests/test18.chomik.log: ../tests/test18.chomik
 	@p='../tests/test18.chomik'; \
 	b='../tests/test18.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test19.chomik.log: ../tests/test19.chomik
+	@p='../tests/test19.chomik'; \
+	b='../tests/test19.chomik'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

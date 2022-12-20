@@ -151,6 +151,7 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
                                 switch (*p)
                                 {
                                     case '\\': *t++ = '\\'; break;
+                                    case '\"': *t++ = '\"'; break;
                                     case 'n': *t++ = '\n'; break;
                                 }
                                 p++;

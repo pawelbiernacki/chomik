@@ -1,0 +1,34 @@
+#!/usr/local/bin/chomik
+
+execute <create new output stringstream>;  
+let my concatenating stream index = <the created stream index>;
+
+let the print target stream index = <my concatenating stream index>;
+let the print end of line = value string "";
+let the print separator = value string "";
+
+<print "let x = value string \"hallo\";">;
+
+let the print target stream index = value integer 0;
+let the print end of line = value string "\n";
+let the print separator = value string " ";
+
+let the get from stream stream index = <my concatenating stream index>;
+<get from stream>;
+
+
+variable result:string;
+let result = <the get from stream result>;
+
+<print <result>>;
+
+<compare "string" <result> "let x = value string \"hallo\";">;
+
+variable on compare result set the program return (R:compare_result):code;
+let on compare result set the program return lower = value code { let the program return = value integer 1; };
+let on compare result set the program return greater = value code { let the program return = value integer 1; };
+let on compare result set the program return equal = value code { let the program return = value integer 0; };
+
+
+<on compare result set the program return <the compare result>>;
+
