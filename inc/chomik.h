@@ -219,6 +219,9 @@ namespace chomik
         virtual std::string get_value_enum() const { return ""; }
 
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const = 0;
+        
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const = 0;
+                
     };
     
     /**
@@ -246,6 +249,11 @@ namespace chomik
         virtual int get_value_integer() const override { return value; }
         
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const override;
+        
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const override 
+        {
+            target = std::make_shared<simple_value_integer_signature_item>(source, value);
+        }
     };
 
     class simple_value_float_signature_item: public simple_value_signature_item<double>
@@ -256,6 +264,11 @@ namespace chomik
         virtual double get_value_float() const override { return value; }
         
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const override;        
+        
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const override 
+        {
+            target = std::make_shared<simple_value_float_signature_item>(source, value);
+        }
     };
     
     /**
@@ -280,6 +293,12 @@ namespace chomik
         virtual std::string get_value_string() const override { return value; }
         
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const override;        
+        
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const override 
+        {
+            target = std::make_shared<simple_value_string_signature_item>(source, value);
+        }
+
     };
     
     
@@ -300,6 +319,12 @@ namespace chomik
         virtual bool get_it_is_enum() const override { return true; }
         
         virtual std::string get_value_enum() const override { return value; }
+        
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const override 
+        {
+            target = std::make_shared<simple_value_enum_signature_item>(source, value);
+        }
+
     };
     
     class generic_name;
@@ -335,6 +360,7 @@ namespace chomik
     public:
         signature(const generic_name & gn, const machine & m, basic_generator & g);
         signature(const generic_name & gn);
+        signature();
         
         void report(std::ostream & s) const;
         
@@ -672,6 +698,7 @@ namespace chomik
         virtual bool get_match_float(double v) const { return false; }
         virtual bool get_match_string(const std::string & v) const { return false; }
         virtual bool get_match_identifier(const std::string & v) const { return false; }
+                
     };
     
     class identifier_name_item: public generic_name_item
@@ -844,7 +871,8 @@ namespace chomik
                             generic_name_the_multiply_result_integer,
                             generic_name_the_divide_result_float,
                             generic_name_the_add_result_integer,
-                            generic_name_the_subtract_result_integer;
+                            generic_name_the_subtract_result_integer,
+                            generic_name_the_get_is_defined_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -861,7 +889,8 @@ namespace chomik
                                     signature_the_multiply_result_integer,
                                     signature_the_divide_result_float,
                                     signature_the_add_result_integer,
-                                    signature_the_subtract_result_integer;
+                                    signature_the_subtract_result_integer,
+                                    signature_the_get_is_defined_result;
     public:
         signature_common_data();
         ~signature_common_data() {}

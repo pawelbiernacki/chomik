@@ -1,0 +1,31 @@
+#!/usr/local/bin/chomik
+
+variable a (X:boolean):integer;
+let a true = value integer 0;
+# but a false is not defined!
+
+
+variable first:boolean, second:boolean, third:boolean;
+
+
+let the get is defined result = value boolean true;
+<get is defined a true>;
+let first = <the get is defined result>;
+<print <first>>;
+
+let the get is defined result = value boolean true;
+<get is defined a false>;
+let second = <the get is defined result>;
+<print <second>>;
+
+let the get is defined result = value boolean true;
+<get is defined a (X:boolean)>;
+let third = <the get is defined result>;
+<print <third>>;
+
+
+variable control (FIRST:boolean) (SECOND:boolean) (THIRD:boolean):code;
+let control (FIRST:boolean) (SECOND:boolean) (THIRD:boolean)=value code { let the program return = value integer 1; };
+let control true false false=value code { let the program return = value integer 0; };                                  # this is the only correct result
+
+<control <first> <second> <third>>;

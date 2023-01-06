@@ -840,6 +840,11 @@ chomik::signature::signature(const generic_name & gn)
     }
 }
 
+chomik::signature::signature()
+{
+}
+
+
 chomik::variable_with_value::actual_memory_representation_type chomik::generic_value_placeholder::get_actual_memory_representation_type(machine & m, basic_generator & g) const
 {
     return type_name->get_actual_memory_representation_type(m);
@@ -1033,6 +1038,16 @@ void chomik::machine::create_predefined_variables()
     gn18.add_generic_name_item(std::make_shared<name_item_string>("float"));
     std::shared_ptr<signature> the_divide_result_float=std::make_shared<signature>(gn18);
     add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_divide_result_float), 1));
+    
+    generic_name gn19;
+    gn19.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn19.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    gn19.add_generic_name_item(std::make_shared<identifier_name_item>("is"));
+    gn19.add_generic_name_item(std::make_shared<identifier_name_item>("defined"));
+    gn19.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_get_is_defined_result=std::make_shared<signature>(gn19);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_get_is_defined_result), "false"));
+    
     
 }
 
@@ -1248,6 +1263,14 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
     generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
     generic_name_the_subtract_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+
+
+    generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("is"));
+    generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("defined"));
+    generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -1265,6 +1288,7 @@ chomik::signature_common_data::signature_common_data()
     signature_the_divide_result_float = std::make_unique<signature>(generic_name_the_divide_result_float);    
     signature_the_add_result_integer = std::make_unique<signature>(generic_name_the_add_result_integer);
     signature_the_subtract_result_integer = std::make_unique<signature>(generic_name_the_subtract_result_integer);
+    signature_the_get_is_defined_result = std::make_unique<signature>(generic_name_the_get_is_defined_result);
     
 }
 
@@ -1469,14 +1493,46 @@ void chomik::signature::execute_predefined_get(machine & m) const
                 if (index >= 0 && index < m.get_amount_of_streams())
                 {
                     generic_stream& gs{m.get_stream(index)};                        
-                                
-                
+                                                
                     DEBUG("assign value string " << gs.get_result());
                 
                     m.get_variable_with_value(*our_common_data->signature_the_get_from_stream_result).assign_value_string(gs.get_result());                                    
                     return;
                 }
                 return;
+            }
+        }
+        else
+        {
+            /* here we implement the family of variables <get is defined ...> which sets the boolean value <the get is defined result>. */
+            if (vector_of_items.size() >= 4)
+            {
+                if (vector_of_items[1]->get_it_is_identifier("is")
+                    && vector_of_items[2]->get_it_is_identifier("defined"))
+                {                    
+                                        
+                    signature sn;
+                    for (auto i = 3; i<vector_of_items.size(); i++)
+                    {
+                        std::shared_ptr<signature_item> c;
+                        vector_of_items[i]->get_copy(c);
+                        sn.add_content(std::move(c));                        
+                    }                    
+                    if (m.get_variable_is_represented_in_memory(sn) && m.get_variable_with_value(*our_common_data->signature_the_get_is_defined_result).get_value_enum() == "true")
+                    {
+                        //m.get_variable_with_value(*our_common_data->signature_the_get_is_defined_result).assign_value_enum("true");
+                    }
+                    else
+                    {
+                        m.get_variable_with_value(*our_common_data->signature_the_get_is_defined_result).assign_value_enum("false");
+                        
+                        /*
+                        std::cout << "the variable is represented in memory: " << m.get_variable_is_represented_in_memory(sn) << " and the result is "
+                            << m.get_variable_with_value(*our_common_data->signature_the_get_is_defined_result).get_value_enum() << "\n";
+                            */
+                    }
+                    return;
+                }
             }
         }
                 
