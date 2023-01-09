@@ -1,4 +1,5 @@
 #include "chomik.h"
+#include "config.h"
 #include <cstring>
 #include <algorithm>
 
@@ -1048,6 +1049,13 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_get_is_defined_result=std::make_shared<signature>(gn19);
     add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_get_is_defined_result), "false"));
     
+    generic_name gn20;
+    gn20.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn20.add_generic_name_item(std::make_shared<identifier_name_item>("chomik"));
+    gn20.add_generic_name_item(std::make_shared<identifier_name_item>("package"));
+    gn20.add_generic_name_item(std::make_shared<identifier_name_item>("version"));
+    std::shared_ptr<signature> the_chomik_package_version=std::make_shared<signature>(gn20);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_chomik_package_version), PACKAGE_VERSION));
     
 }
 
