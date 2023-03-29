@@ -21,6 +21,7 @@ void * chomik_create_name_item_int(int i);
 void * chomik_create_name_item_variable_value(void * const l);
 void * chomik_create_name_item_identifier(const char * const identifier);
 void * chomik_create_name_item_placeholder(const char * const placeholder, void * const gt);
+void * chomik_create_name_item_code(void * const l);
 void * chomik_create_value_variable_value(void * const gn);
 void * chomik_create_expand_statement(int d, unsigned new_line_number);
 void * chomik_create_assignment_statement(void * const t, void * const v, unsigned new_line_number);
@@ -46,6 +47,8 @@ void * chomik_create_execute_value_statement(void * const l, unsigned new_line_n
 void * chomik_create_integer_literal_placeholder(const char * const p, void * const l);
 void * chomik_create_enum_literal_placeholder(const char * const p, void * const l, const char * const t);
 void * chomik_create_string_literal_placeholder(const char * const p, void * const l);
+void * chomik_create_code_literal_placeholder(const char * const p, void * const l);
+void * chomik_create_float_literal_placeholder(const char * const p, void * const l);
 void * chomik_create_variable_value(void * const l);
 void chomik_destroy_list_of_statements(void * const l);
 void chomik_destroy_list_of_type_definitions(void * const l);
@@ -108,6 +111,7 @@ name_item: T_IDENTIFIER { $$ = chomik_create_name_item_identifier($1); free($1);
             | T_INT_LITERAL { $$ = chomik_create_name_item_int($1); }
             | T_FLOAT_LITERAL { $$ = chomik_create_name_item_float($1); } 
             | T_STRING_LITERAL { $$ = chomik_create_name_item_string($1); free($1); }
+            | '{' list_of_statements '}' { $$ = chomik_create_name_item_code($2); /* no need to destroy $2 !!! */ }
             | '<' nonempty_list_of_name_items '>' { $$ = chomik_create_name_item_variable_value($2); chomik_destroy_list_of_name_items($2); }                                    
             
 type_name: T_INTEGER { $$=chomik_create_generic_type_named("integer"); } 
@@ -153,9 +157,11 @@ constant_value_literal:
         T_IDENTIFIER name { $$ = chomik_create_enum_literal($1, $2); free($1); /* no need to destroy $2 !!! */ }
         | T_IDENTIFIER '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_enum_literal_placeholder($4, $6, $1); free($1); free($4); /* no need to destroy $6 !!! */ } 
         | T_CODE code_literal { $$ = $2; }
+        | T_CODE '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_code_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         | T_INTEGER T_INT_LITERAL { $$ = chomik_create_integer_literal($2); }
         | T_INTEGER '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_integer_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         | T_FLOAT T_FLOAT_LITERAL { $$ = chomik_create_float_literal($2); }
+        | T_FLOAT '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_float_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         | T_STRING T_STRING_LITERAL { $$ = chomik_create_string_literal($2); free($2); }
         | T_STRING '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_string_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         

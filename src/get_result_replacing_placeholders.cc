@@ -33,6 +33,11 @@ void chomik::placeholder_name_item::get_result_replacing_placeholders(const mach
                 break;
                 
             case variable_with_value::actual_memory_representation_type::CODE:
+                {
+                code c;
+                g.get_placeholder_value_code(placeholder, c);
+                target.add_generic_name_item(std::make_shared<code_name_item>(c));
+                }
                 break;
         }
     }
@@ -44,6 +49,17 @@ void chomik::placeholder_name_item::get_result_replacing_placeholders(const mach
     }
 }
 
+void chomik::code::get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
+{
+    // TODO implement me
+    DEBUG("code::get_result_replacing_placeholders");
+}
+
+
+void chomik::generic_literal_code::get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
+{
+    DEBUG("generic_literal_code::get_result_replacing_placeholders");
+}
 
 void chomik::variable_value_name_item::get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
@@ -241,4 +257,10 @@ void chomik::generic_value_variable_value::get_result_replacing_placeholders(con
     {
         // TODO - check the families of variables
     }
+}
+
+
+void chomik::code_name_item::get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
+{
+    // TODO implement me
 }

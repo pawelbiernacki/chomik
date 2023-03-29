@@ -104,6 +104,11 @@ extern "C" void * chomik_create_name_item_int(int i)
     return new chomik::name_item_integer(i);
 }
 
+extern "C" void * chomik_create_name_item_code(void * const l)
+{
+    return new chomik::name_item_code(static_cast<chomik::list_of_statements*>(l));
+}
+
 extern "C" void * chomik_create_name_item_placeholder(const char * const placeholder, void * const gt)
 {
     return new chomik::placeholder_name_item(placeholder, static_cast<chomik::generic_type*>(gt));
@@ -229,6 +234,18 @@ extern "C" void * chomik_create_integer_literal_placeholder(const char * const p
 {
     return new chomik::generic_literal_placeholder(p, static_cast<chomik::generic_type*>(l), chomik::variable_with_value::actual_memory_representation_type::INTEGER);
 }
+
+
+extern "C" void * chomik_create_code_literal_placeholder(const char * const p, void * const l)
+{
+    return new chomik::generic_literal_placeholder(p, static_cast<chomik::generic_type*>(l), chomik::variable_with_value::actual_memory_representation_type::CODE);
+}
+
+extern "C" void * chomik_create_float_literal_placeholder(const char * const p, void * const l)
+{
+    return new chomik::generic_literal_placeholder(p, static_cast<chomik::generic_type*>(l), chomik::variable_with_value::actual_memory_representation_type::FLOAT);
+}
+
 
 extern "C" void * chomik_create_enum_literal_placeholder(const char * const p, void * const l, const char * const t)
 {

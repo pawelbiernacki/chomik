@@ -111,6 +111,15 @@ std::ostream & operator<<(std::ostream & s, const chomik::matching_protocol & x)
     return s;
 }
 
+void chomik::code::add_content_to_signature(const generic_name_item & s, signature & target, const machine & m, basic_generator & g) const
+{
+    target.add_content(std::make_shared<code_signature_item>(s, *this));
+}
+
+void chomik::code_name_item::report(std::ostream & s) const
+{
+    my_code->report(s);
+}
 
 int chomik::generic_stream_random_number_stream::read_integer()
 {
@@ -159,6 +168,103 @@ void chomik::variable_with_value_code::get_value_code(code & target) const
     }
     
 }
+
+
+void chomik::name_item_code::report(std::ostream & s) const
+{
+    my_code_pointer->report(s);
+}        
+
+void chomik::name_item_code::add_placeholders_to_generator(basic_generator & g) const
+{
+    my_code_pointer->add_placeholders_to_generator(g);
+}
+
+
+void chomik::name_item_code::add_content_to_signature(signature & target, const machine & m, basic_generator & g) const
+{
+    my_code_pointer->add_content_to_signature(*this, target, m, g);
+}
+
+
+std::string chomik::name_item_code::get_actual_text_representation(const machine & m, basic_generator & g) const
+{
+    return my_code_pointer->get_actual_text_representation(m, g);
+}
+
+void chomik::name_item_code::get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const
+{
+    my_code_pointer->get_result_replacing_placeholders(m, g, p, target);
+}
+
+void chomik::name_item_code::get_copy(std::shared_ptr<generic_name_item> & gni) const
+{
+    gni = std::make_shared<name_item_code>();
+}                        
+
+
+chomik::name_item_code::name_item_code(const code & cp): my_code_pointer(std::make_unique<code>(cp))
+{
+    
+}
+
+
+chomik::code::code(const code & c): body{c.body}, is_main{c.is_main}
+{
+}
+
+
+chomik::list_of_statements::list_of_statements(statement * const s, list_of_statements * const l): is_main{false}
+{
+    if (s)
+    {
+        std::shared_ptr<statement> x{s};
+        vector_of_statements.push_back(std::move(x));
+    }
+
+    if (l)
+    {
+        for (auto & i: l->vector_of_statements)
+        {
+            std::shared_ptr<statement> y{i};
+            vector_of_statements.push_back(std::move(y));
+        }
+    }
+}
+
+
+chomik::list_of_statements::list_of_statements(const list_of_statements & s): is_main{false}
+{
+    for (const auto & i: s.vector_of_statements)
+    {
+        std::shared_ptr<statement> y;
+        i->get_copy(y);
+        vector_of_statements.push_back(std::move(y));
+    }
+}
+
+
+void chomik::code_signature_item::get_copy(std::shared_ptr<signature_item> & target) const
+{
+    target = std::make_shared<code_signature_item>(*this);
+}
+
+
+void chomik::code_signature_item::report(std::ostream & s) const
+{
+    my_code->report(s);
+}
+
+
+std::string chomik::code::get_actual_text_representation(const machine & m, basic_generator & g) const
+{
+    std::stringstream s;
+    report(s);
+    return s.str();
+}
+
+chomik::code_name_item::code_name_item(const code & c) {}
+
 
 std::string chomik::placeholder_name_item::get_actual_text_representation(const machine & m, basic_generator & g) const
 {
@@ -412,6 +518,17 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
                 
         target.add_placeholder_with_value(std::move(c));
     }
+
+    for (auto a=map_placeholder_names_to_code.begin(); a!=map_placeholder_names_to_code.end(); a++)
+    {
+        DEBUG("make a placeholder " << a->first << " with value " << a->second);
+        auto b=std::make_shared<generic_type_named>("code");
+        target.add_placeholder(a->first, std::move(b));
+
+        auto c = std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second);
+
+        target.add_placeholder_with_value(std::move(c));
+    }
     
     DEBUG("produced " << target);
     
@@ -524,7 +641,11 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
                 break;                
                 
             case variable_with_value::actual_memory_representation_type::CODE:
-                // TODO - implement it
+                {
+                code c;
+                g.get_placeholder_value_code(placeholder, c);
+                target.add_content(std::make_shared<code_signature_item>(*this, c));
+                }
                 break;                
         }
     }
@@ -535,6 +656,120 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
     }
     
 }
+
+
+
+bool chomik::code_name_item::get_match_code(const code & v) const
+{
+    return *my_code == v;
+}
+
+
+bool chomik::code::operator==(const code & c) const
+{
+    return c.body == body;
+}
+
+
+bool chomik::list_of_statements::operator==(const list_of_statements & l) const
+{
+    if (l.vector_of_statements.size() != vector_of_statements.size())
+        return false;
+
+    for (int i=0; i<vector_of_statements.size(); i++)
+    {
+        if (vector_of_statements[i]->get_statement_type() != l.vector_of_statements[i]->get_statement_type())
+        {
+            return false;
+        }
+
+        switch (vector_of_statements[i]->get_statement_type())
+        {
+            case statement::statement_type::TYPE_DEFINITION:
+                // TODO implement me
+                break;
+
+            case statement::statement_type::VARIABLE_DEFINITION:
+                // TODO implement me
+                break;
+
+            case statement::statement_type::ASSIGNMENT:
+                // TODO implement me
+                break;
+
+            case statement::statement_type::EXECUTE:
+                // TODO implement me
+                break;
+
+            case statement::statement_type::EXPAND:
+                // TODO implement me
+                break;
+        }
+    }
+
+    return true;
+}
+
+
+
+void chomik::matching_protocol::bind_placeholder_as_code(const std::string & p, const code & c)
+{
+    auto [it, s] = map_placeholder_names_to_code.insert(std::pair(p,c));
+    if (!s) throw std::runtime_error("failed to bind a placeholder");
+}
+
+
+bool chomik::code_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
+{
+    DEBUG("get match for " << gni << " against " << *my_code);
+    if (gni.get_is_code())
+    {
+        DEBUG(gni << " is a code");
+        return gni.get_match_code(*my_code);
+    }
+    else
+    if (gni.get_is_placeholder())
+    {
+        const auto * gni2 = static_cast<const placeholder_name_item*>(&gni);
+
+        DEBUG(gni << " is a placeholder of type " << gni2->get_type());
+        if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
+        {
+            DEBUG("it has a placeholder with value " << g << ", namely the placeholder " << gni.get_placeholder_name());
+
+            switch (gni2->get_type().get_actual_memory_representation_type(m))
+            {
+                case variable_with_value::actual_memory_representation_type::CODE:
+                    {
+                    code c;
+                    g.get_placeholder_value_code(gni.get_placeholder_name(), c);
+
+                    DEBUG("placeholder value " << c);
+                    return c == *my_code;
+                    }
+                    break;
+            }
+        }
+        else
+        {
+            DEBUG("the generator " << g << " has no placeholder " << gni.get_placeholder_name());
+
+            if (source.get_placeholder_name() != "")
+            {
+                DEBUG("bind " << gni.get_placeholder_name() << " to " << source.get_placeholder_name());
+                target.bind_placeholder_as_placeholder(gni.get_placeholder_name(), source.get_placeholder_name());
+            }
+            else
+            {
+                DEBUG("bind " << gni.get_placeholder_name() << " as " << *my_code);
+                target.bind_placeholder_as_code(gni.get_placeholder_name(), *my_code);
+            }
+            return false;
+        }
+    }
+    return false;
+}
+
 
 
 bool chomik::simple_value_integer_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
@@ -551,8 +786,7 @@ bool chomik::simple_value_integer_signature_item::get_match(const generic_name_i
     if (gni.get_is_placeholder())
     {
         const auto * gni2 = static_cast<const placeholder_name_item*>(&gni);
-        
-        
+                
         DEBUG(gni << " is a placeholder of type " << gni2->get_type());
         
         if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
@@ -767,7 +1001,11 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                 break;
                                 
             case variable_with_value::actual_memory_representation_type::CODE:
-                // TODO - implement it
+                {
+                code c;
+                m.get_variable_value_code(x, c);
+                target.add_content(std::make_shared<code_signature_item>(*this, c));
+                }
                 break;
         }
     }
@@ -1990,7 +2228,9 @@ std::string chomik::generic_literal_placeholder::get_actual_text_representation(
 
 void chomik::generic_literal_placeholder::add_placeholders_to_generator(basic_generator & g) const
 {
-    // TODO implement
+    std::shared_ptr<generic_type> s;
+    type_name->get_copy(s);
+    g.add_placeholder(placeholder, std::move(s));
 }
 
 void chomik::type_definition_statement::expand(machine & m, int depth) const
@@ -2593,26 +2833,6 @@ void chomik::type_instance_enum::add_type_instance_enum_value(const std::string 
 }
 
 
-void chomik::assignment_source_variable_value::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
-{
-    DEBUG("got " << target);    
-}
-
-void chomik::assignment_source_code_pattern::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
-{
-    DEBUG("got " << target);
-}
-
-void chomik::assignment_source_literal_value::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
-{
-    replacing_policy_literal p;
-    my_value->get_actual_code_value(m, g, p, target);
-    
-    DEBUG("generator " << g);
-        
-    DEBUG("got " << target);
-}
-
 void chomik::matching_protocol::initialize_mapping(mapping_generator & target) const
 {
     DEBUG("initialize mapping");
@@ -2634,8 +2854,7 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
     {
         DEBUG("add placeholder integer " << a->second << " -> " << a->first);
         
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second));
-        
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second));        
     }    
     for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
     {
@@ -2643,6 +2862,12 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
         
         target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(a->first, a->second));
     }        
+    for (auto a=map_placeholder_names_to_code.begin(); a!=map_placeholder_names_to_code.end(); a++)
+    {
+        DEBUG("add placeholder code " << a->second << " -> " << a->first);
+
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second));
+    }
 }
 
 void chomik::generic_stream::read_string_of_x_characters(std::string & target, unsigned x)
@@ -2739,3 +2964,20 @@ std::string chomik::generic_value_literal::get_actual_string_value(const machine
     DEBUG("actual string value \'" << x << "\'");
     return x;
 }
+
+
+void chomik::code_name_item::add_placeholders_to_generator(basic_generator & g) const
+{
+    my_code->add_placeholders_to_generator(g);
+}
+
+void chomik::code_name_item::add_content_to_signature(signature & target, const machine & m, basic_generator & g) const
+{
+    my_code->add_content_to_signature(*this, target, m, g);
+}
+
+std::string chomik::code_name_item::get_actual_text_representation(const machine & m, basic_generator & g) const
+{
+    return my_code->get_actual_text_representation(m, g);
+}
+

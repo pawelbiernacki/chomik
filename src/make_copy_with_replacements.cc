@@ -181,7 +181,12 @@ void chomik::generic_value_placeholder::make_copy_with_replacements(const machin
                 break;
 
             case variable_with_value::actual_memory_representation_type::CODE:
-                
+                {
+                std::unique_ptr<code> c=std::make_unique<code>();
+                g.get_placeholder_value_code(placeholder, *c);
+
+                target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_code>(std::move(c)));
+                }
                 break;
                 
         }

@@ -78,6 +78,9 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     code ci;
                     replacing_policy_literal p;
                     value->get_actual_code_value(m, *g, p, ci);
+
+                    DEBUG("the code " << ci);
+
                     m.get_variable_with_value(*x).assign_value_code(ci);
                     
                     DEBUG("code line number " << line_number << ": the result code " << ci);
@@ -132,6 +135,9 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                 {
                     auto yc{std::make_unique<code>()};
                     replacing_policy_literal p;
+
+                    DEBUG("get actual code value from " << *value);
+
                     value->get_actual_code_value(m, *g, p, *yc);
                                         
                     DEBUG("code line number " << line_number << ": got code " << *yc);

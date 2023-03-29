@@ -77,7 +77,8 @@ bool chomik::generator::get_does_not_exceed_level(int max_level) const
 
 void chomik::generator::initialize(machine & m)
 {    
-    
+    DEBUG("generator::initialize, amount of placeholders " << vector_of_placeholders.size());
+
     for (auto & i: vector_of_placeholders)
     {
         DEBUG("generator::initialize - add placeholder " << i->get_name() << " of type " << i->get_placeholder_type() << " to the generator");
@@ -109,6 +110,15 @@ void chomik::generator::initialize(machine & m)
                 }
             }
             break;
+
+            case variable_with_value::actual_memory_representation_type::CODE:
+            {
+                const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
+
+                DEBUG("NOT IMPLEMENTED");
+            }
+                break;
+
             case variable_with_value::actual_memory_representation_type::FLOAT:
             {
                 std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 123.456)};
@@ -191,7 +201,7 @@ bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_finite
 
 void chomik::mapping_generator::initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const
 {
-#warning "it may be necessary"    
+// TODO implement me
 }
 
 void chomik::generator::initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const
@@ -372,6 +382,21 @@ int chomik::generator::get_placeholder_value_integer(const std::string & p) cons
     return v;
 }
 
+
+void chomik::generator::get_placeholder_value_code(const std::string & p, code & target) const
+{
+    DEBUG("get placeholder " << p << " value code");
+
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+
+    const simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>&>(x)};
+
+    target = y.get_value();
+
+    DEBUG("result " << target);
+}
+
+
 int chomik::basic_generator::get_placeholder_value_integer(const std::string & p) const 
 { 
     DEBUG("get placeholder " << p << " value integer");
@@ -408,7 +433,8 @@ std::string chomik::basic_generator::get_placeholder_value_string(const std::str
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
 
-    const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)>&>(x)};
+    const simple_placeholder_with_value_and_report<std::string,
+            static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)>&>(x)};
     
     std::string v{y.get_value()};
     
@@ -423,6 +449,21 @@ std::string chomik::basic_generator::get_placeholder_value_enum(const std::strin
     
     return get_placeholder_with_value(p).get_value_enum();     
 }        
+
+
+void chomik::basic_generator::get_placeholder_value_code(const std::string & p, code & target) const
+{
+    DEBUG("get placeholder " << p << " value code");
+
+
+    using placeholder_with_code = simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>;
+
+    const placeholder_with_code& pp{static_cast<const placeholder_with_code&>(get_placeholder_with_value(p))};
+
+    target = pp.get_value();
+
+    DEBUG("result is " << target);
+}
 
         
 const std::string chomik::mapping_generator::convert_childs_placeholder_name_to_father(const std::string & cpn) const
