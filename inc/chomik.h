@@ -422,6 +422,8 @@ namespace chomik
         virtual void get_copy(std::shared_ptr<generic_type> & target) const = 0;
         
         virtual void get_copy(std::unique_ptr<generic_type> & target) const = 0;
+
+        virtual bool get_is_equal(const generic_type & t) const = 0;
     };
     
     
@@ -469,6 +471,12 @@ namespace chomik
         virtual void get_copy(std::unique_ptr<generic_type> & target) const override
         {
             target = std::make_unique<generic_type_named>(name);
+        }
+
+        virtual bool get_is_equal(const generic_type & t) const override
+        {
+            // TODO fix me
+            return false;
         }
     };        
 
@@ -645,6 +653,12 @@ namespace chomik
         {
             target = std::make_unique<generic_type_range>(*r);
         }        
+
+        virtual bool get_is_equal(const generic_type & t) const override
+        {
+            // TODO fix me
+            return false;
+        }
     };
             
     class replacing_policy;
@@ -847,7 +861,7 @@ namespace chomik
     private:
         std::unique_ptr<code> my_code;
     public:
-        code_name_item() {}
+        code_name_item(): my_code{std::make_unique<code>()} {}
         code_name_item(const code & c);
 
         virtual void report(std::ostream & s) const override;
@@ -902,7 +916,8 @@ namespace chomik
         }
         
         void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const;        
-                
+
+        bool operator==(const generic_name & n) const;
     };
     
     
@@ -1639,6 +1654,8 @@ namespace chomik
             name->add_placeholders_to_generator(g);
             type_name->add_placeholders_to_generator(g);
         }
+
+        bool operator==(const variable_definition & d) const;
     };   
     
     class list_of_variable_definitions
@@ -1717,6 +1734,8 @@ namespace chomik
         {
             // TODO - implement
         }        
+
+        bool operator==(const variable_definition_statement & s) const;
     };
     
     /**
@@ -1975,12 +1994,8 @@ namespace chomik
                 
         virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const override;
 
-        virtual void get_copy(std::unique_ptr<generic_value> & target) const override
-        {
-            std::unique_ptr<generic_literal> i;
-            literal->get_copy(i);
-            target = std::make_unique<generic_value_literal>(std::move(i));
-        }
+        virtual void get_copy(std::unique_ptr<generic_value> & target) const override;
+
         virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
         
         virtual bool get_is_literal() const override { return true; }
@@ -3273,5 +3288,5 @@ std::ostream & operator<<(std::ostream & s, const chomik::assignment_event & x);
 std::ostream & operator<<(std::ostream & s, const chomik::assignment_source & x);
 std::ostream & operator<<(std::ostream & s, const chomik::placeholder_with_value & x);
 std::ostream & operator<<(std::ostream & s, const chomik::matching_protocol & x);
-
+std::ostream & operator<<(std::ostream & s, const chomik::generic_literal & l);
 #endif

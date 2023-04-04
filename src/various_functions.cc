@@ -14,6 +14,13 @@
 #define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
 
 
+
+std::ostream & operator<<(std::ostream & s, const chomik::generic_literal & l)
+{
+    l.report(s);
+    return s;
+}
+
 std::ostream & operator<<(std::ostream & s, const chomik::basic_generator & g)
 {
     g.report(s);
@@ -211,6 +218,7 @@ chomik::name_item_code::name_item_code(const code & cp): my_code_pointer(std::ma
 
 chomik::code::code(const code & c): body{c.body}, is_main{c.is_main}
 {
+    DEBUG("created code from " << c);
 }
 
 
@@ -263,7 +271,9 @@ std::string chomik::code::get_actual_text_representation(const machine & m, basi
     return s.str();
 }
 
-chomik::code_name_item::code_name_item(const code & c) {}
+chomik::code_name_item::code_name_item(const code & c): my_code{std::make_unique<code>(c)}
+{
+}
 
 
 std::string chomik::placeholder_name_item::get_actual_text_representation(const machine & m, basic_generator & g) const
@@ -671,6 +681,49 @@ bool chomik::code::operator==(const code & c) const
 }
 
 
+void chomik::generic_value_literal::get_copy(std::unique_ptr<generic_value> & target) const
+{
+    DEBUG("get copy of a literal " << *literal);
+
+    std::unique_ptr<generic_literal> i;
+    literal->get_copy(i);
+    target = std::make_unique<generic_value_literal>(std::move(i));
+}
+
+
+bool chomik::generic_name::operator==(const generic_name & n) const
+{
+    if (vector_of_name_items.size() != n.vector_of_name_items.size())
+        return false;
+
+    // TODO implement me
+
+    return true;
+}
+
+bool chomik::variable_definition::operator==(const variable_definition & d) const
+{
+    return name == d.name && type_name->get_is_equal(*d.type_name);
+}
+
+
+bool chomik::variable_definition_statement::operator==(const variable_definition_statement & s) const
+{
+    if (vector_of_variable_definitions.size() != s.vector_of_variable_definitions.size())
+        return false;
+
+    for (int i=0; i<vector_of_variable_definitions.size(); i++)
+    {
+        const variable_definition& d1=static_cast<const variable_definition&>(*vector_of_variable_definitions[i]);
+        const variable_definition& d2=static_cast<const variable_definition&>(*s.vector_of_variable_definitions[i]);
+        if (d1 == d2)
+            continue;
+        return false;
+    }
+
+    return true;
+}
+
 bool chomik::list_of_statements::operator==(const list_of_statements & l) const
 {
     if (l.vector_of_statements.size() != vector_of_statements.size())
@@ -690,7 +743,13 @@ bool chomik::list_of_statements::operator==(const list_of_statements & l) const
                 break;
 
             case statement::statement_type::VARIABLE_DEFINITION:
-                // TODO implement me
+                {
+                    const variable_definition_statement& s1=static_cast<const variable_definition_statement&>(*vector_of_statements[i]);
+                    const variable_definition_statement& s2=static_cast<const variable_definition_statement&>(*l.vector_of_statements[i]);
+                    if (s1 == s2)
+                        continue;
+                    return false;
+                }
                 break;
 
             case statement::statement_type::ASSIGNMENT:

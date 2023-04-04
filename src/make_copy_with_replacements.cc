@@ -58,6 +58,8 @@ void chomik::assignment_statement::make_copy_with_replacements(const machine & m
 {
     std::shared_ptr<generic_value> t;
     value->make_copy_with_replacements(m, g, p, t);
+
+    DEBUG("the copy " << *t);
        
     auto x = std::make_shared<assignment_statement>(*t, line_number);
     
@@ -93,7 +95,12 @@ void chomik::generic_value_variable_value::make_copy_with_replacements(const mac
                 //target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_enum>("enum", m.get_variable_value_enum(s)));
                 break;                
             case variable_with_value::actual_memory_representation_type::CODE:
-                break;                
+            {
+                code c;
+                m.get_variable_value_code(s, c);
+                target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_code>(c));
+            }
+                break;
         }
     }
     else
@@ -139,7 +146,11 @@ void chomik::generic_literal_placeholder::make_copy_with_replacements(const mach
                 break;
                 
             case variable_with_value::actual_memory_representation_type::CODE:
-                // TODO implement
+                {
+                code c;
+                g.get_placeholder_value_code(placeholder, c);
+                target = std::make_unique<generic_literal_code>(c);
+                }
                 break;
         }
     }

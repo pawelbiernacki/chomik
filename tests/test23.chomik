@@ -1,0 +1,39 @@
+#!/usr/local/bin/chomik
+
+<create new output stringstream>;
+let my index = <the created stream index>;
+
+let the print target stream index = <my index>;
+let the print separator = value string "";
+let the print end of line = value string "";
+
+variable abc (X:code) (Y:code):code;
+let abc (X:code) (Y:code)=value code
+{
+    let x = value code [(X:code)];
+    let y = value code [(Y:code)];
+    <print "hello">;
+    <x>;
+    <print "bye">;
+    <y>;
+};
+
+<abc {<print "alpha" (S:boolean)>;} {<print "beta" (S:boolean)>;}>;
+
+let the print separator = value string " ";
+let the print end of line = value string "\n";
+let the print target stream index = value integer 0;
+
+let the get from stream stream index = <my index>;
+<get from stream>;
+<print "RESULT:" <the get from stream result>>;
+
+<compare "string" <the get from stream result> "helloalphafalsebyebetafalsehelloalphatruebyebetatrue">;
+
+variable on compare result set the program return (R:compare_result):code;
+let on compare result set the program return lower = value code { let the program return = value integer 1; };
+let on compare result set the program return greater = value code { let the program return = value integer 1; };
+let on compare result set the program return equal = value code { let the program return = value integer 0; };
+
+<on compare result set the program return <the compare result>>;
+
