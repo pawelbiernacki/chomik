@@ -104,8 +104,8 @@ let variable move_blue_monkey (N:range_of_blue_monkeys)=value code
 variable slow_down_monkey_x_on_comparison (X:compare_result):code;
 let variable slow_down_monkey_x_on_comparison greater=value code
 {
-    execute <substract "integer" <monkey dx> 1>;
-    let variable monkey dx=<the substract result "integer">;
+    execute <subtract "integer" <monkey dx> 1>;
+    let variable monkey dx=<the subtract result "integer">;
 };
 
 let variable slow_down_monkey_x_on_comparison lower=value code
@@ -117,8 +117,8 @@ let variable slow_down_monkey_x_on_comparison lower=value code
 variable slow_down_monkey_y_on_comparison (X:compare_result):code;
 let variable slow_down_monkey_y_on_comparison greater=value code
 {
-    execute <substract "integer" <monkey dy> 1>;
-    let variable monkey dy=<the substract result "integer">;
+    execute <subtract "integer" <monkey dy> 1>;
+    let variable monkey dy=<the subtract result "integer">;
 };
 
 let variable slow_down_monkey_y_on_comparison lower=value code
