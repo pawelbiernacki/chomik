@@ -2,6 +2,7 @@
 
 
 #define YYERROR_VERBOSE 1
+#define YYMAXDEPTH 1000000
 
 #include <stdio.h>
 
