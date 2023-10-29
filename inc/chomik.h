@@ -1242,7 +1242,11 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override
         {
-            s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=' << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value << ' ';
+            auto & x=simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value;
+
+            s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=';
+            x,report(s);
+            s << ' ';
         }        
     };
     
