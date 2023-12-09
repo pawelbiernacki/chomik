@@ -123,10 +123,6 @@ void chomik::code::add_content_to_signature(const generic_name_item & s, signatu
     target.add_content(std::make_shared<code_signature_item>(s, *this));
 }
 
-void chomik::code_name_item::report(std::ostream & s) const
-{
-    my_code->report(s);
-}
 
 int chomik::generic_stream_random_number_stream::read_integer()
 {
@@ -175,12 +171,6 @@ void chomik::variable_with_value_code::get_value_code(code & target) const
     }
     
 }
-
-
-void chomik::name_item_code::report(std::ostream & s) const
-{
-    my_code_pointer->report(s);
-}        
 
 void chomik::name_item_code::add_placeholders_to_generator(basic_generator & g) const
 {
@@ -255,12 +245,6 @@ chomik::list_of_statements::list_of_statements(const list_of_statements & s): is
 void chomik::code_signature_item::get_copy(std::shared_ptr<signature_item> & target) const
 {
     target = std::make_shared<code_signature_item>(*this);
-}
-
-
-void chomik::code_signature_item::report(std::ostream & s) const
-{
-    my_code->report(s);
 }
 
 
@@ -524,7 +508,7 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
         auto b=std::make_shared<generic_type_named>("integer");
         target.add_placeholder(a->first, std::move(b));
         
-        auto c = std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second);
+        auto c = std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr);
                 
         target.add_placeholder_with_value(std::move(c));
     }
@@ -535,7 +519,7 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
         auto b=std::make_shared<generic_type_named>("code");
         target.add_placeholder(a->first, std::move(b));
 
-        auto c = std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second);
+        auto c = std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second, nullptr);
 
         target.add_placeholder_with_value(std::move(c));
     }
@@ -628,7 +612,7 @@ chomik::variable_with_value::actual_memory_representation_type chomik::machine::
 
 void chomik::placeholder_name_item::add_content_to_signature(signature & target, const machine & m, basic_generator & g) const
 {    
-    DEBUG("checking whether " << g << " has placeholder " << placeholder);    
+    DEBUG("checking whether " << g << " has placeholder " << placeholder);
     
     if (g.get_has_placeholder_with_value(placeholder))
     {
@@ -663,6 +647,9 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
     {
         DEBUG("no, it doesn't");                        
         
+        //target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, 2));
+        // TODO fixme
+
     }
     
 }
@@ -2317,7 +2304,9 @@ void chomik::machine::expand(int i)
             
             if (k->get_is_range())
             {
-                std::shared_ptr<type_instance> y{std::make_shared<type_instance_range>(k->get_name(), k->get_body().get_min_value(*this), k->get_body().get_max_value(*this))};
+                generator g{__FILE__, __LINE__};
+
+                std::shared_ptr<type_instance> y{std::make_shared<type_instance_range>(k->get_name(), k->get_body().get_min_value(*this, g), k->get_body().get_max_value(*this, g))};
                 std::shared_ptr<type_instance> y2{y};   // here we keep the second pointer to the same object, but the first one will be stored in the temporary vector only
             
                 temporary_vector_of_type_instances.push_back(std::move(y));
@@ -2684,44 +2673,6 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
 }
 
 
-
-
-void chomik::code::report(std::ostream & s) const
-{
-    body->report(s);
-}
-
-void chomik::type_instance_enum::report(std::ostream & s) const
-{
-    bool first = true;
-    s << "type instance " << name << "={";
-    for (auto & i: vector_of_values)
-    {
-        if (!first) s << ',';
-        s << i->get_name();
-        first = false;
-    }
-    s << "};\n";
-}
-
-void chomik::type_instance_range::report(std::ostream & s) const
-{
-    s << "type instance " << name << '=' << min_boundary << ".." << max_boundary << ";\n";
-}
-
-void chomik::list_of_statements::report(std::ostream & s) const
-{
-    for (auto & i: vector_of_statements)
-    {
-        i->report(s);
-        if (is_main) 
-        {
-            s << '\n';
-        }
-    }
-}
-
-
 chomik::generic_range_boundary_variable_value::generic_range_boundary_variable_value(const generic_name & gn)
 {
     name = std::make_unique<generic_name>(gn);
@@ -2780,9 +2731,8 @@ chomik::generic_name::generic_name(list_of_generic_name_items * const l)
 }
 
 
-int chomik::generic_range_boundary_variable_value::get_value(const machine & m) const
+int chomik::generic_range_boundary_variable_value::get_value(const machine & m, basic_generator & g) const
 {        
-    generator g(__FILE__, __LINE__);
     signature x = signature(*name, m, g);
     return m.get_variable_value_integer(x);
 }
@@ -2913,19 +2863,19 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
     {
         DEBUG("add placeholder integer " << a->second << " -> " << a->first);
         
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second));        
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr));
     }    
     for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
     {
         DEBUG("add placeholder string " << a->second << " -> " << a->first);
         
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(a->first, a->second));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(a->first, a->second, nullptr));
     }        
     for (auto a=map_placeholder_names_to_code.begin(); a!=map_placeholder_names_to_code.end(); a++)
     {
         DEBUG("add placeholder code " << a->second << " -> " << a->first);
 
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second, nullptr));
     }
 }
 
@@ -3040,3 +2990,107 @@ std::string chomik::code_name_item::get_actual_text_representation(const machine
     return my_code->get_actual_text_representation(m, g);
 }
 
+
+bool chomik::generic_name::get_is_an_ad_hoc_name() const
+{
+    for (auto & x: vector_of_name_items)
+    {
+        if (x->get_is_placeholder())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool chomik::generic_range_boundary_variable_value::get_is_an_ad_hoc_value() const
+{
+    return name->get_is_an_ad_hoc_name();
+}
+
+
+chomik::type_instance * chomik::machine::create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn)
+{
+    DEBUG("create an ad hoc type " << t << " as " << tn);
+    int f,l;
+
+    t.update_boundaries(*this, f, l, g);
+
+    std::shared_ptr<type_instance_ad_hoc_range> x = std::make_shared<type_instance_ad_hoc_range>(t, tn, f, l);
+    type_instance * y = dynamic_cast<type_instance*>(&*x);
+//TODO fixme
+    add_ad_hoc_type(std::move(x));
+    return y;
+}
+
+void chomik::machine::add_ad_hoc_type(std::shared_ptr<type_instance_ad_hoc_range> && t)
+{
+    DEBUG("add ad hoc type " << t->get_name());
+
+    vector_of_ad_hoc_type_instances.push_back(t);
+}
+
+void chomik::machine::get_first_and_last_iterators_for_ad_hoc_range_type(const std::string & type_name, int & f, int & l) const
+{
+    DEBUG("looking for ad hoc range type " << type_name);
+
+    for (int x=vector_of_ad_hoc_type_instances.size()-1;x>=0;x--)
+    {
+        if (vector_of_ad_hoc_type_instances[x]->get_name() == type_name)
+        {
+            f = vector_of_ad_hoc_type_instances[x]->get_first_iterator_for_range();
+            l = vector_of_ad_hoc_type_instances[x]->get_last_iterator_for_range();
+            return;
+        }
+    }
+}
+
+chomik::placeholder_with_value& chomik::basic_generator::get_placeholder_with_value(const std::string & p)
+{
+    return dummy;
+}
+
+const chomik::placeholder_with_value& chomik::basic_generator::get_placeholder_with_value(const std::string & p) const { return dummy; }
+
+
+void chomik::type_instance_ad_hoc_range::update(placeholder_with_value & v, machine & m, basic_generator & g)
+{
+    DEBUG("update type instance " << name);
+
+    my_type.update_boundaries(m, min_boundary, max_boundary, g);
+
+    DEBUG("updated type instance " << name << " as " << min_boundary << ".." << max_boundary);
+
+    v.update_int_value(min_boundary, max_boundary);
+}
+
+
+void chomik::machine::add_variable_with_value(std::shared_ptr<variable_with_value> && vv)
+{
+    auto [it, success] = map_signature_string_representation_to_variable_with_value.insert(std::pair(vv->get_signature_string_representation(), vv));
+
+    if (!success)
+    {
+        std::stringstream s;
+        s << "failed to insert a pair into machine's memory " << vv->get_signature_string_representation();
+        throw std::runtime_error(s.str());
+    }
+
+    std::shared_ptr<variable_with_value> v2{vv};
+
+            //std::cout << "add_variable_with_value\n";
+            //vv->report(std::cout);
+            //std::cout << "\n";
+
+    memory.push_back(std::move(vv));
+}
+
+
+void chomik::simple_placeholder_for_range::update_int_value(int f, int l)
+{
+    DEBUG("update int value " << f << ".." << l);
+    first = f;
+    last = l+1;
+    value = f;
+}

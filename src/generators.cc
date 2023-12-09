@@ -82,18 +82,49 @@ void chomik::generator::initialize(machine & m)
     for (auto & i: vector_of_placeholders)
     {
         DEBUG("generator::initialize - add placeholder " << i->get_name() << " of type " << i->get_placeholder_type() << " to the generator");
-        
-        switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
+
+        if (i->get_placeholder_type().get_is_an_ad_hoc_type())
         {
-            case variable_with_value::actual_memory_representation_type::INTEGER:
+            DEBUG("generator::initialize - it is an ad hoc type");
+
+            const std::string type_name = i->get_placeholder_type().get_generic_type_name();
+
+            DEBUG("the type name is " << type_name);
+
+            auto * my_type_instance = m.create_an_ad_hoc_type(i->get_placeholder_type(), *this, type_name);
+
+            switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
             {
+                case variable_with_value::actual_memory_representation_type::INTEGER:
+                {
+                    DEBUG("it is an integer range");
+
+                    int f,l;
+                    m.get_first_and_last_iterators_for_ad_hoc_range_type(type_name, f, l);
+
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), f, l, my_type_instance)};
+
+                    DEBUG("it is a range " << f << ".." << l);
+
+                    add_placeholder_with_value(std::move(x));
+                };
+
+                default:;
+            }
+        }
+        else
+        {
+            switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
+            {
+                case variable_with_value::actual_memory_representation_type::INTEGER:
+                {
                 const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
                 int f, l;
                 if (m.get_type_instance_is_known(type_name))
                 {
                     m.get_first_and_last_iterators_for_range_type(type_name, f, l);
                 
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), f, l)};
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), f, l, nullptr)};
                                         
                     DEBUG("it is a range " << f << ".." << l);
                 
@@ -105,7 +136,7 @@ void chomik::generator::initialize(machine & m)
                 {
                     // TODO we just assume it is infinite because there is no type instance - we should check whether the assumption is correct                                        
                     DEBUG("it is infinite");
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_infinite_range>(i->get_name())};
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_infinite_range>(i->get_name(), nullptr)};
                     add_placeholder_with_value(std::move(x));
                 }
             }
@@ -121,14 +152,14 @@ void chomik::generator::initialize(machine & m)
 
             case variable_with_value::actual_memory_representation_type::FLOAT:
             {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 123.456)};
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 123.456, nullptr)};
         
                 add_placeholder_with_value(std::move(x));
             }
             break;
             case variable_with_value::actual_memory_representation_type::STRING:
             {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "hallo")};
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "hallo", nullptr)};
         
                 add_placeholder_with_value(std::move(x));
             }
@@ -145,23 +176,35 @@ void chomik::generator::initialize(machine & m)
                 if (m.get_type_instance_is_known(type_name))
                 {
                     m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), f, l)};
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), f, l, nullptr)};
         
                     add_placeholder_with_value(std::move(x));
                 }
             }
             break;            
+            }
         }
     }
 }
 
 void chomik::generator::increment(machine & m)
 {
-    for (auto & i: memory)
+    DEBUG("generator::increment");
+
+    // there can be dependencies within the ad-hoc ranges, we assume the placeholders at the lower indices
+    // to be able to affect the higher indices placeholders
+    for (int i=memory.size()-1; i>=0; i--)
     {
-        i->increment();
-        if (i->get_is_valid())
+        memory[i]->increment();
+
+        DEBUG("incremented " << i);
+
+        if (memory[i]->get_is_valid())
         {
+            for (int j=i+1;j<memory.size(); j++)
+            {
+                memory[j]->update_ad_hoc_range_type_instance(m, *this);
+            }
             return; // we DONT't increment the father
         }
         else
@@ -229,12 +272,26 @@ bool chomik::generator::get_has_placeholder(const std::string & p) const
 bool chomik::generator::get_has_placeholder_with_value(const std::string & p) const
 {
     bool result = false;
+
     if (auto o=my_father.lock())
     {
         result = o->get_has_placeholder_with_value(p);
     }
     if (!result)
+    {
         result = map_placeholder_names_to_placeholders_with_value.find(p)!=map_placeholder_names_to_placeholders_with_value.end();
+    }
+
+    DEBUG("checking whether the generator has placeholder with value " << p << " " << (result ? "true" : "false"));
+
+    if (!result)
+    {
+        for (auto x: map_placeholder_names_to_placeholders_with_value)
+        {
+            DEBUG("placeholder name " << x.first);
+        }
+    }
+
     return result;
 }
         
@@ -304,7 +361,7 @@ const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_va
     return *f->second;
 }
 
-chomik::simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", -1};
+chomik::simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", -1, nullptr};
 
 bool chomik::mapping_generator::get_has_placeholder_with_value(const std::string & p) const
 { 

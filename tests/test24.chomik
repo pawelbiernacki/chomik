@@ -1,0 +1,46 @@
+#!/usr/local/bin/chomik
+
+type some_range = 1..3;
+expand(1);
+
+variable minimum (X:some_range):integer;
+
+let minimum 1=value integer 10;
+let minimum 2=value integer 14;
+let minimum 3=value integer 12;
+
+variable maximum (X:some_range):integer;
+let maximum 1=value integer 15;
+let maximum 2=value integer 17;
+let maximum 3=value integer 18;
+
+variable amount of iterations : integer;
+let amount of iterations = value integer 0;
+
+variable run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:some_range)>):code;
+
+let run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)=value code
+{
+    <print "test" (X:some_range) "and" (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)>;
+
+    <add "integer" <amount of iterations> 1>;
+    let amount of iterations = <the add result "integer">;
+};
+
+
+#
+# For each X we should iterate through a different ad hoc range (10..15, 15..17 and 12..18),
+# Alltogether we should do 17 iterations.
+#
+<run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)>;
+
+<print "amount of iterations" <amount of iterations>>;
+
+variable on (X:compare_result) set the program return:code;
+let on lower set the program return = value code { let the program return = value integer 1; <print "error!">; };
+let on greater set the program return = value code { let the program return = value integer 1; <print "error!">; };
+let on equal set the program return = value code { let the program return = value integer 0; };
+
+<compare "integer" <amount of iterations> 17>;
+<on <the compare result> set the program return>;
+

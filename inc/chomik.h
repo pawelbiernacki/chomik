@@ -79,6 +79,9 @@ namespace chomik
     };
     
     
+    class machine;
+    class basic_generator;
+
     /**
      * Somewhat similar to the variable_with_value class, this class is used to represent placeholders with their values in generators.
      */
@@ -112,6 +115,11 @@ namespace chomik
         virtual bool get_exceeds_level(int max_level) const { return false; }
         
         virtual int get_level() const { return 0; }
+
+        virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) {}
+
+        virtual void update_int_value(int f, int l) {}
+
     };
     
     class mapping_generator;
@@ -416,7 +424,9 @@ namespace chomik
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
         virtual std::string get_type_name(const machine & m, basic_generator & g) const = 0;
-        
+
+        virtual std::string get_generic_type_name() const = 0;
+
         virtual std::string get_low_level_type_name() const = 0;
         
         virtual void get_copy(std::shared_ptr<generic_type> & target) const = 0;
@@ -424,6 +434,10 @@ namespace chomik
         virtual void get_copy(std::unique_ptr<generic_type> & target) const = 0;
 
         virtual bool get_is_equal(const generic_type & t) const = 0;
+
+        virtual bool get_is_an_ad_hoc_type() const = 0;
+
+        virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const {}
     };
     
     
@@ -438,6 +452,11 @@ namespace chomik
         generic_type_named(const std::string & n): name{n} {}
         
         virtual std::string get_type_name(const machine & m, basic_generator & g) const override
+        {
+            return name;
+        }
+
+        virtual std::string get_generic_type_name() const override
         {
             return name;
         }
@@ -478,6 +497,11 @@ namespace chomik
             // TODO fix me
             return false;
         }
+
+        virtual bool get_is_an_ad_hoc_type() const override
+        {
+            return false;
+        }
     };        
 
     
@@ -488,11 +512,13 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual int get_value(const machine & m) const = 0;
+        virtual int get_value(const machine & m, basic_generator & g) const = 0;
 
         virtual void add_placeholders_to_generator(basic_generator & g) const {}    
         
         virtual void get_copy(std::unique_ptr<generic_range_boundary> & target) const = 0;
+
+        virtual bool get_is_an_ad_hoc_value() const = 0;
     };
     
     class generic_range_boundary_int_literal: public generic_range_boundary
@@ -507,7 +533,7 @@ namespace chomik
             s << b;
         }
         
-        virtual int get_value(const machine & m) const override
+        virtual int get_value(const machine & m, basic_generator & g) const override
         {
             return b;
         }
@@ -515,6 +541,11 @@ namespace chomik
         virtual void get_copy(std::unique_ptr<generic_range_boundary> & target) const override
         {
             target = std::make_unique<generic_range_boundary_int_literal>(b);
+        }
+
+        virtual bool get_is_an_ad_hoc_value() const override
+        {
+            return false;
         }
     };
     
@@ -533,7 +564,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;
 
-        virtual int get_value(const machine & m) const override;
+        virtual int get_value(const machine & m, basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
                 
@@ -541,7 +572,8 @@ namespace chomik
         {
             target = std::make_unique<generic_range_boundary_variable_value>(*name);
         }
-        
+
+        virtual bool get_is_an_ad_hoc_value() const override;
     };    
     
     
@@ -566,13 +598,13 @@ namespace chomik
             max_boundary->report(s);
         }
         
-        int get_min_value(const machine & m) const
+        int get_min_value(const machine & m, basic_generator & g) const
         {
-            return min_boundary->get_value(m);
+            return min_boundary->get_value(m, g);
         }
-        int get_max_value(const machine & m) const
+        int get_max_value(const machine & m, basic_generator & g) const
         {
-            return max_boundary->get_value(m);
+            return max_boundary->get_value(m, g);
         }
         
         void add_placeholders_to_generator(basic_generator & g) const
@@ -588,6 +620,12 @@ namespace chomik
             max_boundary->get_copy(b);
             target = std::make_unique<generic_range>(std::move(a), std::move(b));
         }
+
+        bool get_is_an_ad_hoc_range() const
+        {
+            return min_boundary->get_is_an_ad_hoc_value() || max_boundary->get_is_an_ad_hoc_value();
+        }
+
     };
     
     class generic_type_range: public generic_type
@@ -611,18 +649,19 @@ namespace chomik
         {
             r->report(s);
         }
+
         virtual bool get_is_finite() const override
         {
             return true;
         }
         
-        int get_min_value(const machine & m) const
+        int get_min_value(const machine & m, basic_generator & g) const
         {
-            return r->get_min_value(m);
+            return r->get_min_value(m, g);
         }
-        int get_max_value(const machine & m) const
+        int get_max_value(const machine & m, basic_generator & g) const
         {
-            return r->get_max_value(m);
+            return r->get_max_value(m, g);
         }
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(const machine & m) const override 
@@ -636,9 +675,18 @@ namespace chomik
         virtual std::string get_type_name(const machine & m, basic_generator & g) const override
         {
             std::stringstream s;
-            s << get_min_value(m) << ".." << get_max_value(m);
+            s << get_min_value(m, g) << ".." << get_max_value(m, g);
             return s.str();
         }
+
+        virtual std::string get_generic_type_name() const override
+        {
+            std::stringstream s;
+            r->report(s);
+            return s.str();
+        }
+
+
         virtual std::string get_low_level_type_name() const override 
         {
             return "integer";
@@ -658,6 +706,17 @@ namespace chomik
         {
             // TODO fix me
             return false;
+        }
+
+        virtual bool get_is_an_ad_hoc_type() const override
+        {
+            return r->get_is_an_ad_hoc_range();
+        }
+
+        virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const override
+        {
+            f = get_min_value(m, g);
+            l = get_max_value(m, g);
         }
     };
             
@@ -918,6 +977,8 @@ namespace chomik
         void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const;        
 
         bool operator==(const generic_name & n) const;
+
+        bool get_is_an_ad_hoc_name() const;
     };
     
     
@@ -1150,9 +1211,9 @@ namespace chomik
         
         virtual bool get_is_range() const = 0;
         
-        virtual int get_min_value(machine & m) const { return 0; }
+        virtual int get_min_value(machine & m, basic_generator & g) const { return 0; }
         
-        virtual int get_max_value(machine & m) const { return 0; }
+        virtual int get_max_value(machine & m, basic_generator & g) const { return 0; }
     };
 
     class type_definition_body_range: public type_definition_body
@@ -1181,9 +1242,9 @@ namespace chomik
         {
             return true;
         }
-        virtual int get_min_value(machine & m) const override { return r->get_min_value(m); }
+        virtual int get_min_value(machine & m, basic_generator & g) const override { return r->get_min_value(m, g); }
         
-        virtual int get_max_value(machine & m) const override { return r->get_max_value(m); }
+        virtual int get_max_value(machine & m, basic_generator & g) const override { return r->get_max_value(m, g); }
     };
     
     class list_of_generic_names;
@@ -1220,36 +1281,8 @@ namespace chomik
     class generic_value;
     
     
-    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value: public placeholder_with_value
-    {
-    protected:
-        TYPE value;
-    public:
-        simple_placeholder_with_value(const std::string & p, const TYPE v): placeholder_with_value{p}, value{v} {}        
-        
-        virtual variable_with_value::actual_memory_representation_type get_representation_type() const override
-        {
-            return static_cast<variable_with_value::actual_memory_representation_type>(REPRESENTATION_TYPE);
-        }
-        
-        TYPE get_value() const { return value; }        
-    };
-    
-    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value_and_report: public simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>
-    {
-    public:
-        simple_placeholder_with_value_and_report(const std::string & p, const TYPE v): simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>{p, v} {}
-        
-        virtual void report(std::ostream & s) const override
-        {
-            auto & x=simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value;
-
-            s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=';
-            x,report(s);
-            s << ' ';
-        }        
-    };
-    
+    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value;
+    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value_and_report;
 
     class description_of_a_cartesian_product;
     
@@ -1277,9 +1310,9 @@ namespace chomik
         
         virtual bool get_has_placeholder_with_value(const std::string & p) const { return false; }
 
-        virtual placeholder_with_value& get_placeholder_with_value(const std::string & p) { return dummy; }
+        virtual placeholder_with_value& get_placeholder_with_value(const std::string & p);
 
-        virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const { return dummy; }
+        virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const;
         
         virtual void report(std::ostream & s) const = 0;
         
@@ -1322,6 +1355,7 @@ namespace chomik
         virtual void add_mapping(const std::string & f, const std::string & s) {}
         
         virtual void initialize_mapping(const matching_protocol & mp) {}
+
     };
     
     /**
@@ -2497,7 +2531,7 @@ namespace chomik
     private:
         static const std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator dummy;
     protected:
-        const std::string name;        
+        std::string name;
     public:
         enum class type_instance_mode { NONE, INTEGER, ENUM };
         
@@ -2522,8 +2556,56 @@ namespace chomik
         virtual int get_amount_of_values() const = 0;
         
         virtual std::string get_enum_item(int i) { return ""; }
+
+        virtual void update(placeholder_with_value & v, machine & m, basic_generator & g) {}
+
+        void update_name(const std::string & n) { name = n; }
     };
     
+
+
+    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value: public placeholder_with_value
+    {
+    protected:
+        TYPE value;
+        type_instance * my_type_instance;
+    public:
+        simple_placeholder_with_value(const std::string & p, const TYPE v, type_instance * ti):
+            placeholder_with_value{p}, value{v}, my_type_instance{ti} {}
+
+        virtual variable_with_value::actual_memory_representation_type get_representation_type() const override
+        {
+            return static_cast<variable_with_value::actual_memory_representation_type>(REPRESENTATION_TYPE);
+        }
+
+        TYPE get_value() const { return value; }
+
+        virtual void update_int_value(TYPE f, TYPE l) { value = f; }
+
+
+        virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) override
+        {
+            // if the placeholder type instance is an ad hoc range
+            // then update its type instance
+            if (my_type_instance) my_type_instance->update(*this, m, g);
+        }
+    };
+
+    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value_and_report: public simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>
+    {
+    public:
+        simple_placeholder_with_value_and_report(const std::string & p, const TYPE v, type_instance * ti): simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>{p, v, ti} {}
+
+        virtual void report(std::ostream & s) const override
+        {
+            auto & x=simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value;
+
+            s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=';
+            x,report(s);
+            s << ' ';
+        }
+    };
+
 
     class type_instance_enum_value
     {
@@ -2569,8 +2651,8 @@ namespace chomik
     
     class type_instance_range: public type_instance
     {
-    private:
-        const int min_boundary, max_boundary;
+    protected:
+        int min_boundary, max_boundary;
     public:
         type_instance_range(const std::string & n, int b1, int b2): type_instance{n}, min_boundary{b1}, max_boundary{b2} {}
         
@@ -2583,6 +2665,24 @@ namespace chomik
         virtual type_instance_mode get_mode() const { return type_instance_mode::INTEGER; }
         
         virtual int get_amount_of_values() const override { return max_boundary - min_boundary + 1; }
+
+    };
+
+
+    class type_instance_ad_hoc_range: public type_instance_range
+    {
+    private:
+        const generic_type & my_type;
+
+    public:
+        type_instance_ad_hoc_range(const generic_type & t, const std::string & n, int b1, int b2):
+            my_type{t}, type_instance_range{n, b1, b2}
+            {
+            }
+
+        virtual void update(placeholder_with_value & v, machine & m, basic_generator & g) override;
+
+        virtual void report(std::ostream & s) const override;
     };
     
     /**
@@ -2814,9 +2914,9 @@ namespace chomik
         using iterator_type = std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator;
         const iterator_type first, last;
     public:
-        simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l):        
+        simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f}, first{f}, last{l} {}
+            {p, f, ti}, first{f}, last{l} {}
             
         virtual void report(std::ostream & s) const override
         {
@@ -2849,7 +2949,7 @@ namespace chomik
         static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
     {
     public:
-        simple_placeholder_for_infinite_range(const std::string & p): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, 0} {}
+        simple_placeholder_for_infinite_range(const std::string & p, type_instance * ti): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, 0, ti} {}
         
         virtual void report(std::ostream & s) const override
         {
@@ -2872,9 +2972,10 @@ namespace chomik
         static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
     {
     private:
-        const int first, last;
+        int first, last;
+
     public:
-        simple_placeholder_for_range(const std::string & p, const int f, const int l): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, f}, first{f}, last{l+1} {}
+        simple_placeholder_for_range(const std::string & p, const int f, const int l, type_instance * ti): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, f, ti}, first{f}, last{l+1} {}
         
         virtual void report(std::ostream & s) const override
         {
@@ -2889,7 +2990,10 @@ namespace chomik
             return value >= last;
         }        
         virtual void increment() override { if (value == last) value = first; else value++; }
-        
+
+
+        virtual void update_int_value(int f, int l) override;
+
     };
     
     /**
@@ -3032,9 +3136,8 @@ namespace chomik
         std::vector<std::shared_ptr<const statement>> vector_of_type_definiton_statements;
         std::vector<std::shared_ptr<const statement>> vector_of_variable_definition_statements;
         
-        std::vector<std::shared_ptr<type_instance>> vector_of_type_instances;
+        std::vector<std::shared_ptr<type_instance>> vector_of_type_instances, vector_of_ad_hoc_type_instances;
         std::map<std::string, std::shared_ptr<type_instance>> map_type_name_to_type_instance;
-        
         
         std::vector<std::shared_ptr<family_of_variables>> vector_of_variable_families;
         
@@ -3097,7 +3200,9 @@ namespace chomik
             f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_range();
             l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_range();
         }
-        
+
+        void get_first_and_last_iterators_for_ad_hoc_range_type(const std::string & type_name, int & f, int & l) const;
+
         void add_type_instance(std::shared_ptr<type_instance> && i)
         {
             auto [it, success] = map_type_name_to_type_instance.insert(std::pair(i->get_name(), i));
@@ -3116,26 +3221,7 @@ namespace chomik
          */
         void create_auxilliary_variables_for_type_instance(type_instance & ti);
         
-        void add_variable_with_value(std::shared_ptr<variable_with_value> && vv)
-        {
-            auto [it, success] = map_signature_string_representation_to_variable_with_value.insert(std::pair(vv->get_signature_string_representation(), vv));
-            
-            if (!success)
-            {
-                std::stringstream s;
-                s << "failed to insert a pair into machine's memory " << vv->get_signature_string_representation();
-                throw std::runtime_error(s.str());
-            }
-            
-            std::shared_ptr<variable_with_value> v2{vv};
-            
-            //std::cout << "add_variable_with_value\n";
-            //vv->report(std::cout);
-            //std::cout << "\n";
-                        
-            memory.push_back(std::move(vv));            
-            
-        }
+        void add_variable_with_value(std::shared_ptr<variable_with_value> && vv);
         
         void expand(int i);
         
@@ -3177,7 +3263,11 @@ namespace chomik
         int get_amount_of_streams() const { return vector_of_streams.size(); }
         
         generic_stream& get_stream(int i) { return *vector_of_streams[i]; }
-                
+
+        type_instance* create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn);
+
+        void add_ad_hoc_type(std::shared_ptr<type_instance_ad_hoc_range> && t);
+
         static std::ostream *current_compilation_error_stream, *current_runtime_warning_stream;
     };
     

@@ -283,3 +283,59 @@ void chomik::external_placeholder_generator::report(std::ostream & s) const
         s << ")";
     }    
 }
+
+void chomik::code_name_item::report(std::ostream & s) const
+{
+    my_code->report(s);
+}
+
+void chomik::name_item_code::report(std::ostream & s) const
+{
+    my_code_pointer->report(s);
+}
+
+void chomik::code_signature_item::report(std::ostream & s) const
+{
+    my_code->report(s);
+}
+
+void chomik::code::report(std::ostream & s) const
+{
+    body->report(s);
+}
+
+void chomik::type_instance_enum::report(std::ostream & s) const
+{
+    bool first = true;
+    s << "type instance " << name << "={";
+    for (auto & i: vector_of_values)
+    {
+        if (!first) s << ',';
+        s << i->get_name();
+        first = false;
+    }
+    s << "};\n";
+}
+
+void chomik::type_instance_range::report(std::ostream & s) const
+{
+    s << "type instance " << name << '=' << min_boundary << ".." << max_boundary << ";\n";
+}
+
+void chomik::type_instance_ad_hoc_range::report(std::ostream & s) const
+{
+    s << "type instance " << name << "[" << my_type.get_generic_type_name() << "]" << '=' << min_boundary << ".." << max_boundary << ";\n";
+}
+
+void chomik::list_of_statements::report(std::ostream & s) const
+{
+    for (auto & i: vector_of_statements)
+    {
+        i->report(s);
+        if (is_main)
+        {
+            s << '\n';
+        }
+    }
+}
+
