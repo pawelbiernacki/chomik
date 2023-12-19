@@ -170,7 +170,6 @@ void chomik::generator::report(std::ostream & s) const
     if (get_the_cartesian_product_of_placeholder_types_is_finite())
     {
         s << ", the cartesian product is finite ";
-        if (get_the_cartesian_product_of_placeholder_types_is_small()) s << " and small";
     }
     if (memory.size() > 0)
     {

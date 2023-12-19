@@ -8,7 +8,7 @@
 #define DEBUG(X)
 #endif
 
-void chomik::statement::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::statement::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     std::shared_ptr<statement> c;
     make_copy_with_replacements(m, g, p, c);
@@ -18,7 +18,7 @@ void chomik::statement::get_actual_code_value(const machine & m, basic_generator
     target.add_statement(std::move(c));
 }
 
-void chomik::list_of_statements::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::list_of_statements::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     DEBUG("list_of_statements::get_actual_code_value");
     for (auto & i: vector_of_statements)
@@ -27,13 +27,13 @@ void chomik::list_of_statements::get_actual_code_value(const machine & m, basic_
     }
 }
 
-void chomik::code::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::code::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     DEBUG("code::get_actual_code_value");
     body->get_actual_code_value(m, g, p, target);
 }
 
-void chomik::generic_literal_code::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::generic_literal_code::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     //std::cout << "we get the actual code value\n";
     DEBUG("get actual code value from " << *my_code_pointer);
@@ -42,7 +42,7 @@ void chomik::generic_literal_code::get_actual_code_value(const machine & m, basi
 }
 
  
-void chomik::assignment_source_variable_value::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
+void chomik::assignment_source_variable_value::get_actual_code_value(const machine & m, const basic_generator & g, code & target) const
 {
     replacing_policy_literal p;
 
@@ -51,7 +51,7 @@ void chomik::assignment_source_variable_value::get_actual_code_value(const machi
     DEBUG("got " << target);
 }
 
-void chomik::assignment_source_code_pattern::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
+void chomik::assignment_source_code_pattern::get_actual_code_value(const machine & m, const basic_generator & g, code & target) const
 {
     replacing_policy_literal p;
 
@@ -60,7 +60,7 @@ void chomik::assignment_source_code_pattern::get_actual_code_value(const machine
     DEBUG("got " << target);
 }
 
-void chomik::assignment_source_literal_value::get_actual_code_value(const machine & m, basic_generator & g, code & target) const
+void chomik::assignment_source_literal_value::get_actual_code_value(const machine & m, const basic_generator & g, code & target) const
 {
     replacing_policy_literal p;
     my_value->get_actual_code_value(m, g, p, target);
@@ -69,18 +69,18 @@ void chomik::assignment_source_literal_value::get_actual_code_value(const machin
 }
 
 
-void chomik::generic_value_variable_value::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::generic_value_variable_value::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     DEBUG("generic_value_variable_value::get_actual_code_value");
 }
 
-void chomik::generic_value_literal::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::generic_value_literal::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     DEBUG("generic_value_literal::get_actual_code_value");
     literal->get_actual_code_value(m, g, p, target);
 }
 
-void chomik::generic_literal_placeholder::get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const
+void chomik::generic_literal_placeholder::get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const
 {
     DEBUG("generic_literal_placeholder::get_actual_code_value");
 
@@ -88,13 +88,13 @@ void chomik::generic_literal_placeholder::get_actual_code_value(const machine & 
     {
         if (g.get_has_placeholder_with_value(placeholder))
         {
-            placeholder_with_value& x{g.get_placeholder_with_value(placeholder)};
+            const placeholder_with_value& x{g.get_placeholder_with_value(placeholder)};
             if (x.get_representation_type() == variable_with_value::actual_memory_representation_type::CODE)
             {
                 DEBUG("it is a code !!!");
 
                 using pp = simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>;
-                pp& x2{static_cast<pp&>(x)};
+                const pp& x2{static_cast<const pp&>(x)};
 
                 target = x2.get_value();
             }

@@ -325,41 +325,67 @@ void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const st
     g->set_father(father);
         
     DEBUG("code line number " << line_number << ": " << *this);
+
+    g->initialize(m);
+
     DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
     DEBUG("code line number " << line_number << ": the assigned value is " << *value);
-    
+
     if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
     {
         // nothing to be done
+        DEBUG("code line number " << line_number << ": it is empty");
     }
     else
     if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
-        g->initialize(m);
+        DEBUG("code line number " << line_number << ": it has one item");
         execute_if_cartesian_product_has_one_item(m, g);
         
     }
     else
-    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small(m))
     {
         //std::cout << "it is an array of variables\n";
+            DEBUG("code line number " << line_number << ": it is finite and small");
         
-        for (g->initialize(m); !g->get_terminated(); g->increment(m))
+            for (; !g->get_terminated(); g->increment(m))
+            {
+                if (g->get_is_valid())
+                {
+                    execute_if_cartesian_product_is_finite_and_small(m, g);
+                }
+            }
+    }
+    else
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite()) // but is not small
+    {
+        // it may be a code - then execute it as a large set, or else it may be not code - then execute it in a loop
+        if (i->get_is_code_assignment(m))
         {
-            if (g->get_is_valid())
-            {                
-                execute_if_cartesian_product_is_finite_and_small(m, g);        
+            execute_if_cartesian_product_is_large_or_infinite(m, g);
+        }
+        else
+        {
+            DEBUG("code line number " << line_number << ": it is finite and large, but it is not a code");
+
+            for (; !g->get_terminated(); g->increment(m))
+            {
+                if (g->get_is_valid())
+                {
+                    execute_if_cartesian_product_is_finite_and_small(m, g);
+                }
             }
         }
     }
     else
     {
         // infinite assignment event        
-        DEBUG("code line number " << line_number << ": it is infinite assignment");
+
+            DEBUG("code line number " << line_number << ": it is infinite assignment");
         
-        execute_if_cartesian_product_is_large_or_infinite(m, g);        
+            execute_if_cartesian_product_is_large_or_infinite(m, g);
     }
-    
 }
 
 
@@ -736,9 +762,10 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
             
     g->set_father(father);
-    
+
     DEBUG("created a generator " << *g);    
-    
+
+    g->initialize(m);
 
     // "the break flag" is a predefined boolean variable used to terminate the implicit loops
     bool the_break_flag=false;
@@ -757,17 +784,15 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     else
     if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
-        g->initialize(m);
-        
         DEBUG("code line number " << line_number << ": execute variable value (single item)");
         
         execute_if_cartesian_product_has_one_item(m, g);
     }
     else
-    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite())
     {
         DEBUG("code line number " << line_number << ": execute variable value (small and finite loop)");
-        for (g->initialize(m); !g->get_terminated(); g->increment(m))
+        for (; !g->get_terminated(); g->increment(m))
         {
             if (g->get_is_valid())
             {
@@ -792,12 +817,11 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     }    
     else
     {
-        // unlimited
+        // infinite or large
         // TODO - check the families of variables
         DEBUG("code line number " << line_number << ": execute variable value (infinite loop)");
-        
-        
-        for (g->initialize(m);; g->increment(m))
+
+        for (;!g->get_terminated(); g->increment(m))
         {
             if (g->get_is_valid())
             {                                
@@ -861,7 +885,8 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
     
     g.set_father(father);
     
-    
+    g.initialize(m);
+
     if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
     {
         // skip - there is nothing to execute
@@ -869,14 +894,11 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
     else
     if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
-        g.initialize(m);
         execute_if_cartesian_product_has_one_item(m, g);
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small())
+    if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small(m))
     {
-        g.initialize(m);
-        
         /*
         std::cout << "for ";
         report(std::cout);
@@ -890,6 +912,17 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
         {
             if (g.get_is_valid())
             {                
+                execute_if_cartesian_product_is_finite_and_small(m, g);
+            }
+        }
+    }
+    else
+    if (g.get_the_cartesian_product_of_placeholder_types_is_finite())
+    {
+        for (; !g.get_terminated(); g.increment(m))
+        {
+            if (g.get_is_valid())
+            {
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
         }

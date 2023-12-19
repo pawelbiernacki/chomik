@@ -393,7 +393,7 @@ namespace chomik
         void execute_predefined_divide(machine & m) const;        
         void execute_predefined_set(machine & m) const;
     public:
-        signature(const generic_name & gn, const machine & m, basic_generator & g);
+        signature(const generic_name & gn, const machine & m, const basic_generator & g);
         signature(const generic_name & gn);
         signature();
         
@@ -423,7 +423,7 @@ namespace chomik
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(const machine & m) const = 0;
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
-        virtual std::string get_type_name(const machine & m, basic_generator & g) const = 0;
+        virtual std::string get_type_name(const machine & m, const basic_generator & g) const = 0;
 
         virtual std::string get_generic_type_name() const = 0;
 
@@ -451,7 +451,7 @@ namespace chomik
         
         generic_type_named(const std::string & n): name{n} {}
         
-        virtual std::string get_type_name(const machine & m, basic_generator & g) const override
+        virtual std::string get_type_name(const machine & m, const basic_generator & g) const override
         {
             return name;
         }
@@ -512,7 +512,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual int get_value(const machine & m, basic_generator & g) const = 0;
+        virtual int get_value(const machine & m, const basic_generator & g) const = 0;
 
         virtual void add_placeholders_to_generator(basic_generator & g) const {}    
         
@@ -533,7 +533,7 @@ namespace chomik
             s << b;
         }
         
-        virtual int get_value(const machine & m, basic_generator & g) const override
+        virtual int get_value(const machine & m, const basic_generator & g) const override
         {
             return b;
         }
@@ -564,7 +564,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;
 
-        virtual int get_value(const machine & m, basic_generator & g) const override;
+        virtual int get_value(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
                 
@@ -598,11 +598,11 @@ namespace chomik
             max_boundary->report(s);
         }
         
-        int get_min_value(const machine & m, basic_generator & g) const
+        int get_min_value(const machine & m, const basic_generator & g) const
         {
             return min_boundary->get_value(m, g);
         }
-        int get_max_value(const machine & m, basic_generator & g) const
+        int get_max_value(const machine & m, const basic_generator & g) const
         {
             return max_boundary->get_value(m, g);
         }
@@ -655,11 +655,11 @@ namespace chomik
             return true;
         }
         
-        int get_min_value(const machine & m, basic_generator & g) const
+        int get_min_value(const machine & m, const basic_generator & g) const
         {
             return r->get_min_value(m, g);
         }
-        int get_max_value(const machine & m, basic_generator & g) const
+        int get_max_value(const machine & m, const basic_generator & g) const
         {
             return r->get_max_value(m, g);
         }
@@ -672,7 +672,7 @@ namespace chomik
             r->add_placeholders_to_generator(g);
         }
         
-        virtual std::string get_type_name(const machine & m, basic_generator & g) const override
+        virtual std::string get_type_name(const machine & m, const basic_generator & g) const override
         {
             std::stringstream s;
             s << get_min_value(m, g) << ".." << get_max_value(m, g);
@@ -750,9 +750,11 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
-        void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const;
+        void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const;
+
+        virtual bool get_is_code_assignment(machine & m) const { return false; }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & s) const = 0;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & s) const = 0;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const = 0;
                 
@@ -772,13 +774,13 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
                 
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const = 0;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const = 0;
         
         virtual void add_content_to_signature(signature & target) const {}
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const = 0;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const = 0;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const = 0;
         
@@ -817,18 +819,18 @@ namespace chomik
             s << identifier;
         }
                 
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
         
         virtual void add_content_to_signature(signature & target) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
             return identifier;
         }
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override {}
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override
         {
@@ -867,11 +869,11 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
                 
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override
         {
@@ -901,13 +903,13 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;
 
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override
         {
@@ -931,11 +933,11 @@ namespace chomik
 
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
 
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
 
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
 
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
 
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override
         {
@@ -965,7 +967,7 @@ namespace chomik
 
         const std::vector<std::shared_ptr<generic_name_item>> & get_vector_of_name_items() const { return vector_of_name_items; }
         
-        std::string get_actual_text_representation(const machine & m, basic_generator & g) const;
+        std::string get_actual_text_representation(const machine & m, const basic_generator & g) const;
         
         void add_placeholders_to_generator(basic_generator & g) const;
         
@@ -974,7 +976,7 @@ namespace chomik
             vector_of_name_items.push_back(std::move(i));
         }
         
-        void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const;        
+        void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
 
         bool operator==(const generic_name & n) const;
 
@@ -1043,7 +1045,7 @@ namespace chomik
             s << my_value;
         }
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
             std::stringstream s;
             s << my_value;
@@ -1059,7 +1061,7 @@ namespace chomik
     {
     public:
         name_item_integer(int v): simple_name_item<int>{v} {}
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override
         {
             target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, my_value));
         }
@@ -1069,7 +1071,7 @@ namespace chomik
             target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, my_value));
         }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
             target.add_generic_name_item(std::make_shared<name_item_integer>(my_value));
         }
@@ -1089,7 +1091,7 @@ namespace chomik
     {
     public:
         name_item_float(double v): simple_name_item<double>{v} {}
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override
         {
             target.add_content(std::make_shared<simple_value_float_signature_item>(*this, my_value));
         }
@@ -1098,7 +1100,7 @@ namespace chomik
             target.add_content(std::make_shared<simple_value_float_signature_item>(*this, my_value));
         }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
             target.add_generic_name_item(std::make_shared<name_item_float>(my_value));
         }
@@ -1118,7 +1120,7 @@ namespace chomik
         public:
         name_item_string(std::string v): simple_name_item<std::string>{v} {}
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
             target.add_generic_name_item(std::make_shared<name_item_string>(my_value));
         }
@@ -1126,7 +1128,7 @@ namespace chomik
         {
             s << '\"' << my_value << '\"';
         }
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
         
         virtual void add_content_to_signature(signature & target) const override
         {
@@ -1160,11 +1162,11 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void add_content_to_signature(signature & target, const machine & m, basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
 
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;        
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override;
     };
@@ -1332,7 +1334,7 @@ namespace chomik
         
         virtual bool get_the_cartesian_product_of_placeholder_types_is_finite() const;
         
-        virtual bool get_the_cartesian_product_of_placeholder_types_is_small() const;
+        virtual bool get_the_cartesian_product_of_placeholder_types_is_small(machine & m) const;
         
         virtual bool get_the_cartesian_product_of_placeholder_types_is_empty() const;
         
@@ -1346,7 +1348,7 @@ namespace chomik
         
         virtual bool get_terminated() const  { return true; }
         
-        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) { return ""; }
+        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) const { return ""; }
         
         virtual bool get_has_placeholder(const std::string & p) const { return false; }
                                 
@@ -1355,6 +1357,8 @@ namespace chomik
         virtual void add_mapping(const std::string & f, const std::string & s) {}
         
         virtual void initialize_mapping(const matching_protocol & mp) {}
+
+        virtual void debug() const {}
 
     };
     
@@ -1400,6 +1404,7 @@ namespace chomik
         void clear_mappings() { map_child_placeholder_to_father_placeholder.clear(); }
         
         virtual void initialize_mapping(const matching_protocol & mp) override;
+
     };
     
     
@@ -1442,7 +1447,7 @@ namespace chomik
 
         virtual void get_placeholder_value_code(const std::string & p, code & target) const override;
         
-        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) override
+        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) const override
         {
             return "unknown_placeholder";
         }
@@ -1464,9 +1469,8 @@ namespace chomik
         virtual void report(std::ostream & s) const override;
         
         virtual bool get_the_cartesian_product_of_placeholder_types_is_finite() const override;
-        
-        // small is a relative term, we should take into account some info about the available machine
-        virtual bool get_the_cartesian_product_of_placeholder_types_is_small() const override;
+
+        virtual bool get_the_cartesian_product_of_placeholder_types_is_small(machine & m) const override;
         
         // TODO - if there is at least one empty type then the whole cartesian product is empty
         virtual bool get_the_cartesian_product_of_placeholder_types_is_empty() const override { return false; }
@@ -1483,6 +1487,8 @@ namespace chomik
         virtual bool get_terminated() const override;
         
         bool get_does_not_exceed_level(int max_level) const;
+
+        virtual void debug() const override;
     };
     
     /**
@@ -1656,7 +1662,7 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const override
         {
@@ -1766,7 +1772,7 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;        
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const override
         {
@@ -1817,23 +1823,23 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const = 0;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const = 0;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const = 0;
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const { return 0; }
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const { return 0; }
         
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const { return 0.0; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const { return 0.0; }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const { return ""; }
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const { return ""; }
         
-        virtual std::string get_actual_enum_value(const machine & m, basic_generator & g) const { return ""; }
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const { return ""; }
         
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const {}
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const {}
         
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const = 0;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const = 0;
         
         virtual void get_copy(std::unique_ptr<generic_value> & target) const = 0;
         
@@ -1842,6 +1848,8 @@ namespace chomik
         virtual bool get_is_code_with_placeholders(machine & m, basic_generator & g) const { return false; }
         
         virtual bool get_is_literal() const { return false; }
+
+        virtual bool get_is_code(machine & m) const { return false; }
                 
     };
     
@@ -1873,7 +1881,7 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
@@ -1885,25 +1893,27 @@ namespace chomik
             name->add_placeholders_to_generator(g);
         }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const override;
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override;
         
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const override { return 0.0; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override { return 0.0; }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override;
         
-        virtual std::string get_actual_enum_value(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override;
         
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
         virtual void get_copy(std::unique_ptr<generic_value> & target) const override
         {
             target = std::make_unique<generic_value_variable_value>(*name);
         }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
                 
+
+        virtual bool get_is_code(machine & m) const override;
     };
     
     
@@ -1918,25 +1928,27 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const = 0;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const = 0;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const = 0;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const {}
         
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const {}
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const {}
 
-        virtual std::string get_actual_enum_value(const machine & m, basic_generator & g) const { return ""; }
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const { return ""; }
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const { return 0; }
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const { return 0; }
         
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const { return 0.0; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const { return 0.0; }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const { return ""; }
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const { return ""; }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;        
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const = 0;
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const = 0;
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const = 0;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const = 0;
+
+        virtual bool get_is_code() const { return false; }
     };
     
     
@@ -1963,17 +1975,17 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override;
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const override; 
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override;
 
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
         {
@@ -1982,7 +1994,7 @@ namespace chomik
             target = std::make_unique<generic_literal_placeholder>(placeholder, std::move(t), expected_type);
         }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override;
     };
     
     class generic_value_literal: public generic_value
@@ -2008,7 +2020,7 @@ namespace chomik
             literal->report(s);
         }        
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
             return literal->get_actual_text_representation(m, g);            
         }
@@ -2017,24 +2029,24 @@ namespace chomik
             literal->add_placeholders_to_generator(g);
         }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
             literal->get_result_replacing_placeholders(m, g, p, target);
         }
         
-        virtual std::string get_actual_enum_value(const machine & m, basic_generator & g) const override { return literal->get_actual_enum_value(m, g); }
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override { return literal->get_actual_enum_value(m, g); }
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const override { return literal->get_actual_integer_value(m, g); }
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override { return literal->get_actual_integer_value(m, g); }
         
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const override { return literal->get_actual_float_value(m, g); }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override { return literal->get_actual_float_value(m, g); }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override;
                 
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
 
         virtual void get_copy(std::unique_ptr<generic_value> & target) const override;
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
         
         virtual bool get_is_literal() const override { return true; }
         
@@ -2042,7 +2054,9 @@ namespace chomik
         {
             literal->get_copy(target);
         }
-    };    
+
+        virtual bool get_is_code(machine & m) const override { return literal->get_is_code(); }
+    };
     
     template <typename TYPE, int REPRESENTATION_TYPE>
     class simple_literal: public generic_literal
@@ -2061,7 +2075,7 @@ namespace chomik
             return static_cast<variable_with_value::actual_memory_representation_type>(REPRESENTATION_TYPE);
         }
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
             std::stringstream s;
             s << my_value;
@@ -2069,7 +2083,7 @@ namespace chomik
         }
         virtual void add_placeholders_to_generator(basic_generator & g) const override {}
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
             // left empty intentionally
         }        
@@ -2082,14 +2096,14 @@ namespace chomik
         simple_literal_integer(int v): simple_literal<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>(v) {}
         virtual int get_value_integer() const { return my_value; }        
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const override { return my_value; }
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override { return my_value; }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
         {
             target = std::make_unique<simple_literal_integer>(my_value);
         }                
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
         {
             get_copy(target);
         }
@@ -2100,14 +2114,14 @@ namespace chomik
     public:
         simple_literal_float(double v): simple_literal<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>(v) {}
         virtual double get_value_float() const { return my_value; }
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const override { return my_value; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override { return my_value; }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
         {
             target = std::make_unique<simple_literal_float>(my_value);
         }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
         {
             get_copy(target);
         }
@@ -2127,14 +2141,14 @@ namespace chomik
         
         virtual std::string get_value_string() const { return my_value; }
         
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override { return my_value; }
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override { return my_value; }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const
         {
             target = std::make_unique<simple_literal_string>(my_value);
         }
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
         {
             get_copy(target);
         }
@@ -2175,20 +2189,22 @@ namespace chomik
         { 
             return variable_with_value::actual_memory_representation_type::CODE;
         }
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;                
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const
         {
             target = std::make_unique<generic_literal_code>(*my_code_pointer);
         }
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override;
+
+        virtual bool get_is_code() const override { return true; }
     };
     
     class generic_literal_enum: public generic_literal
@@ -2215,7 +2231,7 @@ namespace chomik
             return variable_with_value::actual_memory_representation_type::ENUM;
         }        
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
             return name->get_actual_text_representation(m, g);
         }
@@ -2224,18 +2240,18 @@ namespace chomik
             name->add_placeholders_to_generator(g);
         }
         
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
         }        
         
-        virtual std::string get_actual_enum_value(const machine & m, basic_generator & g) const override { return name->get_actual_text_representation(m, g); }
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override { return name->get_actual_text_representation(m, g); }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
         {
             target = std::make_unique<generic_literal_enum>(type_name, *name);
         }        
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
         {
             get_copy(target);
         }
@@ -2261,7 +2277,7 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const override;
         
-        virtual std::string get_actual_text_representation(const machine & m, basic_generator & g) const override;
+        virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
@@ -2269,7 +2285,7 @@ namespace chomik
             g.add_placeholder(placeholder, std::move(t));
             type_name->add_placeholders_to_generator(g);
         }
-        virtual void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
                 
         virtual void get_copy(std::unique_ptr<generic_value> & target) const override
         {
@@ -2278,7 +2294,7 @@ namespace chomik
             target = std::make_unique<generic_value_placeholder>(placeholder, std::move(i));
         }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;        
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const override;
     };
     
     /**
@@ -2325,9 +2341,11 @@ namespace chomik
             // we do not do value->add_placeholders_to_generator(g); !!! this is intentional!
         }
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const override;
+
+        virtual bool get_is_code_assignment(machine & m) const override { return value->get_is_code(m); }
     };
     
     
@@ -2370,7 +2388,7 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const override
         {
@@ -2416,7 +2434,7 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const override
         {
@@ -2447,7 +2465,7 @@ namespace chomik
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override {}
 
-        virtual void make_copy_with_replacements(const machine & m, basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;        
+        virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<statement> & target) const override;
         
         virtual void get_copy(std::shared_ptr<statement> & target) const 
         {
@@ -2490,7 +2508,7 @@ namespace chomik
         
         void add_placeholders_to_generator(basic_generator & g) const;
         
-        void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const;
+        void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const;
 
         bool operator==(const list_of_statements & l) const;
     };
@@ -2601,7 +2619,7 @@ namespace chomik
             auto & x=simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value;
 
             s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=';
-            x,report(s);
+            //x,report(s);
             s << ' ';
         }
     };
@@ -2738,11 +2756,11 @@ namespace chomik
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const 
         { return variable_with_value::actual_memory_representation_type::NONE; }
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const { return 0; }
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const { return 0.0; }
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const { return ""; }
-        virtual std::string get_actual_identifier_value(const machine & m, basic_generator & g) const { return ""; }
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, code & target) const {}
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const { return 0; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const { return 0.0; }
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const { return ""; }
+        virtual std::string get_actual_identifier_value(const machine & m, const basic_generator & g) const { return ""; }
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, code & target) const {}
         
     };
     
@@ -2763,11 +2781,11 @@ namespace chomik
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override { return actual_type; }
         
-        virtual int get_actual_integer_value(const machine & m, basic_generator & g) const override { return my_value->get_actual_integer_value(m, g); }
-        virtual double get_actual_float_value(const machine & m, basic_generator & g) const override { return my_value->get_actual_float_value(m, g); }
-        virtual std::string get_actual_string_value(const machine & m, basic_generator & g) const override { return my_value->get_actual_string_value(m, g); }
-        virtual std::string get_actual_identifier_value(const machine & m, basic_generator & g) const override { return my_value->get_actual_enum_value(m, g); }        
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, code & target) const;
+        virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override { return my_value->get_actual_integer_value(m, g); }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override { return my_value->get_actual_float_value(m, g); }
+        virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override { return my_value->get_actual_string_value(m, g); }
+        virtual std::string get_actual_identifier_value(const machine & m, const basic_generator & g) const override { return my_value->get_actual_enum_value(m, g); }
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, code & target) const;
     };
     
     /**
@@ -2784,7 +2802,7 @@ namespace chomik
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type() const override 
         { return variable_with_value::actual_memory_representation_type::CODE; }
                 
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, code & target) const override;
     };
     
     class assignment_source_variable_value: public assignment_source
@@ -2796,7 +2814,7 @@ namespace chomik
         virtual void report(std::ostream & s) const override;
         
         
-        virtual void get_actual_code_value(const machine & m, basic_generator & g, code & target) const override;
+        virtual void get_actual_code_value(const machine & m, const basic_generator & g, code & target) const override;
         
     };
     
@@ -3317,13 +3335,13 @@ namespace chomik
         
         void add_placeholders_to_generator(basic_generator & g) const;
         
-        void get_actual_code_value(const machine & m, basic_generator & g, const replacing_policy & p, code & target) const;
+        void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const;
 
-        void add_content_to_signature(const generic_name_item & s, signature & target, const machine & m, basic_generator & g) const;
+        void add_content_to_signature(const generic_name_item & s, signature & target, const machine & m, const basic_generator & g) const;
 
-        std::string get_actual_text_representation(const machine & m, basic_generator & g) const;
+        std::string get_actual_text_representation(const machine & m, const basic_generator & g) const;
 
-        void get_result_replacing_placeholders(const machine & m, basic_generator & g, const replacing_policy & p, generic_name & target) const;
+        void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
 
         bool operator==(const code & c) const;
     };

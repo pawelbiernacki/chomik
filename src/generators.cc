@@ -31,6 +31,8 @@ chomik::generator::generator(const generic_name & gn, const std::string & filena
     
     DEBUG("generator::generator got a generic name " << gn);
     DEBUG("created a new generator in " << filename << " at " << line_number << ", after initialization it is " << *this);
+
+    debug();
 }
 
 bool chomik::generator::get_is_valid()
@@ -223,10 +225,37 @@ bool chomik::generator::get_terminated() const
     return true;
 }
 
-bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small() const
+bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small(machine & m) const
 {
-    // TODO - take into account the informations about the target machine
-    return true;
+    double size_of_the_cartesian_product = 1.0;
+
+    for (auto & i: vector_of_placeholders)
+    {
+        if (get_has_placeholder(i->get_name()))
+        {
+            auto & t=i->get_placeholder_type();
+
+            if (m.get_type_instance_is_known(t.get_type_name(m, *this)))
+            {
+                auto & ti = m.get_type_instance(t.get_type_name(m, *this));
+
+                size_of_the_cartesian_product *= ti.get_amount_of_values();
+            }
+            else
+            {
+                DEBUG("can be an ad_hoc type " << t.get_type_name(m, *this));
+                // TODO - handle the ad hoc type
+            }
+        }
+        else
+        {
+            throw std::runtime_error("the generator does not have the placeholder");
+        }
+    }
+
+    DEBUG("size of the cartesian product " << size_of_the_cartesian_product);
+
+    return size_of_the_cartesian_product <= 1000; // TODO - replace with some integer variable accessible from the interpreter
 }
 
 
@@ -549,11 +578,11 @@ bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_
     return false;
 }
         
-bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_small() const 
+bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_is_small(machine & m) const
 { 
     if (auto o=my_father.lock())
     {
-        return o->get_the_cartesian_product_of_placeholder_types_is_small();
+        return o->get_the_cartesian_product_of_placeholder_types_is_small(m);
     }
     return false; 
 }
@@ -612,4 +641,18 @@ void chomik::external_placeholder_generator::clear_mappings()
     DEBUG("clear mappings");
     memory.clear();
     map_placeholder_names_to_placeholders_with_value.clear();
+}
+
+void chomik::generator::debug() const
+{
+    DEBUG("checking whether " << *this << " has following placeholders:");
+    for (auto & a: vector_of_placeholders)
+    {
+        DEBUG("placeholder " << a->get_name());
+    }
+    DEBUG("memory:");
+    for (auto & a: memory)
+    {
+        DEBUG("placeholder " << a->get_name());
+    }
 }
