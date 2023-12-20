@@ -89,7 +89,7 @@ void * value_pointer;
 
 program: list_of_statements { chomik_copy_list_of_statements_to_the_program($1); chomik_destroy_list_of_statements($1); }
 
-list_of_statements: statement list_of_statements { $$ = chomik_create_list_of_statements($1, $2); } 
+list_of_statements: statement list_of_statements { $$ = chomik_create_list_of_statements($1, $2); chomik_destroy_list_of_statements($2); }
             | { $$ = chomik_create_list_of_statements(NULL, NULL); }
 
 statement: multiple_type_definition | multiple_variable_definition | assignment | execute | expand
@@ -166,7 +166,7 @@ constant_value_literal:
         | T_STRING T_STRING_LITERAL { $$ = chomik_create_string_literal($2); free($2); }
         | T_STRING '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_string_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         
-code_literal: '{' list_of_statements '}' { $$ = chomik_create_code_literal($2); /* no need to destroy $2 !!! */ }
+code_literal: '{' list_of_statements '}' { $$ = chomik_create_code_literal($2); chomik_destroy_list_of_statements($2); }
 
 
 optional_execute: T_EXECUTE |

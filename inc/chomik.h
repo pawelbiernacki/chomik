@@ -1286,8 +1286,13 @@ namespace chomik
     private:
         std::unique_ptr<code> my_code_pointer;
     public:
+        /**
+         * This constructor takes ownership of the list of statements. No need to destroy it!
+         */
         name_item_code(list_of_statements * const l): my_code_pointer{std::make_unique<code>(l)} {}
+
         name_item_code(const code & cp);
+
         name_item_code(): my_code_pointer{std::make_unique<code>()} {}
         
         virtual void report(std::ostream & s) const override;
@@ -3434,7 +3439,7 @@ namespace chomik
         
     public:
         /**
-         * This constructor owns the parameter, and it must not be destroyed by the parser ! 
+         * The parameter should be destroyed by the parser!
          */
         code(list_of_statements * const l): body{std::make_shared<list_of_statements>(nullptr, l)}, is_main{false} 
         {
