@@ -11,6 +11,9 @@
 #include <random>
 #include <iomanip>
 
+//#define CHOMIK_DONT_USE_OPTIMIZATIONS
+// disable this flag to build an optimized chomik
+
 namespace chomik
 {    
     class signature;
@@ -237,7 +240,8 @@ namespace chomik
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const = 0;
         
         virtual void get_copy(std::shared_ptr<signature_item> & target) const = 0;
-                
+
+        virtual std::string get_debug_type_name() const { return "signature_item"; }
     };
     
     /**
@@ -251,6 +255,7 @@ namespace chomik
         const TYPE value;
     public:
         simple_value_signature_item(const generic_name_item & s, const TYPE v): signature_item{s}, value{v} {}
+
         virtual void report(std::ostream & s) const override
         {
             s << value;
@@ -270,6 +275,8 @@ namespace chomik
         {
             target = std::make_shared<simple_value_integer_signature_item>(source, value);
         }
+
+        virtual std::string get_debug_type_name() const { return "simple_value_integer_signature_item"; }
     };
 
     class simple_value_float_signature_item: public simple_value_signature_item<double>
@@ -285,6 +292,8 @@ namespace chomik
         {
             target = std::make_shared<simple_value_float_signature_item>(source, value);
         }
+
+        virtual std::string get_debug_type_name() const { return "simple_value_float_signature_item"; }
     };
     
     /**
@@ -315,9 +324,34 @@ namespace chomik
             target = std::make_shared<simple_value_string_signature_item>(source, value);
         }
 
+        virtual std::string get_debug_type_name() const { return "simple_value_string_signature_item"; }
     };
-    
-    
+
+    /**
+     * This is a dictionary of identifiers. It is used only to minimize the memory usage of the identifier name items.
+     */
+    class dictionary_of_identifiers
+    {
+    private:
+        std::vector<std::string> vector_of_identifiers;
+        const std::string debug_name; // only for debugging
+    public:
+        dictionary_of_identifiers(const std::string & d): debug_name{d} {}
+        int get_identifier_index(const std::string id); // if necessary - create a new identifier
+        const std::string get_identifier_by_index(int index) const;
+    };
+
+
+    class base_class_with_dictionary
+    {
+    protected:
+        static dictionary_of_identifiers our_dictionary;
+    public:
+
+    };
+
+
+//#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
     /**
      * This class is used to represent an identifier withing a variable's signature.
      */
@@ -341,7 +375,39 @@ namespace chomik
             target = std::make_shared<simple_value_enum_signature_item>(source, value);
         }
 
+        virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
     };
+#if 0
+    class simple_value_enum_signature_item: public simple_value_signature_item<int>, private base_class_with_dictionary
+    {
+    public:
+        simple_value_enum_signature_item(const generic_name_item & s, const std::string & i): simple_value_signature_item<int>(s, our_dictionary.get_identifier_index(i)) {}
+
+        virtual void print(std::ostream & s) const override
+        {
+            s << "%" << value << "%";
+            s << our_dictionary.get_identifier_by_index(value);
+        }
+
+        virtual bool get_is_predefined() const override { return predefined_variables::get_variable_is_predefined(our_dictionary.get_identifier_by_index(value)); }
+
+        virtual bool get_it_is_identifier(const std::string & pattern) const { return our_dictionary.get_identifier_by_index(value) == pattern; }
+
+        virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const override;
+
+        virtual bool get_it_is_enum() const override { return true; }
+
+        virtual std::string get_value_enum() const override { return our_dictionary.get_identifier_by_index(value); }
+
+        virtual void get_copy(std::shared_ptr<signature_item> & target) const override
+        {
+            const std::string id = our_dictionary.get_identifier_by_index(value);
+            target = std::make_shared<simple_value_enum_signature_item>(source, id);
+        }
+
+        virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
+    };
+#endif
     
     
     class code_signature_item: public signature_item
@@ -804,42 +870,136 @@ namespace chomik
         virtual bool get_match_identifier(const std::string & v) const { return false; }
         virtual bool get_match_code(const code & v) const { return false; }
     };
+
+    class list_of_generic_name_items;
     
-    class identifier_name_item: public generic_name_item
+    /**
+     * This class denotes a "name" consisting of a sequence of generic name items.
+     */
+    class generic_name
     {
     private:
-        const std::string identifier;
+        std::vector<std::shared_ptr<generic_name_item>> vector_of_name_items;
     public:
+        /**
+         * This constructor only copies the first parameter, it should be destroyed by the parser!
+         */
+        generic_name(list_of_generic_name_items * const l);
+
+        generic_name();
+
+        generic_name(const generic_name & gn);
+
+        void report(std::ostream & s) const;
+
+        const std::vector<std::shared_ptr<generic_name_item>> & get_vector_of_name_items() const { return vector_of_name_items; }
+
+        std::string get_actual_text_representation(const machine & m, const basic_generator & g) const;
+
+        void add_placeholders_to_generator(basic_generator & g) const;
+
+        void add_generic_name_item(std::shared_ptr<generic_name_item> && i)
+        {
+            vector_of_name_items.push_back(std::move(i));
+        }
+
+        void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
+
+        bool operator==(const generic_name & n) const;
+
+        bool get_is_an_ad_hoc_name() const;
+    };
+
+    /**
+     *
+     */
+    class identifier_name_item: public generic_name_item, private base_class_with_dictionary
+    {
+    private:
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+        const std::string identifier;
+#else
+        const int index;
+#endif
+
+
+    public:
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
         identifier_name_item(const char * const i): identifier{i} {}
         
         identifier_name_item(const std::string & i): identifier{i} {}
+#else
+        identifier_name_item(const char * const i): index{our_dictionary.get_identifier_index(i)} {}
+
+        identifier_name_item(const std::string & i): index{our_dictionary.get_identifier_index(i)} {}
+#endif
         
         virtual void report(std::ostream & s) const override
         {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
             s << identifier;
+#else
+            s << our_dictionary.get_identifier_by_index(index);
+#endif
         }
                 
-        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override;
+        virtual void add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const override
+        {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
+#else
+    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, our_dictionary.get_identifier_by_index(index)));
+#endif
+        }
         
-        virtual void add_content_to_signature(signature & target) const override;
+        virtual void add_content_to_signature(signature & target) const override
+        {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+            target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
+#else
+            target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, our_dictionary.get_identifier_by_index(index)));
+#endif
+        }
         
         virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
             return identifier;
+#else
+            return our_dictionary.get_identifier_by_index(index);
+#endif
         }
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override {}
         
-        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override;
+        virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
+        {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+            target.add_generic_name_item(std::make_unique<identifier_name_item>(get_actual_text_representation(m, g)));
+#else
+            target.add_generic_name_item(std::make_unique<identifier_name_item>(our_dictionary.get_identifier_by_index(index)));
+#endif
+        }
         
         virtual void get_copy(std::shared_ptr<generic_name_item> & gni) const override
         {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
             gni = std::make_shared<identifier_name_item>(identifier);
+#else
+            gni = std::make_shared<identifier_name_item>(our_dictionary.get_identifier_by_index(index));
+#endif
         }
         
         virtual bool get_is_identifier() const override { return true; }
         
-        virtual bool get_match_identifier(const std::string & v) const { return identifier==v; }
+        virtual bool get_match_identifier(const std::string & v) const
+        {
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+            return identifier==v;
+#else
+            return our_dictionary.get_identifier_by_index(index)==v;
+#endif
+        }
     };
     
     class placeholder_name_item: public generic_name_item
@@ -946,43 +1106,7 @@ namespace chomik
     };
 
 
-    /**
-     * This class denotes a "name" consisting of a sequence of generic name items.
-     */
-    class generic_name
-    {
-    private:
-        std::vector<std::shared_ptr<generic_name_item>> vector_of_name_items;
-    public:
-        /**
-         * This constructor only copies the first parameter, it should be destroyed by the parser!
-         */
-        generic_name(list_of_generic_name_items * const l);
-        
-        generic_name();
-        
-        generic_name(const generic_name & gn);
-        
-        void report(std::ostream & s) const;
 
-        const std::vector<std::shared_ptr<generic_name_item>> & get_vector_of_name_items() const { return vector_of_name_items; }
-        
-        std::string get_actual_text_representation(const machine & m, const basic_generator & g) const;
-        
-        void add_placeholders_to_generator(basic_generator & g) const;
-        
-        void add_generic_name_item(std::shared_ptr<generic_name_item> && i)
-        {
-            vector_of_name_items.push_back(std::move(i));
-        }
-        
-        void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
-
-        bool operator==(const generic_name & n) const;
-
-        bool get_is_an_ad_hoc_name() const;
-    };
-    
     
     /**
      * These class contains constant objects and for the optimization purpose their creation has been moved to the class constructor.

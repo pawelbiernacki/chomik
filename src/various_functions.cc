@@ -13,6 +13,27 @@
 
 #define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
 
+chomik::dictionary_of_identifiers chomik::base_class_with_dictionary::our_dictionary{"ALPHA"};
+
+
+int chomik::dictionary_of_identifiers::get_identifier_index(const std::string id)
+{
+    int result = 0;
+    auto s = std::find(vector_of_identifiers.begin(), vector_of_identifiers.end(), id);
+    if (s == vector_of_identifiers.end())
+    {
+        vector_of_identifiers.push_back(id);
+        //std::cout << debug_name << " add id " << id << " at " << (vector_of_identifiers.size()-1) << "\n";
+        return vector_of_identifiers.size()-1;
+    }
+    return s-vector_of_identifiers.begin();
+}
+
+const std::string chomik::dictionary_of_identifiers::get_identifier_by_index(int index) const
+{
+    return vector_of_identifiers[index];
+}
+
 
 
 std::ostream & operator<<(std::ostream & s, const chomik::generic_literal & l)
@@ -237,6 +258,7 @@ chomik::list_of_statements::list_of_statements(const list_of_statements & s): is
     {
         std::shared_ptr<statement> y;
         i->get_copy(y);
+        DEBUG("got statement " << *y);
         vector_of_statements.push_back(std::move(y));
     }
 }
@@ -426,17 +448,6 @@ void chomik::signature::add_content(std::shared_ptr<signature_item> && i)
 void chomik::name_item_string::add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const
 {
     target.add_content(std::make_shared<simple_value_string_signature_item>(*this, my_value));
-}
-
-
-void chomik::identifier_name_item::add_content_to_signature(signature & target, const machine & m, const basic_generator & g) const
-{
-    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
-}
-
-void chomik::identifier_name_item::add_content_to_signature(signature & target) const
-{
-    target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, identifier));
 }
 
 std::string chomik::machine::get_variable_value_enum(const signature & vn) const
@@ -1092,6 +1103,8 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
                         
                     case variable_with_value::actual_memory_representation_type::ENUM:
                         target.add_content(std::make_shared<simple_value_enum_signature_item>(*this, a->get_source().get_actual_identifier_value(m, g)));
+
+
                         break;
                                             
                     case variable_with_value::actual_memory_representation_type::CODE:

@@ -207,13 +207,6 @@ void chomik::generic_name::get_result_replacing_placeholders(const machine & m, 
     }
 }
 
-void chomik::identifier_name_item::get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const
-{
-    DEBUG("add identifier " << identifier);
-    target.add_generic_name_item(std::make_unique<identifier_name_item>(identifier));
-}
-
-
 void chomik::generic_value_variable_value::get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
     DEBUG("hi");
