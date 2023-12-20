@@ -980,22 +980,22 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
 
 bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const
 {
-    DEBUG("get_match for " << gni << " against " << value);
+    DEBUG("get_match for " << gni << " against " << get_enum());
     
     if (gni.get_is_identifier())
     {
-        return gni.get_match_identifier(value);
+        return gni.get_match_identifier(get_enum());
     }
     else
     if (gni.get_is_placeholder())
     {
         if (target.get_is_placeholder_bound_as_identifier(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
         {
-            return value == target.get_placeholder_value_identifier(gni.get_placeholder_name());   
+            return get_enum() == target.get_placeholder_value_identifier(gni.get_placeholder_name());
         }
         else
         {
-            target.bind_placeholder_as_identifier(gni.get_placeholder_name(), value);
+            target.bind_placeholder_as_identifier(gni.get_placeholder_name(), get_enum());
             return target.get_is_successful();
         }
     }    

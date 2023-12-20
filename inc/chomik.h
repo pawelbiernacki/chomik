@@ -351,7 +351,7 @@ namespace chomik
     };
 
 
-//#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
+#ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
     /**
      * This class is used to represent an identifier withing a variable's signature.
      */
@@ -376,8 +376,10 @@ namespace chomik
         }
 
         virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
+
+        const std::string get_enum() const { return value; }
     };
-#if 0
+#else
     class simple_value_enum_signature_item: public simple_value_signature_item<int>, private base_class_with_dictionary
     {
     public:
@@ -385,7 +387,11 @@ namespace chomik
 
         virtual void print(std::ostream & s) const override
         {
-            s << "%" << value << "%";
+            s << our_dictionary.get_identifier_by_index(value);
+        }
+
+        virtual void report(std::ostream & s) const override
+        {
             s << our_dictionary.get_identifier_by_index(value);
         }
 
@@ -406,6 +412,8 @@ namespace chomik
         }
 
         virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
+
+        const std::string get_enum() const { return our_dictionary.get_identifier_by_index(value); }
     };
 #endif
     
