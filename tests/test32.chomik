@@ -1,0 +1,18 @@
+#!/usr/local/bin/chomik
+
+<get amount of variables in the memory>;
+<print "the amount of variables in the memory=" <the get amount of variables in the memory result>>;
+
+<get amount of items in the memory variables signature 0>;
+<print "the amount of items in the memory variables signature 0 =" <the get amount of items in the memory variables signature result>>;
+
+# the test succeeds if (and only if) the amount of items is greater than 0
+
+variable process (C:compare_result):code;
+let process lower = value code { let the program result = value integer 1; };
+let process equal = value code { let the program result = value integer 1; };
+let process greater = value code { let the program result = value integer 0; };
+
+<compare "integer" <the get amount of items in the memory variables signature result> 0>;
+<process <the compare result>>;
+

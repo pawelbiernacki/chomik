@@ -53,6 +53,8 @@ namespace chomik
         
         variable_with_value(std::shared_ptr<signature> && n): actual_name{std::move(n)} {}
         virtual ~variable_with_value() {}
+
+        int get_amount_of_signature_items() const;
         
         virtual void report(std::ostream & s) const = 0;
         
@@ -470,6 +472,8 @@ namespace chomik
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
         signature(const generic_name & gn);
         signature();
+
+        int get_amount_of_items() const { return vector_of_items.size(); }
         
         void report(std::ostream & s) const;
         
@@ -1125,7 +1129,8 @@ namespace chomik
                             generic_name_the_subtract_result_integer,
                             generic_name_the_get_is_defined_result,
                             generic_name_the_get_amount_of_ad_hoc_types_result,
-                            generic_name_the_get_amount_of_variables_in_the_memory_result;
+                            generic_name_the_get_amount_of_variables_in_the_memory_result,
+                            generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1145,7 +1150,8 @@ namespace chomik
                                     signature_the_subtract_result_integer,
                                     signature_the_get_is_defined_result,
                                     signature_the_get_amount_of_ad_hoc_types_result,
-                                    signature_the_get_amount_of_variables_in_the_memory_result;
+                                    signature_the_get_amount_of_variables_in_the_memory_result,
+                                    signature_the_get_amount_of_items_in_the_memory_variables_signature_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3315,6 +3321,12 @@ namespace chomik
     public:
         // this is useful for certain reflection-like capabilities
         int get_amount_of_variables_in_the_memory() const { return memory.size(); }
+
+        int get_amount_of_items_in_the_memory_variables_signature(int i) const
+        {
+            if (i>=0 && i<memory.size()) return memory[i]->get_amount_of_signature_items();
+            return 0;
+        } // TODO - error handling
 
         // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }

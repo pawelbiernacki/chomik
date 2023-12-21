@@ -35,6 +35,7 @@ const std::string chomik::dictionary_of_identifiers::get_identifier_by_index(int
 }
 
 
+int chomik::variable_with_value::get_amount_of_signature_items() const { return actual_name->get_amount_of_items(); }
 
 std::ostream & operator<<(std::ostream & s, const chomik::generic_literal & l)
 {
@@ -1385,6 +1386,21 @@ void chomik::machine::create_predefined_variables()
     gn22.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
     std::shared_ptr<signature> the_get_amount_of_variables_in_the_memory_result=std::make_shared<signature>(gn22);
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_get_amount_of_variables_in_the_memory_result), 0));
+
+    generic_name gn23;
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("items"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("in"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("memory"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("variables"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    gn23.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_get_amount_of_items_in_the_memory_variables_signature_result=std::make_shared<signature>(gn23);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_get_amount_of_items_in_the_memory_variables_signature_result), 0));
 }
 
 void chomik::machine::create_predefined_types()
@@ -1626,6 +1642,18 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("memory"));
     generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("items"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("in"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("memory"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("variables"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -1646,7 +1674,8 @@ chomik::signature_common_data::signature_common_data()
     signature_the_get_is_defined_result = std::make_unique<signature>(generic_name_the_get_is_defined_result);
     signature_the_get_amount_of_ad_hoc_types_result = std::make_unique<signature>(generic_name_the_get_amount_of_ad_hoc_types_result);
     signature_the_get_amount_of_variables_in_the_memory_result = std::make_unique<signature>(generic_name_the_get_amount_of_variables_in_the_memory_result);
-
+    signature_the_get_amount_of_items_in_the_memory_variables_signature_result =
+        std::make_unique<signature>(generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result);
 }
 
 
@@ -1907,6 +1936,24 @@ void chomik::signature::execute_predefined_get(machine & m) const
             {
                 m.get_variable_with_value(*our_common_data->signature_the_get_amount_of_variables_in_the_memory_result)
                     .assign_value_integer(m.get_amount_of_variables_in_the_memory());
+                return;
+            }
+        }
+
+        if (vector_of_items.size() == 10)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("amount")
+                && vector_of_items[2]->get_it_is_identifier("of")
+                && vector_of_items[3]->get_it_is_identifier("items")
+                && vector_of_items[4]->get_it_is_identifier("in")
+                && vector_of_items[5]->get_it_is_identifier("the")
+                && vector_of_items[6]->get_it_is_identifier("memory")
+                && vector_of_items[7]->get_it_is_identifier("variables")
+                && vector_of_items[8]->get_it_is_identifier("signature")
+                && vector_of_items[9]->get_it_is_integer())
+            {
+                m.get_variable_with_value(*our_common_data->signature_the_get_amount_of_items_in_the_memory_variables_signature_result)
+                    .assign_value_integer(m.get_amount_of_items_in_the_memory_variables_signature(vector_of_items[9]->get_value_integer()));
                 return;
             }
         }
