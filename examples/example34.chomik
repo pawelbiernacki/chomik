@@ -1,0 +1,35 @@
+
+# "reflection" features
+
+# In this example we use the built-in codes from the family "get ..." to access the signature item representations for the variables present in memory.
+
+<get amount of variables in the memory>;
+<print "the amount of variables in the memory=" <the get amount of variables in the memory result>>;
+
+let current index = value integer 0;
+
+
+variable calculate and print the signature text representation for (VARIABLE_INDEX:integer) and (ITEM_INDEX:integer):code;
+let calculate and print the signature text representation for (VARIABLE_INDEX:integer) and (ITEM_INDEX:integer)=value code
+{
+    <get signature item representation (VARIABLE_INDEX:integer) (ITEM_INDEX:integer)>;
+    <print <the get signature item representation result>>;
+};
+
+
+variable calculate and print the text representation (VARIABLE_INDEX:integer):code;
+let calculate and print the text representation (VARIABLE_INDEX:integer)=value code
+{
+    <print "calculate the text representation for the variable index" (VARIABLE_INDEX:integer)>;
+
+    <get amount of items in the memory variables signature (VARIABLE_INDEX:integer)>;
+    <print "the amount of items in the memory variables signature " (VARIABLE_INDEX:integer) "=" <the get amount of items in the memory variables signature result>>;
+
+    let current index = value integer [(VARIABLE_INDEX:integer)];
+
+    <calculate and print the signature text representation for <current index> and (ITEM_INDEX:0..<the get amount of items in the memory variables signature result>)>;
+};
+
+<calculate and print the text representation (VARIABLE_INDEX:0..<the get amount of variables in the memory result>)>;
+
+

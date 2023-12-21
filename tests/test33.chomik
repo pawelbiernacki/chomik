@@ -1,0 +1,22 @@
+#!/usr/local/bin/chomik
+
+<get amount of variables in the memory>;
+<print "the amount of variables in the memory=" <the get amount of variables in the memory result>>;
+
+<get amount of items in the memory variables signature 0>;
+<print "the amount of items in the memory variables signature 0 =" <the get amount of items in the memory variables signature result>>;
+
+<get signature item representation 0 0>;
+
+<print "the get signature item representation result=" <the get signature item representation result>>;
+
+# the test succeeds if (and only if) the text representation of the item 0 0 is not ""
+
+variable process (C:compare_result):code;
+let process lower = value code { let the program result = value integer 0; };
+let process equal = value code { let the program result = value integer 1; };
+let process greater = value code { let the program result = value integer 0; };
+
+<compare "string" <the get signature item representation result> "">;
+<process <the compare result>>;
+

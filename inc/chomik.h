@@ -54,6 +54,7 @@ namespace chomik
         variable_with_value(std::shared_ptr<signature> && n): actual_name{std::move(n)} {}
         virtual ~variable_with_value() {}
 
+        std::string get_signature_item_representation(int item_index) const;
         int get_amount_of_signature_items() const;
         
         virtual void report(std::ostream & s) const = 0;
@@ -212,6 +213,8 @@ namespace chomik
         
         virtual ~signature_item() {}
         virtual void report(std::ostream & s) const = 0;
+
+        std::string get_string_representation() const;
         
         virtual void print(std::ostream & s) const { report(s); } // printing is usually the same as reporting
         
@@ -480,6 +483,8 @@ namespace chomik
         void add_content(std::shared_ptr<signature_item> && i);
         
         std::string get_string_representation() const;
+
+        std::string get_item_representation(int item_index) const { return vector_of_items[item_index]->get_string_representation(); }
         
         bool get_is_predefined(const machine & m) const;
         
@@ -1130,7 +1135,8 @@ namespace chomik
                             generic_name_the_get_is_defined_result,
                             generic_name_the_get_amount_of_ad_hoc_types_result,
                             generic_name_the_get_amount_of_variables_in_the_memory_result,
-                            generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result;
+                            generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result,
+                            generic_name_the_get_signature_item_representation_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1151,7 +1157,8 @@ namespace chomik
                                     signature_the_get_is_defined_result,
                                     signature_the_get_amount_of_ad_hoc_types_result,
                                     signature_the_get_amount_of_variables_in_the_memory_result,
-                                    signature_the_get_amount_of_items_in_the_memory_variables_signature_result;
+                                    signature_the_get_amount_of_items_in_the_memory_variables_signature_result,
+                                    signature_the_get_signature_item_representation_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3327,6 +3334,8 @@ namespace chomik
             if (i>=0 && i<memory.size()) return memory[i]->get_amount_of_signature_items();
             return 0;
         } // TODO - error handling
+
+        std::string get_signature_item_representation(int var_index, int item_index) const;
 
         // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }
