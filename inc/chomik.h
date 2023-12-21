@@ -574,7 +574,7 @@ namespace chomik
 
         virtual bool get_is_an_ad_hoc_type() const override
         {
-            return false;
+            return false;// The named types are not "ad hoc" types
         }
     };        
 
@@ -591,8 +591,6 @@ namespace chomik
         virtual void add_placeholders_to_generator(basic_generator & g) const {}    
         
         virtual void get_copy(std::unique_ptr<generic_range_boundary> & target) const = 0;
-
-        virtual bool get_is_an_ad_hoc_value() const = 0;
     };
     
     class generic_range_boundary_int_literal: public generic_range_boundary
@@ -617,10 +615,6 @@ namespace chomik
             target = std::make_unique<generic_range_boundary_int_literal>(b);
         }
 
-        virtual bool get_is_an_ad_hoc_value() const override
-        {
-            return false;
-        }
     };
     
     class generic_range_boundary_variable_value: public generic_range_boundary
@@ -646,8 +640,6 @@ namespace chomik
         {
             target = std::make_unique<generic_range_boundary_variable_value>(*name);
         }
-
-        virtual bool get_is_an_ad_hoc_value() const override;
     };    
     
     
@@ -694,12 +686,6 @@ namespace chomik
             max_boundary->get_copy(b);
             target = std::make_unique<generic_range>(std::move(a), std::move(b));
         }
-
-        bool get_is_an_ad_hoc_range() const
-        {
-            return min_boundary->get_is_an_ad_hoc_value() || max_boundary->get_is_an_ad_hoc_value();
-        }
-
     };
     
     class generic_type_range: public generic_type
@@ -784,7 +770,7 @@ namespace chomik
 
         virtual bool get_is_an_ad_hoc_type() const override
         {
-            return r->get_is_an_ad_hoc_range();
+            return true;
         }
 
         virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const override
@@ -914,8 +900,6 @@ namespace chomik
         void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
 
         bool operator==(const generic_name & n) const;
-
-        bool get_is_an_ad_hoc_name() const;
     };
 
     /**

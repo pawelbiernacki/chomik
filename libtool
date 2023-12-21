@@ -1,5 +1,5 @@
 #! /bin/sh
-# Generated automatically by config.status (chomik) 0.1.3
+# Generated automatically by config.status (chomik) 0.1.4
 # Libtool was configured on host hexul:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
@@ -291,7 +291,7 @@ hardcode_into_libs=yes
 sys_lib_search_path_spec="/usr/lib/gcc/x86_64-redhat-linux/13 /usr/lib64 /lib64 /usr/lib /lib "
 
 # Detected run-time system search path for libraries.
-sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib /usr/lib64/iscsi /usr/lib64/llvm15/lib /usr/lib/llvm16/lib /usr/lib64/llvm16/lib /usr/lib64/pipewire-0.3/jack/ /usr/lib64/tcl8.6 "
+sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib /usr/lib64/iscsi /usr/lib64/llvm15/lib /usr/lib/llvm16/lib /usr/lib64/llvm16/lib /usr/i686-w64-mingw32/lib/ /usr/x86_64-w64-mingw32/lib/ /usr/lib64/pipewire-0.3/jack/ /usr/lib64/tcl8.6 "
 
 # Explicit LT_SYS_LIBRARY_PATH set during ./configure time.
 configure_time_lt_sys_library_path=""

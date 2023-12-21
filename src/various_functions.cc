@@ -3025,26 +3025,6 @@ std::string chomik::code_name_item::get_actual_text_representation(const machine
     return my_code->get_actual_text_representation(m, g);
 }
 
-
-bool chomik::generic_name::get_is_an_ad_hoc_name() const
-{
-    for (auto & x: vector_of_name_items)
-    {
-        if (x->get_is_placeholder())
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool chomik::generic_range_boundary_variable_value::get_is_an_ad_hoc_value() const
-{
-    return name->get_is_an_ad_hoc_name();
-}
-
-
 chomik::type_instance * chomik::machine::create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn)
 {
     DEBUG("create an ad hoc type " << t << " as " << tn);
