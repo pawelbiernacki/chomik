@@ -1,0 +1,17 @@
+#!/usr/local/bin/chomik
+
+# this test checks whether we can access the amount of variables in the memory
+
+<get amount of variables in the memory>;
+<print "the amount of variables in the memory=" <the get amount of variables in the memory result>>;
+
+# the test succeeds if the amount is > 0
+
+variable process (C:compare_result):code;
+let process lower = value code { let the program result = value integer 1; };
+let process equal = value code { let the program result = value integer 1; };
+let process greater = value code { let the program result = value integer 0; };
+
+<compare "integer" <the get amount of variables in the memory result> 0>;
+<process <the compare result>>;
+

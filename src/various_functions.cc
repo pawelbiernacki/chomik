@@ -1373,6 +1373,18 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_get_amount_of_ad_hoc_types_result=std::make_shared<signature>(gn21);
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_get_amount_of_ad_hoc_types_result), 0));
 
+    generic_name gn22;
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("variables"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("in"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("memory"));
+    gn22.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_get_amount_of_variables_in_the_memory_result=std::make_shared<signature>(gn22);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_get_amount_of_variables_in_the_memory_result), 0));
 }
 
 void chomik::machine::create_predefined_types()
@@ -1604,6 +1616,15 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("types"));
     generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("variables"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("in"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("memory"));
+    generic_name_the_get_amount_of_variables_in_the_memory_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
@@ -1624,6 +1645,8 @@ chomik::signature_common_data::signature_common_data()
     signature_the_subtract_result_integer = std::make_unique<signature>(generic_name_the_subtract_result_integer);
     signature_the_get_is_defined_result = std::make_unique<signature>(generic_name_the_get_is_defined_result);
     signature_the_get_amount_of_ad_hoc_types_result = std::make_unique<signature>(generic_name_the_get_amount_of_ad_hoc_types_result);
+    signature_the_get_amount_of_variables_in_the_memory_result = std::make_unique<signature>(generic_name_the_get_amount_of_variables_in_the_memory_result);
+
 }
 
 
@@ -1872,6 +1895,21 @@ void chomik::signature::execute_predefined_get(machine & m) const
             }
         }
 
+        if (vector_of_items.size() == 7)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("amount")
+                && vector_of_items[2]->get_it_is_identifier("of")
+                && vector_of_items[3]->get_it_is_identifier("variables")
+                && vector_of_items[4]->get_it_is_identifier("in")
+                && vector_of_items[5]->get_it_is_identifier("the")
+                && vector_of_items[6]->get_it_is_identifier("memory")
+            )
+            {
+                m.get_variable_with_value(*our_common_data->signature_the_get_amount_of_variables_in_the_memory_result)
+                    .assign_value_integer(m.get_amount_of_variables_in_the_memory());
+                return;
+            }
+        }
 
             /* here we implement the family of variables <get is defined ...> which sets the boolean value <the get is defined result>. */
             if (vector_of_items.size() >= 4)

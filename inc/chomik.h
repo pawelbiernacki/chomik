@@ -1124,7 +1124,8 @@ namespace chomik
                             generic_name_the_add_result_integer,
                             generic_name_the_subtract_result_integer,
                             generic_name_the_get_is_defined_result,
-                            generic_name_the_get_amount_of_ad_hoc_types_result;
+                            generic_name_the_get_amount_of_ad_hoc_types_result,
+                            generic_name_the_get_amount_of_variables_in_the_memory_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1143,7 +1144,8 @@ namespace chomik
                                     signature_the_add_result_integer,
                                     signature_the_subtract_result_integer,
                                     signature_the_get_is_defined_result,
-                                    signature_the_get_amount_of_ad_hoc_types_result;
+                                    signature_the_get_amount_of_ad_hoc_types_result,
+                                    signature_the_get_amount_of_variables_in_the_memory_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3311,6 +3313,10 @@ namespace chomik
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
                 
     public:
+        // this is useful for certain reflection-like capabilities
+        int get_amount_of_variables_in_the_memory() const { return memory.size(); }
+
+        // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }
         
         int get_max_enum_type_index(const std::string & tn) const;
