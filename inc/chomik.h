@@ -1123,7 +1123,8 @@ namespace chomik
                             generic_name_the_divide_result_float,
                             generic_name_the_add_result_integer,
                             generic_name_the_subtract_result_integer,
-                            generic_name_the_get_is_defined_result;
+                            generic_name_the_get_is_defined_result,
+                            generic_name_the_get_amount_of_ad_hoc_types_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1141,7 +1142,8 @@ namespace chomik
                                     signature_the_divide_result_float,
                                     signature_the_add_result_integer,
                                     signature_the_subtract_result_integer,
-                                    signature_the_get_is_defined_result;
+                                    signature_the_get_is_defined_result,
+                                    signature_the_get_amount_of_ad_hoc_types_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -1481,6 +1483,8 @@ namespace chomik
 
         virtual void debug() const {}
 
+        virtual void finalize(machine & m) {}
+
     };
     
     /**
@@ -1526,8 +1530,19 @@ namespace chomik
         
         virtual void initialize_mapping(const matching_protocol & mp) override;
 
+
     };
-    
+
+
+    template <typename GENERATOR_TYPE> class machine_finalization_guard
+    {
+    private:
+        GENERATOR_TYPE & my_generator;
+        machine & my_machine;
+    public:
+        machine_finalization_guard(machine & m, GENERATOR_TYPE & p): my_machine{m}, my_generator{p} {}
+        ~machine_finalization_guard() { my_generator.finalize(my_machine); }
+    };
     
     /**
      * This class creates all possible tuples of a finite cartesian product of the given sets.
@@ -1542,6 +1557,7 @@ namespace chomik
         std::vector<std::shared_ptr<placeholder_with_value>> memory;
         std::map<std::string, std::shared_ptr<placeholder_with_value>> map_placeholder_names_to_placeholders_with_value;
         
+        int initial_amount_of_ad_hoc_type_instances; // we need to remember this value, it will be necessary to clean the ad hoc types afterwards
         
         const std::string my_filename;
         const unsigned line_number;
@@ -1551,7 +1567,7 @@ namespace chomik
         generator(const generic_range & gr, const std::string & filename, unsigned new_line_number);
         generator(const generic_value & gv, const std::string & filename, unsigned new_line_number);
         generator(const std::string & filename, unsigned new_line_number);
-                
+
         virtual void initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const override;
         
         virtual bool get_can_have_placeholders() const { return true; }
@@ -1610,6 +1626,8 @@ namespace chomik
         bool get_does_not_exceed_level(int max_level) const;
 
         virtual void debug() const override;
+
+        virtual void finalize(machine & m) override;
     };
     
     /**
@@ -3406,6 +3424,10 @@ namespace chomik
         type_instance* create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn);
 
         void add_ad_hoc_type(std::shared_ptr<type_instance_ad_hoc_range> && t);
+
+        void destroy_ad_hoc_type_instances_above(int amount);
+
+        int get_amount_of_ad_hoc_type_instances() const { return vector_of_ad_hoc_type_instances.size(); }
 
         static std::ostream *current_compilation_error_stream, *current_runtime_warning_stream;
     };

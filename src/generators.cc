@@ -77,8 +77,17 @@ bool chomik::generator::get_does_not_exceed_level(int max_level) const
     return true;
 }
 
+
+void chomik::generator::finalize(machine & m)
+{
+    m.destroy_ad_hoc_type_instances_above(initial_amount_of_ad_hoc_type_instances);
+}
+
+
 void chomik::generator::initialize(machine & m)
 {    
+    initial_amount_of_ad_hoc_type_instances = m.get_amount_of_ad_hoc_type_instances();
+
     DEBUG("generator::initialize, amount of placeholders " << vector_of_placeholders.size());
 
     for (auto & i: vector_of_placeholders)

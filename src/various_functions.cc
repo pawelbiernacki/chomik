@@ -1360,6 +1360,19 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_chomik_package_version=std::make_shared<signature>(gn20);
     add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_chomik_package_version), PACKAGE_VERSION));
     
+
+    generic_name gn21;
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("ad"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("hoc"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("types"));
+    gn21.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_get_amount_of_ad_hoc_types_result=std::make_shared<signature>(gn21);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_get_amount_of_ad_hoc_types_result), 0));
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -1582,6 +1595,16 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("defined"));
     generic_name_the_get_is_defined_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("amount"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("of"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("ad"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("hoc"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("types"));
+    generic_name_the_get_amount_of_ad_hoc_types_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
+
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -1600,7 +1623,7 @@ chomik::signature_common_data::signature_common_data()
     signature_the_add_result_integer = std::make_unique<signature>(generic_name_the_add_result_integer);
     signature_the_subtract_result_integer = std::make_unique<signature>(generic_name_the_subtract_result_integer);
     signature_the_get_is_defined_result = std::make_unique<signature>(generic_name_the_get_is_defined_result);
-    
+    signature_the_get_amount_of_ad_hoc_types_result = std::make_unique<signature>(generic_name_the_get_amount_of_ad_hoc_types_result);
 }
 
 
@@ -1813,8 +1836,23 @@ void chomik::signature::execute_predefined_get(machine & m) const
                 return;
             }
         }
-        else
+
+
+        if (vector_of_items.size() == 6)
         {
+            if (vector_of_items[1]->get_it_is_identifier("amount")
+                && vector_of_items[2]->get_it_is_identifier("of")
+                && vector_of_items[3]->get_it_is_identifier("ad")
+                && vector_of_items[4]->get_it_is_identifier("hoc")
+                && vector_of_items[5]->get_it_is_identifier("types")
+            )
+            {
+                m.get_variable_with_value(*our_common_data->signature_the_get_amount_of_ad_hoc_types_result).assign_value_integer(m.get_amount_of_ad_hoc_type_instances());
+                return;
+            }
+        }
+
+
             /* here we implement the family of variables <get is defined ...> which sets the boolean value <the get is defined result>. */
             if (vector_of_items.size() >= 4)
             {
@@ -1845,7 +1883,6 @@ void chomik::signature::execute_predefined_get(machine & m) const
                     return;
                 }
             }
-        }
                 
         CHOMIK_STDERR("warning: unknown get variable\n");        
         for (auto & i: vector_of_items)
@@ -3023,6 +3060,12 @@ void chomik::code_name_item::add_content_to_signature(signature & target, const 
 std::string chomik::code_name_item::get_actual_text_representation(const machine & m, const basic_generator & g) const
 {
     return my_code->get_actual_text_representation(m, g);
+}
+
+
+void chomik::machine::destroy_ad_hoc_type_instances_above(int amount)
+{
+    vector_of_ad_hoc_type_instances.erase(vector_of_ad_hoc_type_instances.begin()+amount, vector_of_ad_hoc_type_instances.end());
 }
 
 chomik::type_instance * chomik::machine::create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn)

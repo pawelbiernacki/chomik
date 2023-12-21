@@ -1,0 +1,18 @@
+#!/usr/local/bin/chomik
+
+
+variable process (C:compare_result):code;
+let process lower = value code { let the program return = value integer 1; };
+let process greater = value code { let the program return = value integer 1; };
+let process equal = value code { let the program return = value integer 0; };
+
+let the get amount of ad hoc types result = value integer 100;  # this variable should be assigned to 0 by the subsequent call:
+
+<get amount of ad hoc types>;
+
+<print "the get amount of ad hoc types result =" <the get amount of ad hoc types result>>;
+
+<compare "integer" <the get amount of ad hoc types result> 0>;
+<process <the compare result>>;
+
+

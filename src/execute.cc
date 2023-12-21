@@ -321,7 +321,8 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
 void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
-    
+    machine_finalization_guard<basic_generator> guard{m, *g};
+
     g->set_father(father);
         
     DEBUG("code line number " << line_number << ": " << *this);
@@ -760,7 +761,8 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     DEBUG("make a generator for name " << *name);
     
     std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
-            
+    machine_finalization_guard<basic_generator> guard{m, *g};
+
     g->set_father(father);
 
     DEBUG("created a generator " << *g);    
@@ -882,7 +884,8 @@ void chomik::execute_value_statement::execute_if_cartesian_product_is_large_or_i
 void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     generator g{*value, __FILE__, __LINE__};
-    
+    machine_finalization_guard<basic_generator> guard{m, g};
+
     g.set_father(father);
     
     g.initialize(m);
