@@ -3228,12 +3228,16 @@ namespace chomik
     private:
         std::ifstream file_stream;
     public:
+        generic_stream_file_input(const std::string & file_name): file_stream{file_name} {}
+
         virtual bool get_allows_input() const { return true; }
         virtual bool get_should_be_opened() const override { return true; }        
         virtual bool get_should_be_closed() const override { return true; }
         virtual std::istream& get_input_stream() override { return file_stream; }
         
         virtual bool read_char(unsigned char & target) override { target = file_stream.get(); return file_stream.operator bool(); }
+
+        virtual int read_integer() override { int result = 0; file_stream >> result; return result; }
     };    
     
     class generic_stream_stringstream: public generic_stream

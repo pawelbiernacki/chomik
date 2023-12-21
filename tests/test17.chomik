@@ -34,10 +34,12 @@ let the read from stream source stream index = <my stream index>;
 let the program return = value integer 0;    
     
 <read from stream "string">;
+<print "result1:" <the read from stream result "string">>;
 <compare "string" <the read from stream result "string"> "今日は123">;
 <return 1 on wrong result <the compare result>>;
 
 <read from stream "string">;
+<print "result2:" <the read from stream result "string">>;
 <compare "string" <the read from stream result "string"> "bye">;
 <return 1 on wrong result <the compare result>>;
 

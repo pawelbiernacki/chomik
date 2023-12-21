@@ -1692,6 +1692,26 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 return;
             }
             else
+            if (vector_of_items[1]->get_it_is_identifier("new")
+                && vector_of_items[2]->get_it_is_identifier("input")
+                && vector_of_items[3]->get_it_is_identifier("filestream")
+                && vector_of_items[4]->get_it_is_string())
+            {
+                if (m.get_can_create_files())
+                {
+                    m.add_stream(std::make_unique<generic_stream_file_input>(vector_of_items[4]->get_value_string()));
+                }
+                else
+                {
+                    m.add_stream(std::make_unique<generic_stream_stringstream>());
+                }
+
+                DEBUG("assign value integer " << m.get_last_created_stream_index());
+
+                m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+                return;
+            }
+            else
             if (vector_of_items[1]->get_it_is_identifier("new") 
                 && vector_of_items[2]->get_it_is_identifier("input") 
                 && vector_of_items[3]->get_it_is_identifier("stringstream")
@@ -2959,16 +2979,18 @@ void chomik::generic_stream::read_string_of_x_characters(std::string & target, u
     
     while (read_char(c))
     {
+        //std::cout << "got char " << c << ", len" << len << "\n";
         if (c < 0b10000000) 
         {
-            if (len == 0 && c == ' ')
+            if (len == 0 && (isblank(c) || c=='\n'))
             {
                 continue;
             }            
             
             ++len;
-            if (x == 0 && c == ' ')
+            if (isblank(c) || c=='\n')
             {
+                //std::cout << c << " break\n";
                 break;
             }            
             target_stream << c;

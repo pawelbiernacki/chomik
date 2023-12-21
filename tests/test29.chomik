@@ -1,0 +1,33 @@
+#!/usr/local/bin/chomik
+
+# this test checks whether we properly read from a file
+
+<create new input filestream "../tests/test29_data.txt">;
+variable my test filestream index:integer;
+
+let my test filestream index = <the created stream index>;
+
+
+
+
+# now we read from the file
+
+let the read from stream source stream index = <my test filestream index>;
+<read from stream "integer">;
+
+
+let my test number = <the read from stream result "integer">;
+
+<print "my test number=" <my test number>>;
+
+variable process (C:compare_result):code;
+let process lower=value code { let the program return = value integer 1; };
+let process greater=value code { let the program return = value integer 1; };
+let process equal=value code { let the program return = value integer 0; };
+
+
+<compare "integer" <my test number> 1234>;
+<process <the compare result>>;
+
+
+
