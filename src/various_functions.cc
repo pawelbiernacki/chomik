@@ -206,7 +206,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -1470,6 +1470,23 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_get_signature_item_types_name_result=std::make_shared<signature>(gn25);
     add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_get_signature_item_types_name_result), ""));
 
+
+    generic_name gn26;
+    gn26.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn26.add_generic_name_item(std::make_shared<identifier_name_item>("getline"));
+    gn26.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    gn26.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+    std::shared_ptr<signature> the_getline_stream_index=std::make_shared<signature>(gn26);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_getline_stream_index), 2));  // 2 is the standard input
+
+
+    generic_name gn27;
+    gn27.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn27.add_generic_name_item(std::make_shared<identifier_name_item>("getline"));
+    gn27.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_getline_result=std::make_shared<signature>(gn27);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_getline_result), ""));
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -1738,6 +1755,15 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("name"));
     generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_getline_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_getline_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("getline"));
+    generic_name_the_getline_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_getline_stream_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+
+    generic_name_the_getline_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_getline_result.add_generic_name_item(std::make_shared<identifier_name_item>("getline"));
+    generic_name_the_getline_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -1762,7 +1788,8 @@ chomik::signature_common_data::signature_common_data()
         std::make_unique<signature>(generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result);
     signature_the_get_signature_item_representation_result = std::make_unique<signature>(generic_name_the_get_signature_item_representation_result);
     signature_the_get_signature_item_types_name_result = std::make_unique<signature>(generic_name_the_get_signature_item_types_name_result);
-
+    signature_the_getline_stream_index = std::make_unique<signature>(generic_name_the_getline_stream_index);
+    signature_the_getline_result = std::make_unique<signature>(generic_name_the_getline_result);
 }
 
 
@@ -1969,7 +1996,38 @@ void chomik::signature::execute_predefined_set(machine & m) const
     CHOMIK_STDERR('\n');             
 }
 
+void chomik::signature::execute_predefined_getline(machine & m) const
+{
+    if (vector_of_items.size() == 1)
+    {
+        //the get from stream result stream index
+        int index = m.get_variable_with_value(*our_common_data->signature_the_getline_stream_index).get_value_integer();
 
+        DEBUG("value of the getline stream index " << index);
+        if (index >= 0 && index < m.get_amount_of_streams())
+        {
+            generic_stream& gs{m.get_stream(index)};
+
+            gs.getline();
+
+            std::string result = gs.getline_result();
+
+            DEBUG("assign value string " << result);
+
+            m.get_variable_with_value(*our_common_data->signature_the_getline_result).assign_value_string(result);
+            return;
+        }
+        return;
+    }
+
+    CHOMIK_STDERR("warning: unknown getline variable\n");
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }
+    CHOMIK_STDERR('\n');
+
+}
 
 void chomik::signature::execute_predefined_get(machine & m) const
 {
@@ -2514,7 +2572,11 @@ void chomik::signature::execute_predefined(machine & m) const
     {
         execute_predefined_set(m);
     }
-    
+    else
+    if (get_it_has_prefix("getline"))
+    {
+        execute_predefined_getline(m);
+    }
 }
 
 bool chomik::signature::get_it_has_prefix(const std::string & pattern) const

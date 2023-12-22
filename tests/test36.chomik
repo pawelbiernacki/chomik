@@ -1,0 +1,19 @@
+#!/usr/local/bin/chomik
+
+
+<create new input filestream "../tests/test36_data.txt">;
+let my stream index = <the created stream index>;
+
+let the getline stream index = <my stream index>;
+<getline>;
+
+<print "result:" <the getline result>>;
+
+
+variable process (C:compare_result):code;
+let process lower = value code { let the program return =value integer 1; };
+let process greater = value code { let the program return =value integer 1; };
+let process equal = value code { let the program return =value integer 0; };
+
+<compare "string" <the getline result> "one two three">;
+<process <the compare result>>;

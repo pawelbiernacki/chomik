@@ -1,0 +1,20 @@
+#
+#
+# this example shows how to build a simple session reading the standard input line by line
+
+
+
+variable process (N:integer):code;
+let process (N:integer) = value code
+{
+    let the print end of line = value string "";
+    <print (N:integer) ">">;
+    <getline>; # by default we read from the standard input
+
+    let the print end of line = value string "\n";
+    <print "got" <the getline result>>;
+
+    # here we could put the getline result into a stringstream and parse it
+};
+
+<process (N:integer)>;

@@ -485,6 +485,8 @@ namespace chomik
         void execute_predefined_multiply(machine & m) const;
         void execute_predefined_divide(machine & m) const;        
         void execute_predefined_set(machine & m) const;
+        void execute_predefined_getline(machine & m) const;
+
     public:
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
         signature(const generic_name & gn);
@@ -1152,7 +1154,9 @@ namespace chomik
                             generic_name_the_get_amount_of_variables_in_the_memory_result,
                             generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result,
                             generic_name_the_get_signature_item_representation_result,
-                            generic_name_the_get_signature_item_types_name_result;
+                            generic_name_the_get_signature_item_types_name_result,
+                            generic_name_the_getline_stream_index,
+                            generic_name_the_getline_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1175,7 +1179,9 @@ namespace chomik
                                     signature_the_get_amount_of_variables_in_the_memory_result,
                                     signature_the_get_amount_of_items_in_the_memory_variables_signature_result,
                                     signature_the_get_signature_item_representation_result,
-                                    signature_the_get_signature_item_types_name_result;
+                                    signature_the_get_signature_item_types_name_result,
+                                    signature_the_getline_stream_index,
+                                    signature_the_getline_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3209,10 +3215,12 @@ namespace chomik
         virtual std::ostream& get_output_stream() { return std::cout; }
         virtual std::istream& get_input_stream() { return std::cin; }        
         virtual std::string get_result() const { return ""; }
+        virtual std::string getline_result() const { return ""; }
         virtual void set_result(const std::string & r) {}
         virtual int read_integer() { return 0; }
         virtual bool read_char(unsigned char & target) { return false; }
         virtual std::string read_string() { std::string t; read_string_of_x_characters(t, max_size); return t; }
+        virtual void getline() {}
     };
     
     class generic_stream_standard_output_stream: public generic_stream
@@ -3231,10 +3239,15 @@ namespace chomik
     
     class generic_stream_standard_input_stream: public generic_stream
     {
+    private:
+        std::string my_getline_result;
     public:
         virtual bool get_allows_input() const override { return true; }
         virtual int read_integer() override { int n; std::cin >> std::setw(max_size) >> n; return n; }
-        bool read_char(unsigned char & target) override { target = std::cin.get(); return std::cin.operator bool(); }
+        virtual bool read_char(unsigned char & target) override { target = std::cin.get(); return std::cin.operator bool(); }
+
+        virtual void getline() override { std::getline(std::cin, my_getline_result); } // TODO error handling
+        virtual std::string getline_result() const override { return my_getline_result; }
     };
     
     class generic_stream_file: public generic_stream
@@ -3259,6 +3272,7 @@ namespace chomik
     {
     private:
         std::ifstream file_stream;
+        std::string my_getline_result;
     public:
         generic_stream_file_input(const std::string & file_name): file_stream{file_name} {}
 
@@ -3268,6 +3282,8 @@ namespace chomik
         virtual std::istream& get_input_stream() override { return file_stream; }
         
         virtual bool read_char(unsigned char & target) override { target = file_stream.get(); return file_stream.operator bool(); }
+        virtual void getline() override { std::getline(file_stream, my_getline_result); } // TODO error handling
+        virtual std::string getline_result() const override { return my_getline_result; }
 
         virtual int read_integer() override { int result = 0; file_stream >> result; return result; }
     };    
@@ -3276,6 +3292,7 @@ namespace chomik
     {
     private:
         std::stringstream string_stream;
+        std::string my_getline_result;
     public:
         generic_stream_stringstream() {}
         generic_stream_stringstream(const std::string & s): string_stream{s} {}
@@ -3291,6 +3308,9 @@ namespace chomik
         virtual int read_integer() override { int v; string_stream >> v; return v; }
         
         virtual bool read_char(unsigned char & target) override { target = string_stream.get(); return string_stream.operator bool(); }        
+
+        virtual void getline() override { std::getline(string_stream, my_getline_result); } // TODO error handling
+        virtual std::string getline_result() const override { return my_getline_result; }
     };
     
     class generic_stream_random_number_stream: public generic_stream
