@@ -55,6 +55,7 @@ namespace chomik
         virtual ~variable_with_value() {}
 
         std::string get_signature_item_representation(int item_index) const;
+        std::string get_signature_item_type_name(int item_index) const;
         int get_amount_of_signature_items() const;
         
         virtual void report(std::ostream & s) const = 0;
@@ -215,6 +216,8 @@ namespace chomik
         virtual void report(std::ostream & s) const = 0;
 
         std::string get_string_representation() const;
+
+        virtual std::string get_type_name() const = 0;
         
         virtual void print(std::ostream & s) const { report(s); } // printing is usually the same as reporting
         
@@ -282,6 +285,8 @@ namespace chomik
         }
 
         virtual std::string get_debug_type_name() const { return "simple_value_integer_signature_item"; }
+
+        virtual std::string get_type_name() const override { return "integer"; }
     };
 
     class simple_value_float_signature_item: public simple_value_signature_item<double>
@@ -299,6 +304,8 @@ namespace chomik
         }
 
         virtual std::string get_debug_type_name() const { return "simple_value_float_signature_item"; }
+
+        virtual std::string get_type_name() const override { return "float"; }
     };
     
     /**
@@ -330,6 +337,8 @@ namespace chomik
         }
 
         virtual std::string get_debug_type_name() const { return "simple_value_string_signature_item"; }
+
+        virtual std::string get_type_name() const override { return "string"; }
     };
 
     /**
@@ -383,6 +392,8 @@ namespace chomik
         virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
 
         const std::string get_enum() const { return value; }
+
+        virtual std::string get_type_name() const override { return "identifier"; }
     };
 #else
     class simple_value_enum_signature_item: public simple_value_signature_item<int>, private base_class_with_dictionary
@@ -419,6 +430,8 @@ namespace chomik
         virtual std::string get_debug_type_name() const { return "simple_value_enum_signature_item"; }
 
         const std::string get_enum() const { return our_dictionary.get_identifier_by_index(value); }
+
+        virtual std::string get_type_name() const override { return "identifier"; }
     };
 #endif
     
@@ -439,6 +452,8 @@ namespace chomik
         virtual bool get_match(const generic_name_item & gni, const machine & m, const basic_generator & g, matching_protocol & target) const override;
 
         virtual void get_copy(std::shared_ptr<signature_item> & target) const;
+
+        virtual std::string get_type_name() const override { return "code"; }
     };
     
     class generic_name;
@@ -455,7 +470,6 @@ namespace chomik
     {
     private:       
         static std::unique_ptr<signature_common_data> our_common_data;
-        
         
         std::vector<std::shared_ptr<signature_item>> vector_of_items;
         
@@ -485,6 +499,7 @@ namespace chomik
         std::string get_string_representation() const;
 
         std::string get_item_representation(int item_index) const { return vector_of_items[item_index]->get_string_representation(); }
+        std::string get_item_type_name(int item_index) const  { return vector_of_items[item_index]->get_type_name(); }
         
         bool get_is_predefined(const machine & m) const;
         
@@ -1136,7 +1151,8 @@ namespace chomik
                             generic_name_the_get_amount_of_ad_hoc_types_result,
                             generic_name_the_get_amount_of_variables_in_the_memory_result,
                             generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result,
-                            generic_name_the_get_signature_item_representation_result;
+                            generic_name_the_get_signature_item_representation_result,
+                            generic_name_the_get_signature_item_types_name_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1158,7 +1174,8 @@ namespace chomik
                                     signature_the_get_amount_of_ad_hoc_types_result,
                                     signature_the_get_amount_of_variables_in_the_memory_result,
                                     signature_the_get_amount_of_items_in_the_memory_variables_signature_result,
-                                    signature_the_get_signature_item_representation_result;
+                                    signature_the_get_signature_item_representation_result,
+                                    signature_the_get_signature_item_types_name_result;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3326,16 +3343,18 @@ namespace chomik
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
                 
     public:
-        // this is useful for certain reflection-like capabilities
+        // these methods are useful for certain reflection-like capabilities
         int get_amount_of_variables_in_the_memory() const { return memory.size(); }
-
         int get_amount_of_items_in_the_memory_variables_signature(int i) const
         {
             if (i>=0 && i<memory.size()) return memory[i]->get_amount_of_signature_items();
             return 0;
         } // TODO - error handling
-
         std::string get_signature_item_representation(int var_index, int item_index) const;
+        std::string get_signature_item_type_name(int var_index, int item_index) const;
+
+
+
 
         // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }

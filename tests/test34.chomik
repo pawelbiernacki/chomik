@@ -1,0 +1,81 @@
+#!/usr/local/bin/chomik
+
+let my hello = value code { <print "hello">; };
+
+let a special var 1 and "hello" and <my hello> =value integer 0;    # we will check this variable with Chomik reflection
+
+<get amount of variables in the memory>;
+<print "the amount of variables in the memory=" <the get amount of variables in the memory result>>;
+
+<subtract "integer" <the get amount of variables in the memory result> 1>;
+let my index = <the subtract result "integer">;
+
+<print "my index=" <my index>>;
+
+<get amount of items in the memory variables signature <my index>>;
+
+<print "the amount of items" <the get amount of items in the memory variables signature result>>;
+
+<subtract "integer" <the get amount of items in the memory variables signature result> 1>;
+let my last index = <the subtract result "integer">;
+
+variable process (X:integer):code;
+let process (X:integer)=value code
+{
+    <get signature item representation <my index> (X:integer)>;
+    <get signature item types name <my index> (X:integer)>;
+
+    <print <the get signature item representation result> "of type" <the get signature item types name result>>;
+};
+
+<process (A:0..<my last index>)>; # just to print them out
+
+let the program return = value integer 0;
+
+variable check test depending on (C:compare_result):code;
+let check test depending on lower = value code { let the program return = value integer 1; };
+let check test depending on greater = value code { let the program return = value integer 1; };
+let check test depending on equal = value code {};
+
+# now we do some checks
+<get signature item representation <my index> 0>;
+<compare "string" <the get signature item representation result> "a">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 0>;
+<compare "string" <the get signature item types name result> "identifier">;
+<check test depending on <the compare result>>;
+
+<get signature item representation <my index> 1>;
+<compare "string" <the get signature item representation result> "special">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 1>;
+<compare "string" <the get signature item types name result> "identifier">;
+<check test depending on <the compare result>>;
+
+<get signature item representation <my index> 2>;
+<compare "string" <the get signature item representation result> "var">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 2>;
+<compare "string" <the get signature item types name result> "identifier">;
+<check test depending on <the compare result>>;
+
+<get signature item representation <my index> 3>;
+<compare "string" <the get signature item representation result> "1">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 3>;
+<compare "string" <the get signature item types name result> "integer">;
+<check test depending on <the compare result>>;
+
+<get signature item representation <my index> 4>;
+<compare "string" <the get signature item representation result> "and">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 4>;
+<compare "string" <the get signature item types name result> "identifier">;
+<check test depending on <the compare result>>;
+
+<get signature item representation <my index> 5>;
+<compare "string" <the get signature item representation result> "\"hello\"">;
+<check test depending on <the compare result>>;
+<get signature item types name <my index> 5>;
+<compare "string" <the get signature item types name result> "string">;
+<check test depending on <the compare result>>;

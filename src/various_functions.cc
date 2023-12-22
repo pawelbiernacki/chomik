@@ -55,6 +55,27 @@ std::string chomik::machine::get_signature_item_representation(int var_index, in
     return "";
 }
 
+std::string chomik::machine::get_signature_item_type_name(int var_index, int item_index) const
+{
+// TODO error handling!
+    if (var_index >= 0 && var_index < memory.size())
+    {
+        if (item_index >= 0 && item_index < memory[var_index]->get_amount_of_signature_items())
+        {
+            return memory[var_index]->get_signature_item_type_name(item_index);
+        }
+    }
+    return "";
+}
+
+std::string chomik::variable_with_value::get_signature_item_type_name(int item_index) const
+{
+    return actual_name->get_item_type_name(item_index);
+}
+
+
+
+
 
 std::string chomik::variable_with_value::get_signature_item_representation(int item_index) const
 {
@@ -1438,6 +1459,17 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_get_signature_item_representation_result=std::make_shared<signature>(gn24);
     add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_get_signature_item_representation_result), ""));
 
+    generic_name gn25;
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("item"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("types"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("name"));
+    gn25.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_get_signature_item_types_name_result=std::make_shared<signature>(gn25);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_get_signature_item_types_name_result), ""));
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -1698,6 +1730,14 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_get_signature_item_representation_result.add_generic_name_item(std::make_shared<identifier_name_item>("representation"));
     generic_name_the_get_signature_item_representation_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("get"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("item"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("types"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("name"));
+    generic_name_the_get_signature_item_types_name_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
     
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -1721,6 +1761,8 @@ chomik::signature_common_data::signature_common_data()
     signature_the_get_amount_of_items_in_the_memory_variables_signature_result =
         std::make_unique<signature>(generic_name_the_get_amount_of_items_in_the_memory_variables_signature_result);
     signature_the_get_signature_item_representation_result = std::make_unique<signature>(generic_name_the_get_signature_item_representation_result);
+    signature_the_get_signature_item_types_name_result = std::make_unique<signature>(generic_name_the_get_signature_item_types_name_result);
+
 }
 
 
@@ -1998,7 +2040,21 @@ void chomik::signature::execute_predefined_get(machine & m) const
                     .assign_value_integer(m.get_amount_of_variables_in_the_memory());
                 return;
             }
+
+            if (vector_of_items[1]->get_it_is_identifier("signature")
+                && vector_of_items[2]->get_it_is_identifier("item")
+                && vector_of_items[3]->get_it_is_identifier("types")
+                && vector_of_items[4]->get_it_is_identifier("name")
+                && vector_of_items[5]->get_it_is_integer() // index of the memory variable
+                && vector_of_items[6]->get_it_is_integer() // index of the item
+            )
+            {
+                m.get_variable_with_value(*our_common_data->signature_the_get_signature_item_types_name_result)
+                    .assign_value_string(m.get_signature_item_type_name(vector_of_items[5]->get_value_integer(), vector_of_items[6]->get_value_integer()));
+                return;
+            }
         }
+
 
         if (vector_of_items.size() == 10)
         {
