@@ -486,6 +486,7 @@ namespace chomik
         void execute_predefined_divide(machine & m) const;        
         void execute_predefined_set(machine & m) const;
         void execute_predefined_getline(machine & m) const;
+        void execute_predefined_execution(machine & m) const;
 
     public:
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
@@ -3373,9 +3374,6 @@ namespace chomik
         std::string get_signature_item_representation(int var_index, int item_index) const;
         std::string get_signature_item_type_name(int var_index, int item_index) const;
 
-
-
-
         // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }
         
@@ -3459,7 +3457,9 @@ namespace chomik
         const variable_with_value & get_variable_with_value(const signature & vn) const;
         
         variable_with_value & get_variable_with_value(const signature & vn);
-        
+
+        variable_with_value & get_variable_with_value_by_index(int index);
+
         variable_with_value::actual_memory_representation_type get_actual_memory_representation_type_of_the_variable(const signature & vn) const;
         
         std::string get_actual_text_representation_of_a_variable(const signature & vn) const;

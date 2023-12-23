@@ -206,7 +206,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -622,6 +622,15 @@ const chomik::variable_with_value & chomik::machine::get_variable_with_value(con
     
     throw std::runtime_error(s2.str());
 }
+
+
+chomik::variable_with_value & chomik::machine::get_variable_with_value_by_index(int index)
+{
+    // TODO error handling
+    return *memory[index];
+}
+
+
 
 chomik::variable_with_value & chomik::machine::get_variable_with_value(const signature & vn)
 {
@@ -2513,6 +2522,38 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
     CHOMIK_STDERR('\n');         
 }
 
+void chomik::signature::execute_predefined_execution(machine & m) const
+{
+        if (vector_of_items.size() == 6)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("of")
+                && vector_of_items[2]->get_it_is_identifier("the")
+                && vector_of_items[3]->get_it_is_identifier("memory")
+                && vector_of_items[4]->get_it_is_identifier("variables")
+                && vector_of_items[5]->get_it_is_integer())
+            {
+                int index = vector_of_items[5]->get_value_integer();
+
+
+                if (index >= 0 && index <m.get_amount_of_variables_in_the_memory())
+                {
+                    DEBUG("execution of the memory variables " << index);
+
+                        code c;
+                        m.get_variable_with_value_by_index(index).get_value_code(c);
+                        c.execute(m);
+                    return;
+                }
+            }
+        }
+
+    CHOMIK_STDERR("warning: unknown execution variable\n");
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }
+    CHOMIK_STDERR('\n');
+}
 
 
 
@@ -2576,6 +2617,11 @@ void chomik::signature::execute_predefined(machine & m) const
     if (get_it_has_prefix("getline"))
     {
         execute_predefined_getline(m);
+    }
+    else
+    if (get_it_has_prefix("execution"))
+    {
+        execute_predefined_execution(m);
     }
 }
 
