@@ -10,10 +10,12 @@
 
 void chomik::placeholder_name_item::get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const
 {
-    DEBUG("placeholder_name_item::get_result_replacing_placeholders");
+    DEBUG("get_result_replacing_placeholders");
     
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
+        DEBUG("the replacement policy recommends to replace the placeholders");
+
         switch (g.get_placeholder_with_value(placeholder).get_representation_type())
         {
             case variable_with_value::actual_memory_representation_type::INTEGER:
@@ -46,6 +48,11 @@ void chomik::placeholder_name_item::get_result_replacing_placeholders(const mach
     }
     else
     {
+        DEBUG("the replacement policy recommends to replace the placeholders: "
+            << (p.replace_known_placeholders_with_their_values() ? "true" : "false")
+            << ", and there is no such placeholder in the generator"
+        );
+
         target.add_generic_name_item(std::make_shared<placeholder_name_item>(placeholder, *type_name));
     }
 }

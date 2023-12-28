@@ -212,7 +212,8 @@ void chomik::cartesian_product_dimension::report(std::ostream & s) const
  
 void chomik::assignment_source_literal_value::report(std::ostream & s) const
 {
-    s << "literal";
+    s << "literal ";
+    my_value->report(s);
 }
 
 void chomik::assignment_source_code_pattern::report(std::ostream & s) const

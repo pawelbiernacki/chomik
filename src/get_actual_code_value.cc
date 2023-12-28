@@ -38,7 +38,9 @@ void chomik::generic_literal_code::get_actual_code_value(const machine & m, cons
     //std::cout << "we get the actual code value\n";
     DEBUG("get actual code value from " << *my_code_pointer);
 
-    my_code_pointer->get_actual_code_value(m, g, p, target);    
+    my_code_pointer->get_actual_code_value(m, g, p, target);
+
+    DEBUG("got " << target);
 }
 
  
@@ -62,6 +64,8 @@ void chomik::assignment_source_code_pattern::get_actual_code_value(const machine
 
 void chomik::assignment_source_literal_value::get_actual_code_value(const machine & m, const basic_generator & g, code & target) const
 {
+    DEBUG("get_actual_code_value");
+
     replacing_policy_literal p;
     my_value->get_actual_code_value(m, g, p, target);
 

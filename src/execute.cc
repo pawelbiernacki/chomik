@@ -276,7 +276,8 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_large_or_infi
 
     auto d{std::make_unique<description_of_a_cartesian_product>(*g)};
     auto t{std::make_unique<generic_name>(*name)};
-    
+
+    DEBUG("is it a literal " << (value->get_is_literal() ? "true": "false"));
     
     if (value->get_is_literal())
     {    
@@ -456,6 +457,24 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                     if (a->get_match(s, m, *g, mprotocol))
                     {
                         DEBUG("it is matching our signature !!!");
+
+                        DEBUG("the source is " << a->get_source());
+                        DEBUG("the generator is " << *mg);
+
+                        std::shared_ptr<basic_generator> mg2=std::make_shared<external_placeholder_generator>(__FILE__, __LINE__);
+                        mg2->set_father(mg);
+
+                        mg2->initialize_mapping(mprotocol);
+
+                        DEBUG("now the generator is " << *mg2);
+
+                        code c;
+
+                        a->get_source().get_actual_code_value(m, *mg2, c);
+
+                        DEBUG("code line number " << line_number << ": it is a code " << c);
+
+                        c.execute(m, mg2);
                     }
                     else
                     {
@@ -758,16 +777,17 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_l
 void chomik::execute_variable_value_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
     //std::cout << "execute_variable_value_statement::execute\n";
-    DEBUG("make a generator for name " << *name);
+    DEBUG("code line number " << line_number << " make a generator for name " << *name);
     
     std::shared_ptr<basic_generator> g=std::make_shared<generator>(*name, __FILE__, __LINE__);
     machine_finalization_guard<basic_generator> guard{m, *g};
 
     g->set_father(father);
 
-    DEBUG("created a generator " << *g);    
-
     g->initialize(m);
+
+    DEBUG("got father generator " << *father);
+    DEBUG("created a generator " << *g);    
 
     // "the break flag" is a predefined boolean variable used to terminate the implicit loops
     bool the_break_flag=false;

@@ -1,0 +1,27 @@
+#!/usr/local/bin/chomik
+
+# this test checks that we call a code with a string "parameter"
+
+let amount of the classes = value integer 0;
+
+let make a new class of name (NAME:string)=value code
+{
+    let current class name = value string [(NAME:string)];
+    <print "creating a new class" <current class name>>;
+    <add "integer" <amount of the classes> 1>;
+    let amount of the classes = <the add result "integer">;
+
+    let the name of the class <amount of the classes>= value string [(NAME:string)];
+};
+
+<make a new class of name "triangle">;
+
+let process on lower=value code { let the program return = value integer 1; };
+let process on greater=value code { let the program return = value integer 1; };
+let process on equal=value code { let the program return = value integer 0; <print "success!">; };
+
+<compare "integer" <amount of the classes> 1>;
+<process on <the compare result>>;
+
+
+

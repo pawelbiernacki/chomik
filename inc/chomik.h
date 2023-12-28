@@ -1652,7 +1652,7 @@ namespace chomik
         virtual bool get_the_cartesian_product_of_placeholder_types_is_empty() const override { return false; }
         
         // TODO - it is also possible for some types like range 1..1
-        virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const override { return vector_of_placeholders.size()==0; }
+        virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const override;
         
         virtual void initialize(machine & m) override;
         
@@ -1695,35 +1695,15 @@ namespace chomik
         
         virtual void initialize_mapping(const matching_protocol & mp) override;
         
-        virtual bool get_has_placeholder_with_value(const std::string & p) const override 
-        {
-            return map_placeholder_names_to_placeholders_with_value.find(p) != map_placeholder_names_to_placeholders_with_value.end();
-        }
+        virtual bool get_has_placeholder_with_value(const std::string & p) const override;
 
-        virtual placeholder_with_value& get_placeholder_with_value(const std::string & p) override
-        {
-            return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
-        }
+        virtual placeholder_with_value& get_placeholder_with_value(const std::string & p) override;
 
-        virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const override
-        {
-            return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
-        }        
+        virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const override;
         
         void clear_mappings();
         
-        void add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p)
-        {
-            std::shared_ptr<placeholder_with_value> p2{p};
-            auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
-            if (!success)
-            {
-                throw std::runtime_error("failed to insert a placeholder with value");
-            }
-            
-            memory.push_back(std::move(p));
-        }
-
+        void add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p);
     };
     
     

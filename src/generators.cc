@@ -163,15 +163,19 @@ void chomik::generator::initialize(machine & m)
 
             case variable_with_value::actual_memory_representation_type::FLOAT:
             {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 123.456, nullptr)};
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 0.0, nullptr)};
         
                 add_placeholder_with_value(std::move(x));
             }
             break;
             case variable_with_value::actual_memory_representation_type::STRING:
             {
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "hallo", nullptr)};
+                DEBUG("it is a string (" << i->get_name() << ")");
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "", nullptr)};
         
+
+                DEBUG("add placeholder with value " << *x << " to the generator " << *this);
+
                 add_placeholder_with_value(std::move(x));
             }
             break;
@@ -320,13 +324,18 @@ bool chomik::generator::get_has_placeholder_with_value(const std::string & p) co
         result = map_placeholder_names_to_placeholders_with_value.find(p)!=map_placeholder_names_to_placeholders_with_value.end();
     }
 
-    DEBUG("checking whether the generator has placeholder with value " << p << " " << (result ? "true" : "false"));
+    DEBUG("checking whether the generator created in " << my_filename << " line " << line_number << ": has placeholder with value " << p << " " << (result ? "true" : "false"));
 
     if (!result)
     {
         for (auto x: map_placeholder_names_to_placeholders_with_value)
         {
             DEBUG("placeholder name " << x.first);
+        }
+
+        for (auto &x: vector_of_placeholders)
+        {
+            DEBUG("placeholder (without value) " << x->get_name());
         }
     }
 
@@ -390,6 +399,11 @@ const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_va
         {
             message << q->first << " ";
         }        
+
+        for (auto &q:vector_of_placeholders)
+        {
+            message << q->get_name() << "# ";
+        }
         
         throw std::runtime_error(message.str());        
     }    
@@ -615,6 +629,12 @@ bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_has
 }
 
 
+bool chomik::generator::get_the_cartesian_product_of_placeholder_types_has_one_item() const
+{
+    DEBUG("the generator's vector of placeholders size equals " << vector_of_placeholders.size());
+    return vector_of_placeholders.size()==0;
+}
+
 chomik::external_placeholder_generator::external_placeholder_generator(const std::string & filename, unsigned new_line_number):
     my_filename{filename},
     line_number{new_line_number}
@@ -654,6 +674,8 @@ void chomik::external_placeholder_generator::clear_mappings()
 
 void chomik::generator::debug() const
 {
+    DEBUG("line number " << line_number << ", filename " << my_filename);
+
     DEBUG("checking whether " << *this << " has following placeholders:");
     for (auto & a: vector_of_placeholders)
     {
@@ -664,4 +686,39 @@ void chomik::generator::debug() const
     {
         DEBUG("placeholder " << a->get_name());
     }
+}
+
+
+
+bool chomik::external_placeholder_generator::get_has_placeholder_with_value(const std::string & p) const
+{
+    DEBUG("get_has_placeholder_with_value");
+    return map_placeholder_names_to_placeholders_with_value.find(p) != map_placeholder_names_to_placeholders_with_value.end();
+}
+
+chomik::placeholder_with_value& chomik::external_placeholder_generator::get_placeholder_with_value(const std::string & p)
+{
+    DEBUG("get_placeholder_with_value");
+    return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
+}
+
+const chomik::placeholder_with_value& chomik::external_placeholder_generator::get_placeholder_with_value(const std::string & p) const
+{
+    DEBUG("get_placeholder_with_value");
+    return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
+}
+
+
+void chomik::external_placeholder_generator::add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p)
+{
+    DEBUG("add_placeholder_with_value");
+
+    std::shared_ptr<placeholder_with_value> p2{p};
+    auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
+    if (!success)
+    {
+        throw std::runtime_error("failed to insert a placeholder with value");
+    }
+
+    memory.push_back(std::move(p));
 }
