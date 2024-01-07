@@ -1,0 +1,38 @@
+#!/usr/local/bin/chomik
+
+# this test is just a reminder, it always succeeds
+
+let define a new int number (NAME:string)=value code
+{
+    let name of the int number attribute 0 = value string [(NAME:string)];
+    <print "a new int number created" <name of the int number attribute 0>>;
+};
+
+
+let assign the int number (NAME:string) to be (INTEGER_VALUE:integer)=value code
+{
+    let current int number name = value string [(NAME:string)];
+    let current int number values = value integer [(INTEGER_VALUE:integer)];
+
+    let current int number id = value integer 0;
+    let int number attribute <current int number id> = <current int number values>;
+
+    <print "a new value of the int number" <current int number name> "is" <int number attribute <current int number id>>>;
+};
+
+let make a new class (NAME:string)=value code
+{
+    let current class name = value string [(NAME:string)];
+    <print "making a new class" <current class name>>;
+};
+
+<make a new class "side">;
+<make a new class "triangle">;
+<make a new class "right triangle">;
+<make a new class "hyperteneuse">;
+
+
+<define a new int number "zero">;
+<assign the int number "zero" to be 0>;
+
+

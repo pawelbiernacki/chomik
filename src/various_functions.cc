@@ -717,7 +717,7 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
     {
         DEBUG("no, it doesn't");
 
-        g.debug();
+        //g.debug();
 
         
         //target.add_content(std::make_shared<simple_value_integer_signature_item>(*this, 1));
@@ -1571,12 +1571,16 @@ int chomik::generic_literal_placeholder::get_actual_integer_value(const machine 
 std::string chomik::generic_literal_placeholder::get_actual_string_value(const machine & m, const basic_generator & g) const
 { 
     DEBUG("get actual string value for " << placeholder);
-    DEBUG("got placeholder with value " << g.get_placeholder_with_value(placeholder));
-    DEBUG("the value is " << g.get_placeholder_with_value(placeholder).get_value_string());
+    if (g.get_has_placeholder_with_value(placeholder))
+    {
+        DEBUG("got placeholder with value " << g.get_placeholder_with_value(placeholder));
+        DEBUG("the value is " << g.get_placeholder_with_value(placeholder).get_value_string());
     
-    const simple_placeholder_with_value_and_report<std::string, 3> & x{static_cast<const simple_placeholder_with_value_and_report<std::string,3>&>(g.get_placeholder_with_value(placeholder))};
+        const simple_placeholder_with_value_and_report<std::string, 3> & x{static_cast<const simple_placeholder_with_value_and_report<std::string,3>&>(g.get_placeholder_with_value(placeholder))};
     
-    return x.get_value();     
+        return x.get_value();
+    }
+    return ""; // TODO - is it OK to return it here???
 }
 
 
@@ -2900,6 +2904,9 @@ void chomik::variable_value_name_item::add_placeholders_to_generator(basic_gener
 void chomik::generic_name::add_placeholders_to_generator(basic_generator & g) const
 {
     DEBUG("add_placeholders_to_generator");
+
+    DEBUG("amount of name items " << vector_of_name_items.size());
+
     /*
     std::cout << "generic_name::add_placeholders_to_generator ";
     report(std::cout);
@@ -2914,6 +2921,7 @@ void chomik::generic_name::add_placeholders_to_generator(basic_generator & g) co
         std::cout << "\n";
         
         */
+        DEBUG("name item " << *i);
         i->add_placeholders_to_generator(g);
     }
 }

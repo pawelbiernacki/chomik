@@ -32,7 +32,7 @@ chomik::generator::generator(const generic_name & gn, const std::string & filena
     DEBUG("generator::generator got a generic name " << gn);
     DEBUG("created a new generator in " << filename << " at " << line_number << ", after initialization it is " << *this);
 
-    debug();
+    //debug();
 }
 
 bool chomik::generator::get_is_valid()

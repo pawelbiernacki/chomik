@@ -125,7 +125,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     
                 case variable_with_value::actual_memory_representation_type::STRING:
                 {
-                    DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, *g));
+                    //DEBUG("for value " << *value << " it is a string of value " << value->get_actual_string_value(m, *g));
                     auto y{std::make_shared<simple_variable_with_value_string>(std::move(x), value->get_actual_string_value(m, *g))};                    
                     m.add_variable_with_value(std::move(y));                    
                 }
@@ -786,8 +786,8 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
 
     g->initialize(m);
 
-    DEBUG("got father generator " << *father);
-    DEBUG("created a generator " << *g);    
+    //DEBUG("got father generator " << *father);
+    //DEBUG("created a generator " << *g);
 
     // "the break flag" is a predefined boolean variable used to terminate the implicit loops
     bool the_break_flag=false;

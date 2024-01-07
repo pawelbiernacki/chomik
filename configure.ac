@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([chomik], [0.1.12], [pawel.f.biernacki@gmail.com])
+AC_INIT([chomik], [0.1.13], [pawel.f.biernacki@gmail.com])
 AC_CONFIG_SRCDIR([src/chomik.cc])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE()

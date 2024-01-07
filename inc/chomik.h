@@ -1478,7 +1478,7 @@ namespace chomik
 
         virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const;
         
-        virtual void report(std::ostream & s) const = 0;
+        virtual void report(std::ostream & s) const {};
         
         virtual void add_placeholder(const std::string & p, std::shared_ptr<generic_type> && t) {}
         
