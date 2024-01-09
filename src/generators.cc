@@ -163,6 +163,7 @@ void chomik::generator::initialize(machine & m)
 
             case variable_with_value::actual_memory_representation_type::FLOAT:
             {
+                DEBUG("it is a float (" << i->get_name() << ")");
                 std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 0.0, nullptr)};
         
                 add_placeholder_with_value(std::move(x));
@@ -490,6 +491,22 @@ int chomik::generator::get_placeholder_value_integer(const std::string & p) cons
     
     return v;
 }
+
+double chomik::generator::get_placeholder_value_float(const std::string & p) const
+{
+    DEBUG("get placeholder " << p << " value float");
+
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+
+    const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
+
+    double v = y.get_value();
+
+    DEBUG("result " << std::showpoint << v);
+
+    return v;
+}
+
 
 
 void chomik::generator::get_placeholder_value_code(const std::string & p, code & target) const

@@ -600,6 +600,7 @@ int chomik::machine::get_variable_value_integer(const signature & vn) const
         
 double chomik::machine::get_variable_value_float(const signature & vn) const
 {
+    DEBUG("get float for " << vn << ", got " << get_variable_with_value(vn).get_value_float() << ", an object of class " << get_variable_with_value(vn).get_debug_type_name());
     return get_variable_with_value(vn).get_value_float();
 }
         
@@ -979,10 +980,12 @@ bool chomik::simple_value_float_signature_item::get_match(const generic_name_ite
     {
         if (target.get_is_placeholder_bound_as_float(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
         {
-            return value == target.get_placeholder_value_float(gni.get_placeholder_name());   
+            DEBUG(gni.get_placeholder_name() << " has already been bound");
+            return value == target.get_placeholder_value_float(gni.get_placeholder_name());
         }
         else
         {
+            DEBUG("bind " << gni.get_placeholder_name() << " as " << std::showpoint << value);
             target.bind_placeholder_as_float(gni.get_placeholder_name(), value);
             return target.get_is_successful();
         }
@@ -1567,6 +1570,26 @@ int chomik::generic_literal_placeholder::get_actual_integer_value(const machine 
     return 0;
 }
 
+double chomik::generic_literal_placeholder::get_actual_float_value(const machine & m, const basic_generator & g) const
+{
+    DEBUG("get generic literal placeholder value for " << placeholder << ", generator " << g);
+
+    if (g.get_has_placeholder_with_value(placeholder))
+    {
+        DEBUG("got " << g.get_placeholder_value_float(placeholder));
+        return g.get_placeholder_value_float(placeholder);
+    }
+
+    g.debug();
+
+    std::stringstream s;
+    s << "for placeholder " << placeholder << " the generator " << g << " does not contain any value";
+    throw std::runtime_error(s.str());
+
+    return 0;
+}
+
+
 
 std::string chomik::generic_literal_placeholder::get_actual_string_value(const machine & m, const basic_generator & g) const
 { 
@@ -1594,6 +1617,18 @@ int chomik::generic_value_variable_value::get_actual_integer_value(const machine
     
     return v;
 }
+
+double chomik::generic_value_variable_value::get_actual_float_value(const machine & m, const basic_generator & g) const
+{
+    signature s{*name, m, g};
+    double v{m.get_variable_value_float(s)};
+
+    DEBUG("get float value for " << s << ", it equals " << std::showpoint << v);
+
+    return v;
+}
+
+
 
 
 std::string chomik::generic_value_variable_value::get_actual_string_value(const machine & m, const basic_generator & g) const
@@ -2313,10 +2348,10 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                 {                                
                     std::string s = "";
                     
-                    float a = vector_of_items[2]->get_value_float();
-                    float b = vector_of_items[3]->get_value_float();
+                    double a = vector_of_items[2]->get_value_float();
+                    double b = vector_of_items[3]->get_value_float();
                     
-                    DEBUG("got " << a << " and " << b);
+                    DEBUG("got " << std::showpoint << a << " and " << std::showpoint << b);
                     
                     if (a < b)
                     {
@@ -2329,7 +2364,7 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                     }
                     else
                     {
-                        s = "equal";    // comparison of floats for equality makes little sense, but we allow it
+                        s = "equal";    // comparison of floats (in fact doubles) for equality makes little sense, but we allow it
                     }
                 
                     m.get_variable_with_value(*our_common_data->signature_the_compare_result).assign_value_enum(s);                                        
@@ -3274,6 +3309,12 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
         
         target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr));
     }    
+    for (auto a=map_placeholder_names_to_float.begin(); a!=map_placeholder_names_to_float.end(); a++)
+    {
+        DEBUG("add placeholder float " << std::showpoint << a->second << " -> " << a->first);
+
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(a->first, a->second, nullptr));
+    }
     for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
     {
         DEBUG("add placeholder string " << a->second << " -> " << a->first);

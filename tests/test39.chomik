@@ -1,0 +1,35 @@
+#!/usr/local/bin/chomik
+
+variable x "PI":float;
+
+let assign the real number (NAME:string) to be (FLOAT_VALUE:float)=value code
+{
+    let current real number name = value string [(NAME:string)];
+    let current real number values = value float [(FLOAT_VALUE:float)];
+
+    <print "assigning" <current real number values>>;
+    let x <current real number name>= <current real number values>;
+};
+
+variable process on (C:compare_result):code;
+let process on lower = value code { let the program return = value integer 1; };
+let process on greater = value code { let the program return = value integer 0; }; # it should be greater than 0.0
+let process on equal = value code { let the program return = value integer 1; };
+
+let check that x is greater than zero=value code
+{
+    <compare "float" <x "PI"> 0.0>;
+    <print "comparison result" <the compare result>>;
+
+    <process on <the compare result>>;
+};
+
+
+<assign the real number "PI" to be 3.14159>;
+
+<print <x "PI">>;
+
+<check that x is greater than zero>;
+
+<print memory report>;
+

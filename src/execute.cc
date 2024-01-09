@@ -63,6 +63,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     
                 case variable_with_value::actual_memory_representation_type::FLOAT:
                     //std::cout << "it is float\n";
+                    DEBUG(m.get_variable_with_value(*x).get_debug_type_name() << " signature " << *x << " is assigned with " << value->get_actual_float_value(m, *g));
                     m.get_variable_with_value(*x).assign_value_float(value->get_actual_float_value(m, *g));
                     break;
                     
@@ -118,6 +119,9 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                 case variable_with_value::actual_memory_representation_type::FLOAT:
                 {
                     //std::cout << "it should be float\n";
+
+                    DEBUG("for " << *value << " got float value " << value->get_actual_float_value(m, *g));
+
                     auto y{std::make_shared<simple_variable_with_value_float>(std::move(x), value->get_actual_float_value(m, *g))};
                     m.add_variable_with_value(std::move(y));                    
                 }
@@ -423,7 +427,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::ENUM:
-                        CHOMIK_STDERR("warning: cannot execute a float!\n");
+                        CHOMIK_STDERR("warning: cannot execute an enum!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::CODE:

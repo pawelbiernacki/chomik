@@ -83,6 +83,8 @@ namespace chomik
         virtual void assign_value_enum(std::string v) {}
         
         virtual void assign_value_code(const code & ci) {}
+
+        virtual std::string get_debug_type_name() const { return "variable_with_value"; }
     };
     
     
@@ -1486,7 +1488,7 @@ namespace chomik
                 
         virtual int get_placeholder_value_integer(const std::string & p) const;
         
-        double get_placeholder_value_float(const std::string & p) const;
+        virtual double get_placeholder_value_float(const std::string & p) const;
         
         std::string get_placeholder_value_string(const std::string & p) const;
         
@@ -1620,6 +1622,8 @@ namespace chomik
         virtual const placeholder_with_value& get_placeholder_with_value(const std::string & p) const override;
         
         virtual int get_placeholder_value_integer(const std::string & p) const override;
+
+        virtual double get_placeholder_value_float(const std::string & p) const override;
 
         virtual void get_placeholder_value_code(const std::string & p, code & target) const override;
         
@@ -2055,7 +2059,7 @@ namespace chomik
         
         virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override;
         
-        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override { return 0.0; }
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override;
         
         virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override;
         
@@ -2142,6 +2146,8 @@ namespace chomik
         virtual std::string get_actual_string_value(const machine & m, const basic_generator & g) const override;
         
         virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override;
+
+        virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override;
 
         virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
@@ -3018,6 +3024,8 @@ namespace chomik
         {
             return static_cast<actual_memory_representation_type>(REPRESENTATION_TYPE);
         }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value<>"; }
     };
     
     class simple_variable_with_value_integer: public simple_variable_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
@@ -3028,6 +3036,8 @@ namespace chomik
         virtual int get_value_integer() const override { return value; }
         
         virtual void assign_value_integer(int v) override { value = v; }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_integer"; }
         
     };
     
@@ -3039,6 +3049,8 @@ namespace chomik
         virtual double get_value_float() const override { return value; }
         
         virtual void assign_value_float(double v) override { value = v; }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_float"; }
     };
 
     class simple_variable_with_value_string: public simple_variable_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>
@@ -3049,6 +3061,8 @@ namespace chomik
         virtual std::string get_value_string() const override { return value; }        
         
         virtual void assign_value_string(std::string v) override { value = v; }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_string"; }
     };
     
     class simple_variable_with_value_enum: public simple_variable_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
@@ -3059,6 +3073,8 @@ namespace chomik
         virtual std::string get_value_enum() const override { return value; }
         
         virtual void assign_value_enum(std::string v) override { value = v; }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_enum"; }
     };
     
     /**
@@ -3081,6 +3097,8 @@ namespace chomik
         {
             return actual_memory_representation_type::CODE;
         }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_code"; }
     };
     
     
