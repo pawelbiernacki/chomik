@@ -19,6 +19,8 @@ int main(int argc, char * argv[])
     int i;
     bool program_report_flag = false, version_flag=false, memory_report_flag=false;
     std::string filename="";
+
+    chomik::parser::register_parser(&the_parser);
     
     if (argc < 2)
     {

@@ -1,7 +1,6 @@
 #include "chomik.h"
 
-extern chomik::parser the_parser;
-
+chomik::parser * chomik::parser::the_parser_pointer = nullptr;
 
 extern "C" void * chomik_create_generic_type_named(const char * const type_name)
 {
@@ -30,7 +29,8 @@ extern "C" void * chomik_create_type_definition(const char * const type_name, vo
 
 extern "C" void chomik_copy_list_of_statements_to_the_program(void * const l)
 {
-    the_parser.copy_list_of_statements_to_the_program(static_cast<chomik::list_of_statements*>(l));    
+    if (chomik::parser::get_parser_pointer() != nullptr)
+        chomik::parser::get_parser_pointer()->copy_list_of_statements_to_the_program(static_cast<chomik::list_of_statements*>(l));
 }
 
 extern "C" void chomik_destroy_list_of_statements(void * const l)

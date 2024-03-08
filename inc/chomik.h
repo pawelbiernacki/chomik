@@ -3583,8 +3583,13 @@ namespace chomik
     {
     private:
         program & my_program;
-        
+
+        static parser * the_parser_pointer;
+
     public:
+        static void register_parser(parser * p) { the_parser_pointer = p; }
+        static parser * get_parser_pointer() { return the_parser_pointer; }
+
         parser(program & p);
                 
         int parse(const char * filename);

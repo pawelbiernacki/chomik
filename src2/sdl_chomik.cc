@@ -497,6 +497,8 @@ chomik::parser the_parser{the_program};
 
 int main(int argc, char * argv[])
 {
+    chomik::parser::register_parser(&the_parser);
+
     int return_value = 0;
     if (argc != 2)
     {

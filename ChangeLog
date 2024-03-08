@@ -12,3 +12,4 @@ YYYY-MM-DD
 2023-03-26  passing code placeholders
 2023-03-29  release 0.0.9
 2023-04-04  release 0.1.0
+2024-02-18  release 0.1.15 - chomik::parser::register_parser is mandatory!!!

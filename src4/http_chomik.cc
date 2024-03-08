@@ -29,6 +29,8 @@ chomik::parser the_parser{the_program};
 
 int main(int argc, char * argv[])
 {
+    chomik::parser::register_parser(&the_parser);
+
     std::cout << "http_chomik, copyright by Pawel Biernacki\n";
 	std::cout << "Vantaa 2022\n";
 	std::cout << PACKAGE_URL << "\n";

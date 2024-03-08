@@ -441,6 +441,8 @@ void fancy_http_chomik::server::add_html_body_for_code(std::ostream & message_st
 
 int main(int argc, char * argv[])
 {
+    chomik::parser::register_parser(&the_parser);
+
     std::cout << "fancy_http_chomik, copyright by Pawel Biernacki\n";
 	std::cout << "Vantaa 2022\n";
 	std::cout << PACKAGE_URL << "\n";
