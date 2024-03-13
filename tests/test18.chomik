@@ -37,20 +37,20 @@ let stop search on greater=value code {};
 let stop search on equal=value code { let the break flag = value boolean true; };
 
 variable current object id:integer;
-variable match the search argument (Q:boolean):code;
-let match the search argument true=value code {};
-let match the search argument false=value code { let search response <current object id>=value boolean false; };
+variable matching the search argument (Q:boolean):code;
+let matching the search argument true=value code {};
+let matching the search argument false=value code { let search response <current object id>=value boolean false; };
 
-variable match result:boolean;
-let match result=value boolean false;
+variable matching result:boolean;
+let matching result=value boolean false;
 
 
 variable on search argument (B:boolean) do processing:code;
 let on search argument false do processing = value code {};
 let on search argument true do processing = value code 
 {
-    let match result=<object <current object id> has attribute <search argument <current argument number>>>;
-    <match the search argument <match result>>;
+    let matching result=<object <current object id> has attribute <search argument <current argument number>>>;
+    <matching the search argument <matching result>>;
 };
 
 

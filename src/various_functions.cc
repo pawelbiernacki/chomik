@@ -206,7 +206,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution", "match"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -1499,6 +1499,43 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_getline_result=std::make_shared<signature>(gn27);
     add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_getline_result), ""));
 
+    generic_name gn28;
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("regular"));
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("expression"));
+    gn28.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+    std::shared_ptr<signature> the_created_signature_regular_expression_index=std::make_shared<signature>(gn28);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_created_signature_regular_expression_index), 0));  //
+
+    for (int i = 1; i<=max_match_group_index; i++)
+    {
+        generic_name gn29;
+        gn29.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+        gn29.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+        gn29.add_generic_name_item(std::make_shared<identifier_name_item>("group"));
+        gn29.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+        gn29.add_generic_name_item(std::make_shared<name_item_integer>(i));
+        std::shared_ptr<signature> the_match_group_integer_x=std::make_shared<signature>(gn29);
+        add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_match_group_integer_x), 0));
+    }
+
+    generic_name gn30;
+    gn30.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn30.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+    gn30.add_generic_name_item(std::make_shared<identifier_name_item>("expression"));
+    gn30.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+    std::shared_ptr<signature> the_match_expression_index=std::make_shared<signature>(gn30);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_match_expression_index), 0));
+
+    generic_name gn31;
+    gn31.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn31.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+    gn31.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    std::shared_ptr<signature> the_match_result=std::make_shared<signature>(gn31);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_match_result), "false"));
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -1648,6 +1685,265 @@ std::string chomik::generic_value_variable_value::get_actual_enum_value(const ma
 }
 
 std::unique_ptr<chomik::signature_common_data> chomik::signature::our_common_data=std::make_unique<signature_common_data>();
+
+
+
+chomik::signature_regular_expression::signature_regular_expression(const std::string & c): my_signature_regular_expression_code{c}
+{
+    parse(my_signature_regular_expression_code);
+}
+
+
+void chomik::signature_regular_expression::parse(const std::string & c)
+{
+    state my_state = state::INITIAL;
+    std::stringstream s(c);
+    std::stringstream id;
+    std::string placeholder_name;
+    char x;
+    std::stringstream regular_expression_code_stream;
+
+    my_name = std::make_unique<generic_name>();
+
+    do
+    {
+        x = s.get();
+        if (s.good())
+        {
+            //std::cout << "state " << static_cast<int>(my_state) << "\n";
+            switch (my_state)
+            {
+                case state::INITIAL:
+                    if (std::isblank(x))
+                    {
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        my_state = state::IDENTIFIER;
+                        id.str("");
+                        id.clear();
+                        id << x;
+                        continue;
+                    }
+                    else
+                    if (x == '(')
+                    {
+                        my_state = state::PLACEHOLDER_1;
+                        id.str("");
+                        id.clear();
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error1");
+                    }
+                    break;
+
+                case state::IDENTIFIER:
+                    if (std::isblank(x))
+                    {
+                        //std::cout << "identifier " << id.str() << "\n";
+                        regular_expression_code_stream << id.str();
+
+                        std::shared_ptr<generic_name_item> my_name_item=std::make_shared<identifier_name_item>(id.str());
+                        vector_of_items.push_back(std::make_shared<simple_value_enum_signature_item>(*my_name_item, id.str()));
+
+                        my_name->add_generic_name_item(std::move(my_name_item));
+
+                        my_state = state::INITIAL;
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        id << x;
+                        continue;
+                    }
+                    else
+                    if (x == '(')
+                    {
+                        //std::cout << "identifier " << id.str() << "\n";
+                        regular_expression_code_stream << id.str();
+
+                        std::shared_ptr<generic_name_item> my_name_item=std::make_shared<identifier_name_item>(id.str());
+                        vector_of_items.push_back(std::make_shared<simple_value_enum_signature_item>(*my_name_item, id.str()));
+
+                        my_name->add_generic_name_item(std::move(my_name_item));
+
+                        my_state = state::PLACEHOLDER_1;
+                        id.str("");
+                        id.clear();
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error2");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_1:
+                    if (std::isblank(x))
+                    {
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        my_state = state::PLACEHOLDER_2;
+                        id.str("");
+                        id.clear();
+                        id << x;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error3");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_2:
+                    if (std::isblank(x))
+                    {
+                        my_state = state::PLACEHOLDER_3;
+                        //std::cout << "placeholder " << id.str() << "\n";
+                        placeholder_name = id.str();
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        id << x;
+                        continue;
+                    }
+                    else
+                    if (x == ':')
+                    {
+                        //std::cout << "placeholder " << id.str() << "\n";
+                        placeholder_name = id.str();
+                        my_state = state::PLACEHOLDER_4;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error4");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_3:
+                    if (std::isblank(x))
+                    {
+                        continue;
+                    }
+                    else
+                    if (x == ':')
+                    {
+                        my_state = state::PLACEHOLDER_4;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error5");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_4:
+                    if (std::isblank(x))
+                    {
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        my_state = state::PLACEHOLDER_5;
+                        id.str("");
+                        id.clear();
+                        id << x;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error6");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_5:
+                    if (std::isblank(x))
+                    {
+                        //std::cout << "placeholder_type " << id.str() << "\n";
+                        if (id.str() == "integer")
+                        {
+                            regular_expression_code_stream << "(\\d+)";
+                        }
+                        else
+                        {
+                            std::stringstream error_message_stream;
+                            error_message_stream << "integer expected, got \"" << id.str() << "\"";
+                            throw std::runtime_error(error_message_stream.str());
+                        }
+
+                        my_state = state::PLACEHOLDER_6;
+                        continue;
+                    }
+                    else
+                    if (std::isalpha(x) || x=='_')
+                    {
+                        id << x;
+                        continue;
+                    }
+                    else
+                    if (x == ')')
+                    {
+                        //std::cout << "placeholder_type " << id.str() << "\n";
+                        if (id.str() == "integer")
+                        {
+                            regular_expression_code_stream << "(\\d+)";
+                        }
+                        else
+                        {
+                            std::stringstream error_message_stream;
+                            error_message_stream << "integer expected, got \"" << id.str() << "\"";
+                            throw std::runtime_error(error_message_stream.str());
+                        }
+
+                        my_state = state::INITIAL;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error7");
+                    }
+                    break;
+
+                case state::PLACEHOLDER_6:
+                    if (std::isblank(x))
+                    {
+                        continue;
+                    }
+                    else
+                    if (x == ')')
+                    {
+                        my_state = state::INITIAL;
+                        continue;
+                    }
+                    else
+                    {
+                        throw std::runtime_error("error8");
+                    }
+                    break;
+            }
+        }
+    }
+    while (!s.eof());
+
+    //std::cout << "regular_expression_code=" << regular_expression_code_stream.str() << "\n";
+
+    my_regular_expression = std::make_unique<std::regex>(regular_expression_code_stream.str());
+
+
+}
+
 
 chomik::signature_common_data::signature_common_data()
 {    
@@ -1812,7 +2108,22 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_getline_result.add_generic_name_item(std::make_shared<identifier_name_item>("getline"));
     generic_name_the_getline_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
-    
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("created"));
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("signature"));
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("regular"));
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("expression"));
+    generic_name_the_created_signature_regular_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+
+    generic_name_the_match_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_match_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+    generic_name_the_match_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("expression"));
+    generic_name_the_match_expression_index.add_generic_name_item(std::make_shared<identifier_name_item>("index"));
+
+    generic_name_the_match_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_match_result.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+    generic_name_the_match_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
     signature_the_print_end_of_line = std::make_unique<signature>(generic_name_the_print_end_of_line);
@@ -1838,6 +2149,21 @@ chomik::signature_common_data::signature_common_data()
     signature_the_get_signature_item_types_name_result = std::make_unique<signature>(generic_name_the_get_signature_item_types_name_result);
     signature_the_getline_stream_index = std::make_unique<signature>(generic_name_the_getline_stream_index);
     signature_the_getline_result = std::make_unique<signature>(generic_name_the_getline_result);
+    signature_the_created_signature_regular_expression_index = std::make_unique<signature>(generic_name_the_created_signature_regular_expression_index);
+    signature_the_match_expression_index = std::make_unique<signature>(generic_name_the_match_expression_index);
+    signature_the_match_result = std::make_unique<signature>(generic_name_the_match_result);
+
+    for (int i=1; i<=machine::max_match_group_index; i++)
+    {
+        generic_name gn;
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+        gn.add_generic_name_item(std::make_shared<identifier_name_item>("group"));
+        gn.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+        gn.add_generic_name_item(std::make_shared<name_item_integer>(i));
+        std::unique_ptr<signature> the_match_group_integer_x=std::make_unique<signature>(gn);
+        signature_the_match_group_integer_x.push_back(std::move(the_match_group_integer_x));
+    }
 }
 
 
@@ -1953,6 +2279,27 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
                 
+                return;
+            }
+        }
+        else
+        if (vector_of_items.size() == 6)
+        {
+            if (vector_of_items[1]->get_it_is_identifier("new")
+                && vector_of_items[2]->get_it_is_identifier("signature")
+                && vector_of_items[3]->get_it_is_identifier("regular")
+                && vector_of_items[4]->get_it_is_identifier("expression")
+                && vector_of_items[5]->get_it_is_string()
+                )
+            {
+                // here we parse the signature regular expression
+                m.add_signature_regular_expression(std::make_unique<signature_regular_expression>(vector_of_items[5]->get_value_string()));
+
+                DEBUG("assign value integer " << m.get_last_created_signature_regular_expression_index());
+
+                m.get_variable_with_value(
+                    *our_common_data->signature_the_created_signature_regular_expression_index)
+                        .assign_value_integer(m.get_last_created_signature_regular_expression_index());
                 return;
             }
         }
@@ -2595,6 +2942,58 @@ void chomik::signature::execute_predefined_execution(machine & m) const
 }
 
 
+void chomik::signature::execute_predefined_match(machine & m) const
+{
+    if (vector_of_items.size() >= 2)
+    {
+        int index = m.get_variable_with_value(*our_common_data->signature_the_match_expression_index).get_value_integer();
+
+        DEBUG("value of the match expression index " << index);
+        if (index >= 0 && index < m.get_amount_of_signature_regular_expressions())
+        {
+            std::stringstream matched_string_stream;
+            for (int i=1; i<vector_of_items.size(); i++)
+            {
+                matched_string_stream << vector_of_items[i]->get_string_representation();
+            }
+            std::string matched_string{matched_string_stream.str()};
+
+            signature_regular_expression& se{m.get_signature_regular_expression(index)};
+            std::smatch my_smatch;
+
+            bool result = std::regex_match(matched_string, my_smatch, se.get_regular_expression());
+
+            if (result)
+            {
+                for (int i=1; i<my_smatch.size(); i++)
+                {
+                    if (i < machine::max_match_group_index)
+                    {
+                        //std::cout << "got " << my_smatch[i] << "\n";
+
+                        try {
+                            m.get_variable_with_value(*our_common_data->signature_the_match_group_integer_x[i - 1]).assign_value_integer(std::stoi(my_smatch[i]));
+                        }
+                        catch (...)
+                        {
+                            CHOMIK_STDERR("error on " << my_smatch[i] << '\n');
+                        }
+                    }
+                }
+            }
+            m.get_variable_with_value(*our_common_data->signature_the_match_result).assign_value_enum(result ? "true" : "false");
+        }
+        return;
+    }
+
+    CHOMIK_STDERR("warning: unknown match variable\n");
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }
+    CHOMIK_STDERR('\n');
+}
+
 
 void chomik::signature::execute_predefined(machine & m) const
 {
@@ -2661,6 +3060,11 @@ void chomik::signature::execute_predefined(machine & m) const
     if (get_it_has_prefix("execution"))
     {
         execute_predefined_execution(m);
+    }
+    else
+    if (get_it_has_prefix("match"))
+    {
+        execute_predefined_match(m);
     }
 }
 

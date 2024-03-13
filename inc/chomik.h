@@ -10,6 +10,7 @@
 #include <fstream>
 #include <random>
 #include <iomanip>
+#include <regex>
 
 //#define CHOMIK_DONT_USE_OPTIMIZATIONS
 // disable this flag to build an optimized chomik
@@ -489,6 +490,7 @@ namespace chomik
         void execute_predefined_set(machine & m) const;
         void execute_predefined_getline(machine & m) const;
         void execute_predefined_execution(machine & m) const;
+        void execute_predefined_match(machine & m) const;
 
     public:
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
@@ -511,6 +513,32 @@ namespace chomik
         void execute_predefined(machine & m) const;
         
         const std::vector<std::shared_ptr<signature_item>> & get_vector_of_items() const { return vector_of_items; }            
+    };
+
+    /**
+     * This is a kind of "regular expression" used to match signatures.
+     */
+    class signature_regular_expression
+    {
+    private:
+        const std::string my_signature_regular_expression_code;
+
+        std::unique_ptr<generic_name> my_name;
+
+        std::vector<std::shared_ptr<signature_item>> vector_of_items;
+
+        std::unique_ptr<std::regex> my_regular_expression;
+
+        enum class state { INITIAL, IDENTIFIER, PLACEHOLDER_1, PLACEHOLDER_2, PLACEHOLDER_3, PLACEHOLDER_4, PLACEHOLDER_5, PLACEHOLDER_6 };
+
+        void parse(const std::string & c);
+
+    public:
+        signature_regular_expression(const std::string & c);
+
+        const std::vector<std::shared_ptr<signature_item>> & get_vector_of_items() const { return vector_of_items; }
+
+        std::regex& get_regular_expression() { return *my_regular_expression; }
     };
     
     
@@ -1159,7 +1187,10 @@ namespace chomik
                             generic_name_the_get_signature_item_representation_result,
                             generic_name_the_get_signature_item_types_name_result,
                             generic_name_the_getline_stream_index,
-                            generic_name_the_getline_result;
+                            generic_name_the_getline_result,
+                            generic_name_the_created_signature_regular_expression_index,
+                            generic_name_the_match_expression_index,
+                            generic_name_the_match_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1184,7 +1215,12 @@ namespace chomik
                                     signature_the_get_signature_item_representation_result,
                                     signature_the_get_signature_item_types_name_result,
                                     signature_the_getline_stream_index,
-                                    signature_the_getline_result;
+                                    signature_the_getline_result,
+                                    signature_the_created_signature_regular_expression_index,
+                                    signature_the_match_expression_index,
+                                    signature_the_match_result;
+
+        std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
     public:
         signature_common_data();
         ~signature_common_data() {}
@@ -3344,6 +3380,11 @@ namespace chomik
      */
     class machine
     {
+    private:
+        friend class signature_common_data;
+        friend class signature;
+        static constexpr int max_match_group_index = 10;
+
     protected:
         std::vector<std::shared_ptr<const statement>> vector_of_type_definiton_statements;
         std::vector<std::shared_ptr<const statement>> vector_of_variable_definition_statements;
@@ -3360,6 +3401,8 @@ namespace chomik
         std::map<std::string, std::shared_ptr<variable_with_value>> map_signature_string_representation_to_variable_with_value;
         
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
+
+        std::vector<std::unique_ptr<signature_regular_expression>> vector_of_signature_regular_expressions;
                 
     public:
         // these methods are useful for certain reflection-like capabilities
@@ -3381,6 +3424,10 @@ namespace chomik
         
         const std::vector<std::unique_ptr<assignment_event>> & get_vector_of_assignment_events() const { return vector_of_assignment_events; }
         
+        void add_signature_regular_expression(std::unique_ptr<signature_regular_expression> && e)
+        {
+            vector_of_signature_regular_expressions.push_back(std::move(e));
+        }
         
         void add_stream(std::unique_ptr<generic_stream> && s)
         {
@@ -3484,10 +3531,16 @@ namespace chomik
 
         
         int get_last_created_stream_index() const { return vector_of_streams.size()-1; } // because we only create streams, we do not delete them (this may change!!!)
+
+        int get_last_created_signature_regular_expression_index() const { return vector_of_signature_regular_expressions.size()-1; } // because we only create signature regular expressions, we do not delete them (this may change!!!)
         
         int get_amount_of_streams() const { return vector_of_streams.size(); }
+
+        int get_amount_of_signature_regular_expressions() const { return vector_of_signature_regular_expressions.size(); }
         
         generic_stream& get_stream(int i) { return *vector_of_streams[i]; }
+
+        signature_regular_expression& get_signature_regular_expression(int i) { return *vector_of_signature_regular_expressions[i]; }
 
         type_instance* create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn);
 
