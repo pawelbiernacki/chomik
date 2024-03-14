@@ -1519,6 +1519,15 @@ void chomik::machine::create_predefined_variables()
         gn29.add_generic_name_item(std::make_shared<name_item_integer>(i));
         std::shared_ptr<signature> the_match_group_integer_x=std::make_shared<signature>(gn29);
         add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_match_group_integer_x), 0));
+
+        generic_name gn292;
+        gn292.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+        gn292.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+        gn292.add_generic_name_item(std::make_shared<identifier_name_item>("group"));
+        gn292.add_generic_name_item(std::make_shared<name_item_string>("boolean"));
+        gn292.add_generic_name_item(std::make_shared<name_item_integer>(i));
+        std::shared_ptr<signature> the_match_group_boolean_x=std::make_shared<signature>(gn292);
+        add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_match_group_boolean_x), "false"));
     }
 
     generic_name gn30;
@@ -1877,6 +1886,11 @@ void chomik::signature_regular_expression::parse(const std::string & c)
                             regular_expression_code_stream << "(\\d+)";
                         }
                         else
+                        if (id.str() == "boolean")
+                        {
+                            regular_expression_code_stream << "(false|true)";
+                        }
+                        else
                         {
                             std::stringstream error_message_stream;
                             error_message_stream << "integer expected, got \"" << id.str() << "\"";
@@ -1899,6 +1913,11 @@ void chomik::signature_regular_expression::parse(const std::string & c)
                         if (id.str() == "integer")
                         {
                             regular_expression_code_stream << "(\\d+)";
+                        }
+                        else
+                        if (id.str() == "boolean")
+                        {
+                            regular_expression_code_stream << "(false|true)";
                         }
                         else
                         {
@@ -2163,6 +2182,15 @@ chomik::signature_common_data::signature_common_data()
         gn.add_generic_name_item(std::make_shared<name_item_integer>(i));
         std::unique_ptr<signature> the_match_group_integer_x=std::make_unique<signature>(gn);
         signature_the_match_group_integer_x.push_back(std::move(the_match_group_integer_x));
+
+        generic_name gn2;
+        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
+        gn2.add_generic_name_item(std::make_shared<identifier_name_item>("group"));
+        gn2.add_generic_name_item(std::make_shared<name_item_string>("boolean"));
+        gn2.add_generic_name_item(std::make_shared<name_item_integer>(i));
+        std::unique_ptr<signature> the_match_group_boolean_x=std::make_unique<signature>(gn2);
+        signature_the_match_group_boolean_x.push_back(std::move(the_match_group_boolean_x));
     }
 }
 
@@ -2972,7 +3000,15 @@ void chomik::signature::execute_predefined_match(machine & m) const
                         //std::cout << "got " << my_smatch[i] << "\n";
 
                         try {
-                            m.get_variable_with_value(*our_common_data->signature_the_match_group_integer_x[i - 1]).assign_value_integer(std::stoi(my_smatch[i]));
+
+                            if (my_smatch[i] == "false" || my_smatch[i] == "true")
+                            {
+                                m.get_variable_with_value(*our_common_data->signature_the_match_group_boolean_x[i - 1]).assign_value_enum(my_smatch[i]);
+                            }
+                            else
+                            {
+                                m.get_variable_with_value(*our_common_data->signature_the_match_group_integer_x[i - 1]).assign_value_integer(std::stoi(my_smatch[i]));
+                            }
                         }
                         catch (...)
                         {

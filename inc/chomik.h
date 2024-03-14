@@ -1221,6 +1221,8 @@ namespace chomik
                                     signature_the_match_result;
 
         std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
+        std::vector<std::unique_ptr<signature>> signature_the_match_group_boolean_x;
+
     public:
         signature_common_data();
         ~signature_common_data() {}

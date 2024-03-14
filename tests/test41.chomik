@@ -1,0 +1,31 @@
+#!/usr/local/bin/chomik
+
+let max amount of persons = value integer 10;
+
+type person_id = 1..<max amount of persons>;
+type information = { person (X:person_id) likes person (Y:person_id) is (B:boolean)};
+
+expand(2);
+
+
+# a new "create", for "signature regular expressions", used for matching
+
+<create new signature regular expression "person (X:integer) likes person (Y:integer) is (B:boolean)">;
+let my signature regular expression index = <the created signature regular expression index>;
+
+let the match expression index = <my signature regular expression index>;
+<match person2likesperson3isfalse>;  # for the signature 'person 2 likes person 3 is false', the result should be true
+
+<print <the match result>>;
+<print <the match group "boolean" 3>>;
+
+let the program return = value integer 1;
+
+variable on compare result set the program return (X:compare_result):code;
+let on compare result set the program return lower = value code {};
+let on compare result set the program return greater = value code {};
+let on compare result set the program return equal = value code { let the program return = value integer 0; };
+
+
+<compare "boolean" false <the match group "boolean" 3>>;
+<on compare result set the program return <the compare result>>;
