@@ -1,0 +1,34 @@
+#!/usr/local/bin/chomik
+
+
+type coordinate_type = { x, y };
+expand(1);
+
+
+<create new input random number stream "integer" 0 800>;
+let my random x coordinate stream index = <the created stream index>;
+
+<create new input random number stream "integer" 0 600>;
+let my random y coordinate stream index = <the created stream index>;
+
+
+let generate new coordinate (COORDINATE_TYPE:coordinate_type)=value code
+{
+    let current coordinate = value coordinate_type [(COORDINATE_TYPE:coordinate_type)];
+
+
+    let the read from stream source stream index = <my random <current coordinate> coordinate stream index>;
+    <read from stream "integer">;
+    let current place <current coordinate> = <the read from stream result "integer">;
+
+    <print "generate a new coordinate" <current coordinate> "=" <current place <current coordinate>>>;
+};
+
+
+<generate new coordinate (COORDINATE_TYPE:coordinate_type)>;
+
+
+# this test just generates two random coordinates, it should always succeed
+
+let the program return = value integer 0;
+
