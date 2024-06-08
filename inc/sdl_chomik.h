@@ -24,6 +24,8 @@ namespace sdl_chomik
         std::vector<std::unique_ptr<font>> vector_of_fonts;
 
         int window_width, window_height;
+
+        bool close = false;
         
     public:
         machine(int w, int h);

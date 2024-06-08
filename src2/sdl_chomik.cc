@@ -211,7 +211,12 @@ bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature
         {
             return true;
         }
-    }        
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("sdl")
+            && s.get_vector_of_items()[1]->get_it_is_identifier("quit"))
+        {
+            return true;
+        }
+    }
     else
     if (s.get_vector_of_items().size() == 4)
     {
@@ -277,8 +282,6 @@ void sdl_chomik::machine::execute_user_defined_executable(const chomik::signatur
         if (s.get_vector_of_items()[0]->get_it_is_identifier("sdl") 
             && s.get_vector_of_items()[1]->get_it_is_identifier("loop"))
         {
-            bool close=false;
-            
             while (!close) 
             {
                 SDL_Event event;
@@ -431,6 +434,12 @@ void sdl_chomik::machine::execute_user_defined_executable(const chomik::signatur
                 
                 SDL_Delay(1000 / 60);
             }            
+        }
+        else
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("sdl")
+            && s.get_vector_of_items()[1]->get_it_is_identifier("quit"))
+        {
+            close = true;
         }
     }
     else

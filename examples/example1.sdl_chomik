@@ -148,24 +148,29 @@ let variable move_pink_monkey=value code
 };
 
 
-let variable on key left = value code
+let on key left = value code
 {
     let variable monkey dx = value integer -10;
 };
 
-let variable on key right = value code
+let on key right = value code
 {
     let variable monkey dx = value integer 10;
 };
 
-let variable on key up = value code
+let on key up = value code
 {
     let variable monkey dy = value integer -10;
 };
 
-let variable on key down = value code
+let on key down = value code
 {
     let variable monkey dy = value integer 10;
+};
+
+let on key escape = value code
+{
+    <sdl quit>;
 };
 
 
@@ -190,7 +195,7 @@ let draw background=value code
 };
 
 
-let variable sdl loop body = value code 
+let sdl loop body = value code
 { 
     <draw background>;
     <show_blue_monkeys>;
