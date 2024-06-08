@@ -74,9 +74,9 @@ sdl_chomik::image::~image()
     SDL_DestroyTexture(tex);
 }
 
-sdl_chomik::machine::machine()
+sdl_chomik::machine::machine(int w, int h): window_width{w}, window_height{h}
 {
-    win = SDL_CreateWindow("sdl_chomik " VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, 0);
+    win = SDL_CreateWindow("sdl_chomik " VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, 0);
             
     Uint32 render_flags = SDL_RENDERER_ACCELERATED;
  
@@ -183,6 +183,23 @@ void sdl_chomik::machine::create_predefined_variables()
     gn11.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("space"));
     std::shared_ptr<chomik::signature> on_key_space=std::make_shared<chomik::signature>(gn11);
     add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_key_space), std::make_unique<chomik::code>()));        
+
+    chomik::generic_name gn12;
+    gn12.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+    gn12.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("sdl"));
+    gn12.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("window"));
+    gn12.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("width"));
+    std::shared_ptr<chomik::signature> the_sdl_window_width=std::make_shared<chomik::signature>(gn12);
+    add_variable_with_value(std::make_shared<chomik::simple_variable_with_value_integer>(std::move(the_sdl_window_width), window_width));
+
+    chomik::generic_name gn13;
+    gn13.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("the"));
+    gn13.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("sdl"));
+    gn13.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("window"));
+    gn13.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("height"));
+    std::shared_ptr<chomik::signature> the_sdl_window_height=std::make_shared<chomik::signature>(gn13);
+    add_variable_with_value(std::make_shared<chomik::simple_variable_with_value_integer>(std::move(the_sdl_window_height), window_height));
+
 }
 
 bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature & s) const
@@ -497,17 +514,41 @@ chomik::parser the_parser{the_program};
 
 int main(int argc, char * argv[])
 {
-    chomik::parser::register_parser(&the_parser);
+    int width = 800, height = 600;
+    std::string filename = "";
 
+    chomik::parser::register_parser(&the_parser);
     int return_value = 0;
-    if (argc != 2)
+
+
+    for (int a=1; a < argc; a++)
     {
-        std::cerr << "usage: " << argv[0] << " <filename>\n";
+        if (!strcmp(argv[a], "-w") || !strcmp(argv[a], "--width"))
+        {
+            width = std::stoi(argv[a+1]);
+            a++;
+        }
+        else
+        if (!strcmp(argv[a], "-h") || !strcmp(argv[a], "--height"))
+        {
+            height = std::stoi(argv[a+1]);
+            a++;
+        }
+        else
+        {
+            filename = argv[a];
+        }
+    }
+
+
+    if (filename == "")
+    {
+        std::cerr << "usage: " << argv[0] << " [-w|--width <window width>] [-h|--height <window height>] <filename>\n";
         return_value = 1;
     }
     else
     {
-        if (the_parser.parse(argv[1]) == 0)
+        if (the_parser.parse(filename.c_str()) == 0)
         {
             if (TTF_Init()==-1) 
             {
@@ -521,7 +562,7 @@ int main(int argc, char * argv[])
                 std::cerr << SDL_GetError() << "\n";
                 exit(1);
             }
-            sdl_chomik::machine m;
+            sdl_chomik::machine m{width, height};
             m.create_predefined_types();
             m.create_predefined_variables();
             m.create_predefined_streams();

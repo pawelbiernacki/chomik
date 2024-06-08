@@ -22,9 +22,11 @@ namespace sdl_chomik
         std::vector<std::unique_ptr<image>> vector_of_images;
         
         std::vector<std::unique_ptr<font>> vector_of_fonts;
+
+        int window_width, window_height;
         
     public:
-        machine();
+        machine(int w, int h);
         virtual ~machine();
         
         void clear_renderer();        

@@ -1,9 +1,14 @@
 #
 # This is a program for sdl_chomik, which is a derivate of the chomik programming language
 #
-execute <create new image "../image/title_screen.png">;
-variable title screen image index: integer;
-let variable title screen image index = <the created image index>;
+# In order to run with the user defined window width and height type for example:
+#
+# sdl_chomik -w 1920 -h 1050 example1.sdl_chomik
+
+
+execute <create new image "../image/background_tile.png">;
+variable background tile image index: integer;
+let variable background tile image index = <the created image index>;
 
 execute <create new image "../image/pink_monkey.png">;
 variable pink monkey image index: integer;
@@ -26,10 +31,10 @@ variable blue monkey (N:range_of_blue_monkeys) y:integer;
 
 let variable blue monkey (N:range_of_blue_monkeys) y = value integer 0;
 
-execute <create new input random number stream "integer" 0 800>;
+execute <create new input random number stream "integer" 0 <the sdl window width>>;
 let variable random horizontal coordinate stream index=<the created stream index>;
 
-execute <create new input random number stream "integer" 0 500>;
+execute <create new input random number stream "integer" 0 <the sdl window height>>;
 let variable random vertical coordinate stream index=<the created stream index>;
 
 
@@ -79,7 +84,7 @@ variable reset_blue_monkey_if_needed: code;
 let variable reset_blue_monkey_if_needed = value code
 {
     #execute <print "blue monkey" <monkey_to_reset> "y equals " <blue monkey <monkey_to_reset> y>>;
-    execute <compare "integer" <blue monkey <monkey_to_reset> y> 600>;
+    execute <compare "integer" <blue monkey <monkey_to_reset> y> <the sdl window height>>;
     execute <reset_blue_monkey_on_greater <the compare result>>;
 };
 
@@ -163,14 +168,36 @@ let variable on key down = value code
     let variable monkey dy = value integer 10;
 };
 
-let variable sdl loop body = value code 
-{ 
-    execute <show image <title screen image index> 0 0>;     
-    execute <show_blue_monkeys>;    
-    execute <show image <pink monkey image index> <monkey x> <monkey y>>;
-    execute <show image <chomik image index> 0 0>;
-    execute <move_all_blue_monkeys>;
-    execute <move_pink_monkey>;
+
+let draw background single tile (X:integer) (Y:integer)=value code
+{
+    let current x = value integer [(X:integer)];
+    let current y = value integer [(Y:integer)];
+
+    <multiply "integer" <current x> 800>;
+    let actual x = <the multiply result "integer">;
+
+    <multiply "integer" <current y> 600>;
+    let actual y = <the multiply result "integer">;
+
+    <show image <background tile image index> <actual x> <actual y>>;
 };
 
-execute <sdl loop>;
+
+let draw background=value code
+{
+    <draw background single tile (X:0..2) (Y:0..1)>;    # these values are hardcoded, they should be calculated!
+};
+
+
+let variable sdl loop body = value code 
+{ 
+    <draw background>;
+    <show_blue_monkeys>;
+    <show image <pink monkey image index> <monkey x> <monkey y>>;
+    <show image <chomik image index> 0 0>;
+    <move_all_blue_monkeys>;
+    <move_pink_monkey>;
+};
+
+<sdl loop>;
