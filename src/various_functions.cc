@@ -206,7 +206,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution", "match"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution", "match", "modulo"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
@@ -1545,6 +1545,15 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_match_result=std::make_shared<signature>(gn31);
     add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_match_result), "false"));
 
+
+    generic_name gn32;
+    gn32.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn32.add_generic_name_item(std::make_shared<identifier_name_item>("modulo"));
+    gn32.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    gn32.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+    std::shared_ptr<signature> the_modulo_result_integer=std::make_shared<signature>(gn32);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_modulo_result_integer), 0));
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -2143,6 +2152,12 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_match_result.add_generic_name_item(std::make_shared<identifier_name_item>("match"));
     generic_name_the_match_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
 
+    generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("modulo"));
+    generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
+
+
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
     signature_the_print_end_of_line = std::make_unique<signature>(generic_name_the_print_end_of_line);
@@ -2171,6 +2186,7 @@ chomik::signature_common_data::signature_common_data()
     signature_the_created_signature_regular_expression_index = std::make_unique<signature>(generic_name_the_created_signature_regular_expression_index);
     signature_the_match_expression_index = std::make_unique<signature>(generic_name_the_match_expression_index);
     signature_the_match_result = std::make_unique<signature>(generic_name_the_match_result);
+    signature_the_modulo_result_integer = std::make_unique<signature>(generic_name_the_modulo_result_integer);
 
     for (int i=1; i<=machine::max_match_group_index; i++)
     {
@@ -2842,6 +2858,43 @@ void chomik::signature::execute_predefined_multiply(machine & m) const
     CHOMIK_STDERR('\n');             
 }
 
+
+void chomik::signature::execute_predefined_modulo(machine & m) const
+{
+        if (vector_of_items.size() == 4)
+        {
+            if (vector_of_items[1]->get_it_is_string()
+                && vector_of_items[2]->get_it_is_integer()
+                && vector_of_items[3]->get_it_is_integer())
+            {
+                if (vector_of_items[1]->get_value_string() == "integer")
+                {
+                    std::string s = "";
+
+                    int a = vector_of_items[2]->get_value_integer();
+                    int b = vector_of_items[3]->get_value_integer();
+
+                    DEBUG("signature::execute_predefined_modulo got " << a << " and " << b);
+
+                    if (b!=0)
+                    {
+                        m.get_variable_with_value(*our_common_data->signature_the_modulo_result_integer).assign_value_integer(a%b);
+                    }
+                    return;
+                }
+            }
+        }
+    CHOMIK_STDERR("warning: unknown modulo variable\n");
+    for (auto & i: vector_of_items)
+    {
+        CHOMIK_STDERR(*i << ' ');
+    }
+    CHOMIK_STDERR('\n');
+
+}
+
+
+
 void chomik::signature::execute_predefined_divide(machine & m) const
 {
         if (vector_of_items.size() == 4)
@@ -2873,7 +2926,9 @@ void chomik::signature::execute_predefined_divide(machine & m) const
     {
         CHOMIK_STDERR(*i << ' ');
     }    
-    CHOMIK_STDERR('\n');             }
+    CHOMIK_STDERR('\n');
+
+}
 
 
 void chomik::signature::execute_predefined_add(machine & m) const
@@ -3066,6 +3121,11 @@ void chomik::signature::execute_predefined(machine & m) const
     if (get_it_has_prefix("add"))
     {
         execute_predefined_add(m);
+    }
+    else
+    if (get_it_has_prefix("modulo"))
+    {
+        execute_predefined_modulo(m);
     }
     else
     if (get_it_has_prefix("subtract"))

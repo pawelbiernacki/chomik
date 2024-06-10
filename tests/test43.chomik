@@ -1,0 +1,17 @@
+#!/usr/local/bin/chomik
+
+
+<modulo "integer" 13 10>;
+<print "modulo" <the modulo result "integer">>;
+
+<compare "integer" <the modulo result "integer"> 3>;
+
+variable on (X:compare_result) set the program return:code;
+
+let on lower set the program return = value code { let program return = value integer 1; };
+let on greater set the program return = value code { let program return = value integer 1; };
+let on equal set the program return = value code { let program return = value integer 0; };
+
+
+<on <the compare result> set the program return>;
+

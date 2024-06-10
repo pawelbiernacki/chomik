@@ -491,6 +491,7 @@ namespace chomik
         void execute_predefined_getline(machine & m) const;
         void execute_predefined_execution(machine & m) const;
         void execute_predefined_match(machine & m) const;
+        void execute_predefined_modulo(machine & m) const;
 
     public:
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
@@ -1190,7 +1191,8 @@ namespace chomik
                             generic_name_the_getline_result,
                             generic_name_the_created_signature_regular_expression_index,
                             generic_name_the_match_expression_index,
-                            generic_name_the_match_result;
+                            generic_name_the_match_result,
+                            generic_name_the_modulo_result_integer;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1218,7 +1220,8 @@ namespace chomik
                                     signature_the_getline_result,
                                     signature_the_created_signature_regular_expression_index,
                                     signature_the_match_expression_index,
-                                    signature_the_match_result;
+                                    signature_the_match_result,
+                                    signature_the_modulo_result_integer;
 
         std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
         std::vector<std::unique_ptr<signature>> signature_the_match_group_boolean_x;
