@@ -180,6 +180,17 @@ let on mouse motion = value code
 };
 
 
+let on mouse button left = value code
+{
+    <print "mouse button left">;
+};
+
+let on mouse button right = value code
+{
+    <print "mouse button right">;
+};
+
+
 let draw background single tile (X:integer) (Y:integer)=value code
 {
     let current x = value integer [(X:integer)];

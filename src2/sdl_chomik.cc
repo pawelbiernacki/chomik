@@ -222,6 +222,23 @@ void sdl_chomik::machine::create_predefined_variables()
     std::shared_ptr<chomik::signature> on_mouse_motion=std::make_shared<chomik::signature>(gn16);
     add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_mouse_motion), std::make_unique<chomik::code>()));
 
+
+    chomik::generic_name gn17;
+    gn17.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn17.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("mouse"));
+    gn17.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("button"));
+    gn17.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("left"));
+    std::shared_ptr<chomik::signature> on_mouse_button_left=std::make_shared<chomik::signature>(gn17);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_mouse_button_left), std::make_unique<chomik::code>()));
+
+    chomik::generic_name gn18;
+    gn18.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+    gn18.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("mouse"));
+    gn18.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("button"));
+    gn18.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("right"));
+    std::shared_ptr<chomik::signature> on_mouse_button_right=std::make_shared<chomik::signature>(gn18);
+    add_variable_with_value(std::make_shared<chomik::variable_with_value_code>(std::move(on_mouse_button_right), std::make_unique<chomik::code>()));
+
 }
 
 bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature & s) const
@@ -256,6 +273,20 @@ bool sdl_chomik::machine::get_is_user_defined_executable(const chomik::signature
             && s.get_vector_of_items()[1]->get_it_is_identifier("new")
             && s.get_vector_of_items()[2]->get_it_is_identifier("image")
             && s.get_vector_of_items()[3]->get_it_is_string())
+        {
+            return true;
+        }
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("on")
+            && s.get_vector_of_items()[1]->get_it_is_identifier("mouse")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("button")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("left"))
+        {
+            return true;
+        }
+        if (s.get_vector_of_items()[0]->get_it_is_identifier("on")
+            && s.get_vector_of_items()[1]->get_it_is_identifier("mouse")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("button")
+            && s.get_vector_of_items()[2]->get_it_is_identifier("right"))
         {
             return true;
         }
@@ -323,6 +354,45 @@ void sdl_chomik::machine::execute_user_defined_executable(const chomik::signatur
  
                     case SDL_QUIT:
                         close = true;
+                        break;
+
+                    case SDL_MOUSEBUTTONDOWN:
+                        switch (event.button.button)
+                        {
+                            case SDL_BUTTON_LEFT:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("mouse"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("button"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("left"));
+
+                                chomik::signature s0{gn};
+
+                                chomik::code ci;
+                                get_variable_value_code(s0, ci);
+                                ci.execute(*this);
+                            }
+                            break;
+                            case SDL_BUTTON_RIGHT:
+                            {
+                                chomik::generic_name gn;
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("on"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("mouse"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("button"));
+                                gn.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("right"));
+
+                                chomik::signature s0{gn};
+
+                                chomik::code ci;
+                                get_variable_value_code(s0, ci);
+                                ci.execute(*this);
+                            }
+                            break;
+                            default:
+
+                            break;
+                        }
                         break;
 
                     case SDL_MOUSEMOTION:
