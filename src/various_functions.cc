@@ -1554,6 +1554,15 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_modulo_result_integer=std::make_shared<signature>(gn32);
     add_variable_with_value(std::make_shared<simple_variable_with_value_integer>(std::move(the_modulo_result_integer), 0));
 
+    generic_name gn33;
+    gn33.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn33.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    gn33.add_generic_name_item(std::make_shared<identifier_name_item>("is"));
+    gn33.add_generic_name_item(std::make_shared<identifier_name_item>("good"));
+    std::shared_ptr<signature> the_stream_is_good=std::make_shared<signature>(gn33);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_enum>(std::move(the_stream_is_good), "true"));
+
+
 }
 
 void chomik::machine::create_predefined_types()
@@ -2157,6 +2166,11 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
     generic_name_the_modulo_result_integer.add_generic_name_item(std::make_shared<name_item_string>("integer"));
 
+    generic_name_the_stream_is_good.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_stream_is_good.add_generic_name_item(std::make_shared<identifier_name_item>("stream"));
+    generic_name_the_stream_is_good.add_generic_name_item(std::make_shared<identifier_name_item>("is"));
+    generic_name_the_stream_is_good.add_generic_name_item(std::make_shared<identifier_name_item>("good"));
+
 
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
@@ -2187,6 +2201,7 @@ chomik::signature_common_data::signature_common_data()
     signature_the_match_expression_index = std::make_unique<signature>(generic_name_the_match_expression_index);
     signature_the_match_result = std::make_unique<signature>(generic_name_the_match_result);
     signature_the_modulo_result_integer = std::make_unique<signature>(generic_name_the_modulo_result_integer);
+    signature_the_stream_is_good = std::make_unique<signature>(generic_name_the_stream_is_good);
 
     for (int i=1; i<=machine::max_match_group_index; i++)
     {
@@ -2268,10 +2283,13 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 {
                     m.add_stream(std::make_unique<generic_stream_stringstream>());
                 }
+                generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
                                 
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+
+                set_stream_flags(m, gs);
                 
                 return;
             }
@@ -2290,9 +2308,12 @@ void chomik::signature::execute_predefined_create(machine & m) const
                     m.add_stream(std::make_unique<generic_stream_stringstream>());
                 }
 
+                generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
+
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
+                set_stream_flags(m, gs);
                 return;
             }
             else
@@ -2302,11 +2323,13 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 && vector_of_items[4]->get_it_is_string())
             {
                 m.add_stream(std::make_unique<generic_stream_stringstream>(vector_of_items[4]->get_value_string()));
+
+                generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
                 
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
-                
+                set_stream_flags(m, gs);
                 return;
             }
         }
@@ -2319,10 +2342,14 @@ void chomik::signature::execute_predefined_create(machine & m) const
             {
                 m.add_stream(std::make_unique<generic_stream_stringstream>());
                 
+                generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
+
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());
                 
+                set_stream_flags(m, gs);
+
                 return;
             }
         }
@@ -2363,10 +2390,15 @@ void chomik::signature::execute_predefined_create(machine & m) const
                 if (vector_of_items[6]->get_value_string() == "integer")
                 {                
                     m.add_stream(std::make_unique<generic_stream_random_number_stream>(vector_of_items[7]->get_value_integer(), vector_of_items[8]->get_value_integer()));
+
+                    generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
                 
                     DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
                     m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                
+
+                    set_stream_flags(m, gs);
+
                     return;
                 }
             }
@@ -2383,9 +2415,13 @@ void chomik::signature::execute_predefined_create(machine & m) const
             {
                 m.add_stream(std::make_unique<generic_stream_random_enum_stream>(vector_of_items[6]->get_value_string(), m));
                 
+                generic_stream & gs = m.get_stream(m.get_last_created_stream_index());
+
                 DEBUG("assign value integer " << m.get_last_created_stream_index());
                 
                 m.get_variable_with_value(*our_common_data->signature_the_created_stream_index).assign_value_integer(m.get_last_created_stream_index());                                
+
+                set_stream_flags(m, gs);
                 return;
             }
         }
@@ -2420,7 +2456,9 @@ void chomik::signature::execute_predefined_set(machine & m) const
                     gs.set_result(vector_of_items[3]->get_value_string());
                                     
                     DEBUG("assign value string " << gs.get_result());
-                
+
+                    set_stream_flags(m, gs);
+
                     return;
                 }
                 return;
@@ -2434,6 +2472,13 @@ void chomik::signature::execute_predefined_set(machine & m) const
     }    
     CHOMIK_STDERR('\n');             
 }
+
+void chomik::signature::set_stream_flags(machine & m, generic_stream & gs) const
+{
+    if (gs.get_is_good()) m.get_variable_with_value(*our_common_data->signature_the_stream_is_good).assign_value_enum("true");
+    else m.get_variable_with_value(*our_common_data->signature_the_stream_is_good).assign_value_enum("false");
+}
+
 
 void chomik::signature::execute_predefined_getline(machine & m) const
 {
@@ -2454,6 +2499,9 @@ void chomik::signature::execute_predefined_getline(machine & m) const
             DEBUG("assign value string " << result);
 
             m.get_variable_with_value(*our_common_data->signature_the_getline_result).assign_value_string(result);
+
+            set_stream_flags(m, gs);
+
             return;
         }
         return;
@@ -2487,6 +2535,8 @@ void chomik::signature::execute_predefined_get(machine & m) const
                     DEBUG("assign value string " << gs.get_result());
                 
                     m.get_variable_with_value(*our_common_data->signature_the_get_from_stream_result).assign_value_string(gs.get_result());                                    
+
+                    set_stream_flags(m, gs);
                     return;
                 }
                 return;
@@ -2633,6 +2683,8 @@ void chomik::signature::execute_predefined_read(machine & m) const
                     DEBUG("read " << s);
                 
                     m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_result_integer).assign_value_integer(s);
+
+                    set_stream_flags(m, gs);
                     return;
                     }                
                 }
@@ -2655,6 +2707,8 @@ void chomik::signature::execute_predefined_read(machine & m) const
                     DEBUG("read " << s);
                 
                     m.get_variable_with_value(*our_common_data->signature_the_read_from_stream_result_string).assign_value_string(s);
+
+                    set_stream_flags(m, gs);
                     return;
                     }
                 }
@@ -2681,6 +2735,7 @@ void chomik::signature::execute_predefined_read(machine & m) const
                         DEBUG("read " << s);
                 
                         m.get_variable_with_value(the_read_from_stream_result).assign_value_enum(s);
+                        set_stream_flags(m, gs);
                     }
                 }
                 return;

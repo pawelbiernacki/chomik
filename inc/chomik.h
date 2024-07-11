@@ -462,7 +462,7 @@ namespace chomik
     class generic_name;
     class machine;
     class signature_common_data;
-    
+    class generic_stream;
     
     
     /**
@@ -492,6 +492,8 @@ namespace chomik
         void execute_predefined_execution(machine & m) const;
         void execute_predefined_match(machine & m) const;
         void execute_predefined_modulo(machine & m) const;
+
+        void set_stream_flags(machine & m, generic_stream & gs) const;
 
     public:
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
@@ -1192,7 +1194,8 @@ namespace chomik
                             generic_name_the_created_signature_regular_expression_index,
                             generic_name_the_match_expression_index,
                             generic_name_the_match_result,
-                            generic_name_the_modulo_result_integer;
+                            generic_name_the_modulo_result_integer,
+                            generic_name_the_stream_is_good;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1221,7 +1224,8 @@ namespace chomik
                                     signature_the_created_signature_regular_expression_index,
                                     signature_the_match_expression_index,
                                     signature_the_match_result,
-                                    signature_the_modulo_result_integer;
+                                    signature_the_modulo_result_integer,
+                                    signature_the_stream_is_good;
 
         std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
         std::vector<std::unique_ptr<signature>> signature_the_match_group_boolean_x;
@@ -3261,6 +3265,8 @@ namespace chomik
         virtual bool read_char(unsigned char & target) { return false; }
         virtual std::string read_string() { std::string t; read_string_of_x_characters(t, max_size); return t; }
         virtual void getline() {}
+
+        virtual bool get_is_good() { return true; }
     };
     
     class generic_stream_standard_output_stream: public generic_stream
@@ -3288,6 +3294,8 @@ namespace chomik
 
         virtual void getline() override { std::getline(std::cin, my_getline_result); } // TODO error handling
         virtual std::string getline_result() const override { return my_getline_result; }
+
+        virtual bool get_is_good() override { return std::cin.good(); }
     };
     
     class generic_stream_file: public generic_stream
@@ -3306,6 +3314,7 @@ namespace chomik
         virtual bool get_should_be_closed() const override { return true; }
         virtual std::ostream& get_output_stream() override { return file_stream; }
 
+        virtual bool get_is_good() override { return file_stream.good(); }
     };
     
     class generic_stream_file_input: public generic_stream_file
@@ -3326,6 +3335,8 @@ namespace chomik
         virtual std::string getline_result() const override { return my_getline_result; }
 
         virtual int read_integer() override { int result = 0; file_stream >> result; return result; }
+
+        virtual bool get_is_good() override { return file_stream.good(); }
     };    
     
     class generic_stream_stringstream: public generic_stream
@@ -3351,6 +3362,8 @@ namespace chomik
 
         virtual void getline() override { std::getline(string_stream, my_getline_result); } // TODO error handling
         virtual std::string getline_result() const override { return my_getline_result; }
+
+        virtual bool get_is_good() override { return string_stream.good(); }
     };
     
     class generic_stream_random_number_stream: public generic_stream
