@@ -206,7 +206,7 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
 
 const std::string chomik::predefined_variables::array_of_predefined_variables[]=
 {
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "the", "set", "getline", "execution", "match", "modulo"
+    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "set", "getline", "execution", "match", "modulo"
 };
 
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;

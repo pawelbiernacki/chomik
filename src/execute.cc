@@ -404,6 +404,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
         
         if (s.get_is_predefined(m))
         {
+            DEBUG("it is predefined");
             s.execute_predefined(m);
         }
         else
