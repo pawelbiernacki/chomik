@@ -1,17 +1,17 @@
-#!/usr/local/bin/chomik
+#!chomik
 
+let the cast result "integer" = value integer 0;
 
-<modulo "integer" 13 10>;
-<print "modulo" <the modulo result "integer">>;
+<cast "float" to "integer" 3.14159>;
+<print "got result" <the cast result "integer">>;
 
-<compare "integer" <the modulo result "integer"> 3>;
+let my result = <the cast result "integer">;
 
-variable on (X:compare_result) set the program return:code;
+<compare "integer" <my result> 3>;
 
 let on lower set the program return = value code { let the program return = value integer 1; };
 let on greater set the program return = value code { let the program return = value integer 1; };
 let on equal set the program return = value code { let the program return = value integer 0; };
-
 
 <on <the compare result> set the program return>;
 
