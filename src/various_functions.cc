@@ -1586,6 +1586,21 @@ void chomik::machine::create_predefined_variables()
     std::shared_ptr<signature> the_cast_result_float=std::make_shared<signature>(gn36);
     add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_cast_result_float), 0.0));
 
+    generic_name gn37;
+    gn37.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn37.add_generic_name_item(std::make_shared<identifier_name_item>("add"));
+    gn37.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    gn37.add_generic_name_item(std::make_shared<name_item_string>("float"));
+    std::shared_ptr<signature> the_add_result_float=std::make_shared<signature>(gn37);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_add_result_float), 0.0));
+
+    generic_name gn38;
+    gn38.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    gn38.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
+    gn38.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    gn38.add_generic_name_item(std::make_shared<name_item_string>("float"));
+    std::shared_ptr<signature> the_subtract_result_float=std::make_shared<signature>(gn38);
+    add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_subtract_result_float), 0.0));
 }
 
 void chomik::machine::create_predefined_types()
@@ -2209,6 +2224,17 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_cast_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
     generic_name_the_cast_result_float.add_generic_name_item(std::make_shared<name_item_string>("float"));
 
+    generic_name_the_add_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_add_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("add"));
+    generic_name_the_add_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_add_result_float.add_generic_name_item(std::make_shared<name_item_string>("float"));
+
+    generic_name_the_subtract_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+    generic_name_the_subtract_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("subtract"));
+    generic_name_the_subtract_result_float.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+    generic_name_the_subtract_result_float.add_generic_name_item(std::make_shared<name_item_string>("float"));
+
+
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
     signature_the_print_end_of_line = std::make_unique<signature>(generic_name_the_print_end_of_line);
@@ -2242,6 +2268,9 @@ chomik::signature_common_data::signature_common_data()
     signature_the_cast_result_integer = std::make_unique<signature>(generic_name_the_cast_result_integer);
     signature_the_multiply_result_float = std::make_unique<signature>(generic_name_the_multiply_result_float);
     signature_the_cast_result_float = std::make_unique<signature>(generic_name_the_cast_result_float);
+    signature_the_add_result_float = std::make_unique<signature>(generic_name_the_add_result_float);
+    signature_the_subtract_result_float = std::make_unique<signature>(generic_name_the_subtract_result_float);
+
     for (int i=1; i<=machine::max_match_group_index; i++)
     {
         generic_name gn;
@@ -3085,6 +3114,24 @@ void chomik::signature::execute_predefined_add(machine & m) const
                     return;
                 }
             }
+            else
+            if (vector_of_items[1]->get_it_is_string()
+                && vector_of_items[2]->get_it_is_float()
+                && vector_of_items[3]->get_it_is_float())
+            {
+                if (vector_of_items[1]->get_value_string() == "float")
+                {
+                    std::string s = "";
+
+                    double a = vector_of_items[2]->get_value_float();
+                    double b = vector_of_items[3]->get_value_float();
+
+                    DEBUG("signature::execute_predefined_add got " << a << " and " << b);
+
+                    m.get_variable_with_value(*our_common_data->signature_the_add_result_float).assign_value_float(a+b);
+                    return;
+                }
+            }
         }
     CHOMIK_STDERR("warning: unknown add variable\n");        
     for (auto & i: vector_of_items)
@@ -3112,6 +3159,24 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
                     DEBUG("got " << a << " and " << b);
                                     
                     m.get_variable_with_value(*our_common_data->signature_the_subtract_result_integer).assign_value_integer(a-b);                                        
+                    return;
+                }
+            }
+            else
+            if (vector_of_items[1]->get_it_is_string()
+                && vector_of_items[2]->get_it_is_float()
+                && vector_of_items[3]->get_it_is_float())
+            {
+                if (vector_of_items[1]->get_value_string() == "float")
+                {
+                    std::string s = "";
+
+                    double a = vector_of_items[2]->get_value_float();
+                    double b = vector_of_items[3]->get_value_float();
+
+                    DEBUG("got " << a << " and " << b);
+
+                    m.get_variable_with_value(*our_common_data->signature_the_subtract_result_float).assign_value_float(a-b);
                     return;
                 }
             }
@@ -3253,7 +3318,7 @@ void chomik::signature::execute_predefined_cast(machine & m) const
 
                     DEBUG("cast " << operand << " to " << static_cast<double>(operand));
 
-                    m.get_variable_with_value(*our_common_data->signature_the_cast_result_float).assign_value_integer(static_cast<double>(operand));
+                    m.get_variable_with_value(*our_common_data->signature_the_cast_result_float).assign_value_float(static_cast<double>(operand));
                     return;
                 }
             }

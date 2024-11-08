@@ -1199,7 +1199,9 @@ namespace chomik
                             generic_name_the_stream_is_good,
                             generic_name_the_cast_result_integer,
                             generic_name_the_multiply_result_float,
-                            generic_name_the_cast_result_float;
+                            generic_name_the_cast_result_float,
+                            generic_name_the_add_result_float,
+                            generic_name_the_subtract_result_float;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1232,7 +1234,9 @@ namespace chomik
                                     signature_the_stream_is_good,
                                     signature_the_cast_result_integer,
                                     signature_the_multiply_result_float,
-                                    signature_the_cast_result_float;
+                                    signature_the_cast_result_float,
+                                    signature_the_add_result_float,
+                                    signature_the_subtract_result_float;
 
         std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
         std::vector<std::unique_ptr<signature>> signature_the_match_group_boolean_x;
