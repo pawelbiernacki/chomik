@@ -1,5 +1,10 @@
 %{
 
+#if YYBISON
+union YYSTYPE;
+int yylex(union YYSTYPE *);
+int yyerror(char *);
+#endif
 
 #define YYERROR_VERBOSE 1
 #define YYMAXDEPTH 1000000

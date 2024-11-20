@@ -6,13 +6,13 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `SDL2' library (-lSDL2). */
+/* Define to 1 if you have the 'SDL2' library (-lSDL2). */
 #undef HAVE_LIBSDL2
 
-/* Define to 1 if you have the `SDL2_image' library (-lSDL2_image). */
+/* Define to 1 if you have the 'SDL2_image' library (-lSDL2_image). */
 #undef HAVE_LIBSDL2_IMAGE
 
-/* Define to 1 if you have the `SDL2_ttf' library (-lSDL2_ttf). */
+/* Define to 1 if you have the 'SDL2_ttf' library (-lSDL2_ttf). */
 #undef HAVE_LIBSDL2_TTF
 
 /* Define to 1 if you have the <SDL2/SDL.h> header file. */
@@ -72,7 +72,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
@@ -80,6 +80,6 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
-   `char[]'. */
+/* Define to 1 if 'lex' declares 'yytext' as a 'char *' by default, not a
+   'char[]'. */
 #undef YYTEXT_POINTER
