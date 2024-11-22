@@ -1,0 +1,28 @@
+#!/usr/local/bin/chomik
+
+#  this is a test for the prefixed infinite codes
+
+let prefix = value integer 1;
+let x = value integer 0;
+
+let <prefix> the prefixed routine beta (X:integer) = value code
+{
+    <print "beta">;
+    let x = value integer 2;
+};
+
+let <prefix> the prefixed routine alpha (X:integer)=value code
+{
+    <print "alpha">;
+    <<prefix> the prefixed routine beta 1>;
+};
+
+<<prefix> the prefixed routine alpha 10>;
+<compare "integer" <x> 2>;
+
+let on lower set the program return = value code { let the program return = value integer 1; };
+let on greater set the program return = value code { let the program return = value integer 1; };
+let on equal set the program return = value code { let the program return = value integer 0; };
+
+<on <the compare result> set the program return>;
+

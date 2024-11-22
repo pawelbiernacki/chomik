@@ -730,7 +730,7 @@ void chomik::placeholder_name_item::add_content_to_signature(signature & target,
 
 
 
-bool chomik::code_name_item::get_match_code(const code & v) const
+bool chomik::code_name_item::get_match_code(const code & v, const machine & m, const basic_generator & g) const
 {
     return *my_code == v;
 }
@@ -845,7 +845,7 @@ bool chomik::code_signature_item::get_match(const generic_name_item & gni, const
     if (gni.get_is_code())
     {
         DEBUG(gni << " is a code");
-        return gni.get_match_code(*my_code);
+        return gni.get_match_code(*my_code, m, g);
     }
     else
     if (gni.get_is_placeholder())
@@ -896,11 +896,16 @@ bool chomik::simple_value_integer_signature_item::get_match(const generic_name_i
 {
     DEBUG("get_match for " << gni << " against " << value);
     
-    
     if (gni.get_is_integer())
     {
         DEBUG(gni << " is an integer");
-        return gni.get_match_integer(value);
+        return gni.get_match_integer(value, m, g);
+    }
+    else
+    if (gni.get_is_variable_value())
+    {
+        DEBUG(gni << " is a variable value");
+        return gni.get_match_integer(value, m, g);
     }
     else
     if (gni.get_is_placeholder())
@@ -973,7 +978,13 @@ bool chomik::simple_value_float_signature_item::get_match(const generic_name_ite
 
     if (gni.get_is_float())
     {
-        return gni.get_match_float(value);
+        return gni.get_match_float(value, m, g);
+    }
+    else
+    if (gni.get_is_variable_value())
+    {
+        DEBUG(gni << " is a variable value");
+        return gni.get_match_float(value, m, g);
     }
     else
     if (gni.get_is_placeholder())
@@ -1000,7 +1011,13 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
     
     if (gni.get_is_string())
     {
-        return gni.get_match_string(value);
+        return gni.get_match_string(value, m, g);
+    }
+    else
+    if (gni.get_is_variable_value())
+    {
+        DEBUG(gni << " is a variable value");
+        return gni.get_match_string(value, m, g);
     }
     else
     if (gni.get_is_placeholder())
@@ -1044,7 +1061,12 @@ bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item
     
     if (gni.get_is_identifier())
     {
-        return gni.get_match_identifier(get_enum());
+        return gni.get_match_identifier(get_enum(), m, g);
+    }
+    else
+    if (gni.get_is_variable_value())
+    {
+        return gni.get_match_identifier(get_enum(), m, g);
     }
     else
     if (gni.get_is_placeholder())
@@ -4288,5 +4310,78 @@ void chomik::simple_placeholder_for_range::update_int_value(int f, int l)
 bool chomik::generic_value_variable_value::get_is_code(machine & m) const
 {
     // TODO it may be true for some variables
+    return false;
+}
+
+
+bool chomik::variable_value_name_item::get_match_integer(int v, const machine & m, const basic_generator & g) const
+{
+    signature s(*name, m, g);
+    DEBUG("it is a variable_value_name_item of signature " << s);
+    if (m.get_variable_is_represented_in_memory(s))
+    {
+        auto & x=m.get_variable_with_value(s);
+
+        DEBUG("its value is " << x.get_value_integer());
+
+        return x.get_value_integer() == v;
+    }
+    // TODO - we ignore infinite families here!
+    return false;
+}
+
+bool chomik::variable_value_name_item::get_match_float(double v, const machine & m, const basic_generator & g) const
+{
+    signature s(*name, m, g);
+
+    if (m.get_variable_is_represented_in_memory(s))
+    {
+        auto & x=m.get_variable_with_value(s);
+        return x.get_value_float() == v;    // TODO, maybe checking with some limited precision
+    }
+    // TODO - we ignore infinite families here!
+    return false;
+}
+
+bool chomik::variable_value_name_item::get_match_string(const std::string & v, const machine & m, const basic_generator & g) const
+{
+    signature s(*name, m, g);
+
+    if (m.get_variable_is_represented_in_memory(s))
+    {
+        auto & x=m.get_variable_with_value(s);
+        return x.get_value_string() == v;
+    }
+    // TODO - we ignore infinite families here!
+    return false;
+}
+
+bool chomik::variable_value_name_item::get_match_identifier(const std::string & v, const machine & m, const basic_generator & g) const
+{
+    signature s(*name, m, g);
+    DEBUG("it is a variable_value_name_item of signature " << s);
+
+    if (m.get_variable_is_represented_in_memory(s))
+    {
+        auto & x=m.get_variable_with_value(s);
+
+        DEBUG("its enum value equals " << x.get_value_enum());
+        return x.get_value_enum() == v;
+    }
+    // TODO - we ignore infinite families here!
+    return false;
+}
+bool chomik::variable_value_name_item::get_match_code(const code & v, const machine & m, const basic_generator & g) const
+{
+    signature s(*name, m, g);
+
+    if (m.get_variable_is_represented_in_memory(s))
+    {
+        auto & x=m.get_variable_with_value(s);
+        code c;
+        x.get_value_code(c);
+        return c == v;
+    }
+    // TODO - we ignore infinite families here!
     return false;
 }

@@ -1,4 +1,5 @@
-#!chomik
+#!/usr/local/bin/chomik
+
 
 let the cast result "integer" = value integer 0;
 

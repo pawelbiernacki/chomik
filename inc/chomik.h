@@ -919,11 +919,13 @@ namespace chomik
         
         virtual std::string get_placeholder_name() const { return ""; }
         
-        virtual bool get_match_integer(int v) const { return false; }
-        virtual bool get_match_float(double v) const { return false; }
-        virtual bool get_match_string(const std::string & v) const { return false; }
-        virtual bool get_match_identifier(const std::string & v) const { return false; }
-        virtual bool get_match_code(const code & v) const { return false; }
+        virtual bool get_match_integer(int v, const machine & m, const basic_generator & g) const { return false; }
+        virtual bool get_match_float(double v, const machine & m, const basic_generator & g) const { return false; }
+        virtual bool get_match_string(const std::string & v, const machine & m, const basic_generator & g) const { return false; }
+        virtual bool get_match_identifier(const std::string & v, const machine & m, const basic_generator & g) const { return false; }
+        virtual bool get_match_code(const code & v, const machine & m, const basic_generator & g) const { return false; }
+
+        virtual bool get_is_variable_value() const { return false; }
     };
 
     class list_of_generic_name_items;
@@ -1045,7 +1047,7 @@ namespace chomik
         
         virtual bool get_is_identifier() const override { return true; }
         
-        virtual bool get_match_identifier(const std::string & v) const
+        virtual bool get_match_identifier(const std::string & v, const machine & m, const basic_generator & g) const override
         {
 #ifdef CHOMIK_DONT_USE_OPTIMIZATIONS
             return identifier==v;
@@ -1128,6 +1130,14 @@ namespace chomik
         {
             gni = std::make_shared<variable_value_name_item>(*name);
         }        
+
+        virtual bool get_match_integer(int v, const machine & m, const basic_generator & g) const override;
+        virtual bool get_match_float(double v, const machine & m, const basic_generator & g) const override;
+        virtual bool get_match_string(const std::string & v, const machine & m, const basic_generator & g) const override;
+        virtual bool get_match_identifier(const std::string & v, const machine & m, const basic_generator & g) const override;
+        virtual bool get_match_code(const code & v, const machine & m, const basic_generator & g) const override;
+
+        virtual bool get_is_variable_value() const override { return true; }
     };
 
     class code_name_item: public generic_name_item
@@ -1142,7 +1152,7 @@ namespace chomik
 
         virtual bool get_is_code() const override { return true; }
 
-        virtual bool get_match_code(const code & v) const override;
+        virtual bool get_match_code(const code & v, const machine & m, const basic_generator & g) const override;
 
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
 
@@ -1298,7 +1308,7 @@ namespace chomik
         
         virtual bool get_is_integer() const override { return true; }
         
-        virtual bool get_match_integer(int v) const override { return my_value == v; }
+        virtual bool get_match_integer(int v, const machine & m, const basic_generator & g) const override { return my_value == v; }
     };
 
 
@@ -1327,7 +1337,7 @@ namespace chomik
         
         virtual bool get_is_float() const override { return true; }
         
-        virtual bool get_match_float(double v) const override { return my_value == v; }  // comparing doubles for equality is questionable
+        virtual bool get_match_float(double v, const machine & m, const basic_generator & g) const override { return my_value == v; }  // comparing doubles for equality is questionable
     };
     
     class name_item_string: public simple_name_item<std::string>
@@ -1357,7 +1367,7 @@ namespace chomik
         
         virtual bool get_is_string() const override { return true; }
         
-        virtual bool get_match_string(const std::string & v) const override { return my_value == v; }
+        virtual bool get_match_string(const std::string & v, const machine & m, const basic_generator & g) const override { return my_value == v; }
     };
     
     
