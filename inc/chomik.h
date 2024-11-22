@@ -475,6 +475,8 @@ namespace chomik
         static std::unique_ptr<signature_common_data> our_common_data;
         
         std::vector<std::shared_ptr<signature_item>> vector_of_items;
+
+        unsigned line_number;
         
         bool get_it_has_prefix(const std::string & pattern) const;
         
@@ -500,6 +502,8 @@ namespace chomik
         signature(const generic_name & gn, const machine & m, const basic_generator & g);
         signature(const generic_name & gn);
         signature();
+
+        void set_line_number(unsigned n) { line_number = n; }
 
         int get_amount_of_items() const { return vector_of_items.size(); }
         

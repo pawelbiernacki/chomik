@@ -1207,7 +1207,7 @@ void chomik::variable_value_name_item::add_content_to_signature(signature & targ
 }
 
 
-chomik::signature::signature(const generic_name & gn, const machine & m, const basic_generator & g)
+chomik::signature::signature(const generic_name & gn, const machine & m, const basic_generator & g): line_number(0)
 {    
     for (auto &i: gn.get_vector_of_name_items())
     {
@@ -1217,7 +1217,7 @@ chomik::signature::signature(const generic_name & gn, const machine & m, const b
     DEBUG("the signature constructor produced " << *this);
 }
 
-chomik::signature::signature(const generic_name & gn)
+chomik::signature::signature(const generic_name & gn): line_number(0)
 {
     for (auto &i: gn.get_vector_of_name_items())
     {
@@ -1226,7 +1226,7 @@ chomik::signature::signature(const generic_name & gn)
     DEBUG("the signature constructor produced " << *this);
 }
 
-chomik::signature::signature()
+chomik::signature::signature(): line_number(0)
 {
 }
 
@@ -2516,7 +2516,7 @@ void chomik::signature::execute_predefined_create(machine & m) const
             }
         }
             
-        CHOMIK_STDERR("warning: unknown create variable\n");        
+        CHOMIK_STDERR("line " << line_number << " : unknown create variable\n");
         for (auto & i: vector_of_items)
         {
             CHOMIK_STDERR(*i << ' ');
@@ -2555,7 +2555,7 @@ void chomik::signature::execute_predefined_set(machine & m) const
             }
         }
         
-    CHOMIK_STDERR("warning: unknown set variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown set variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -2597,7 +2597,7 @@ void chomik::signature::execute_predefined_getline(machine & m) const
         return;
     }
 
-    CHOMIK_STDERR("warning: unknown getline variable\n");
+    CHOMIK_STDERR("line " << line_number << " : unknown getline variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -2742,7 +2742,7 @@ void chomik::signature::execute_predefined_get(machine & m) const
                 }
             }
                 
-        CHOMIK_STDERR("warning: unknown get variable\n");        
+        CHOMIK_STDERR("line " << line_number << " : unknown get variable\n");
         for (auto & i: vector_of_items)
         {
             CHOMIK_STDERR(*i << ' ');
@@ -2831,7 +2831,7 @@ void chomik::signature::execute_predefined_read(machine & m) const
                 return;
             }
         }
-        CHOMIK_STDERR("warning: unknown read variable\n");        
+        CHOMIK_STDERR("line " << line_number << " : unknown read variable\n");
         for (auto & i: vector_of_items)
         {
             CHOMIK_STDERR(*i << ' ');
@@ -2964,7 +2964,7 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                     return;
             }
         }
-    CHOMIK_STDERR("warning: unknown compare variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown compare variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3013,7 +3013,7 @@ void chomik::signature::execute_predefined_multiply(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown multiply variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown multiply variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3047,7 +3047,7 @@ void chomik::signature::execute_predefined_modulo(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown modulo variable\n");
+    CHOMIK_STDERR("line " << line_number << " : unknown modulo variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3105,7 +3105,7 @@ void chomik::signature::execute_predefined_divide(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown divide variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown divide variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3155,7 +3155,7 @@ void chomik::signature::execute_predefined_add(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown add variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown add variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3203,7 +3203,7 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
                 }
             }
         }
-    CHOMIK_STDERR("warning: unknown subtract variable\n");        
+    CHOMIK_STDERR("line " << line_number << " : unknown subtract variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3236,7 +3236,7 @@ void chomik::signature::execute_predefined_execution(machine & m) const
             }
         }
 
-    CHOMIK_STDERR("warning: unknown execution variable\n");
+    CHOMIK_STDERR("line " << line_number << " : unknown execution variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3297,7 +3297,7 @@ void chomik::signature::execute_predefined_match(machine & m) const
         return;
     }
 
-    CHOMIK_STDERR("warning: unknown match variable\n");
+    CHOMIK_STDERR("line " << line_number << " : unknown match variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3347,7 +3347,7 @@ void chomik::signature::execute_predefined_cast(machine & m) const
 
     }
 
-    CHOMIK_STDERR("warning: unknown cast variable\n");
+    CHOMIK_STDERR("line " << line_number << " : unknown cast variable\n");
     for (auto & i: vector_of_items)
     {
         CHOMIK_STDERR(*i << ' ');
@@ -3884,7 +3884,7 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
     }
     else
     {
-        CHOMIK_STDERR("warning: type_instance " << name << " is unknown\n");
+        CHOMIK_STDERR("type_instance " << name << " is unknown\n");
     }
     
     return variable_with_value::actual_memory_representation_type::NONE;

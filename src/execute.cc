@@ -40,7 +40,8 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
         // check whether we have it in the memory
         
         std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, *g);
-        
+        x->set_line_number(line_number);
+
         DEBUG("code line number " << line_number << " signature " << *x);
         
         /*
@@ -170,7 +171,8 @@ void chomik::assignment_statement::execute_if_cartesian_product_is_finite_and_sm
         DEBUG("code line number " << line_number << ": in assignment for name " << *name << " got a generator " << *g);
                                 
                 std::shared_ptr<signature> x=std::make_shared<signature>(*name, m, *g);
-        
+                x->set_line_number(line_number);
+
                 /*
                 std::cout << "its signature is ";
                 x->report(std::cout);        
@@ -399,7 +401,8 @@ void chomik::assignment_statement::execute(machine & m, std::shared_ptr<const st
 void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_one_item(machine & m, std::shared_ptr<basic_generator> & g) const
 {
         signature s{*name, m, *g};    
-        
+        s.set_line_number(line_number);
+
         DEBUG("code line number " << line_number << ": got signature " << s);
         
         if (s.get_is_predefined(m))
@@ -544,6 +547,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                 */
                 
                 signature s{name2, m, *g};
+                s.set_line_number(line_number);
                 //g.report(std::cout);
                 //s.report(std::cout);
                 
@@ -682,7 +686,8 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
 void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_large_or_infinite(machine & m, std::shared_ptr<basic_generator> & g) const
 {
     signature s{*name, m, *g};    
-        
+    s.set_line_number(line_number);
+
     DEBUG("code line number " << line_number << ": got signature " << s << ", while the generator is " << *g);
         
         if (s.get_is_predefined(m))
@@ -802,7 +807,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     gn_the_break_flag.add_generic_name_item(std::make_shared<chomik::identifier_name_item>("flag"));
 
     signature s{gn_the_break_flag, m, *g};
-    
+    s.set_line_number(line_number);
     
     if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
     {

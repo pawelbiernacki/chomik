@@ -1,6 +1,6 @@
 #! /bin/sh
-# Generated automatically by config.status (chomik) 0.2.0
-# Libtool was configured on host localhost-live.home:
+# Generated automatically by config.status (chomik) 0.2.1
+# Libtool was configured on host fedora:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
