@@ -52,6 +52,17 @@ fi
 
 # Checks for library functions.
 
+AC_MSG_CHECKING(--enable-sdl-chomik argument)
+AC_ARG_ENABLE(sdl-chomik,
+    [  --enable-sdl-chomik				Build SDL_chomik.],
+    [enable_sdl_chomik=$enableval],
+    [enable_sdl_chomik="yes"])
+AC_MSG_RESULT($enable_sdl_chomik)
+AC_SUBST(sdl_chomik_dir, "")
+if test "$enable_sdl_chomik" = "yes"; then
+
+	AC_SUBST(sdl_chomik_dir, "src2")
+
 dnl #################################################################################
 dnl #
 dnl # SDL2 - check the library and header file.
@@ -61,9 +72,9 @@ dnl #
 	AC_CHECK_LIB(SDL2, SDL_Init,
 			[],
 			[
-	AC_MSG_ERROR([The SDL2 library not found. Check that it is installed on your system. If it is not, download and install it 
-	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.) 
-	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR. 
+	AC_MSG_ERROR([The SDL2 library not found. Check that it is installed on your system. If it is not, download and install it
+	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.)
+	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR.
 	Execute "configure -h" for more info.])
 			])
 
@@ -71,10 +82,10 @@ dnl #
 	AC_SUBST(SDL2_LIBS, `pkg-config --libs sdl2`)
 	AC_SUBST(CFLAGS, ["$CFLAGS $SDL2_CFLAGS"])
 	AC_SUBST(CPPFLAGS, ["$CPPFLAGS $SDL2_CFLAGS"])
-	AC_CHECK_HEADERS([SDL2/SDL.h], [], 
+	AC_CHECK_HEADERS([SDL2/SDL.h], [],
 		[
 	AC_MSG_ERROR(
-	[The SDL library was found, but there is no corresponding header file. Check that the DEVEL version of the library 
+	[The SDL library was found, but there is no corresponding header file. Check that the DEVEL version of the library
 	is installed on your system.])
 		])
 
@@ -85,17 +96,17 @@ dnl #
 
 AC_CHECK_LIB(SDL2_image, IMG_Load, [], [
 	AC_MSG_ERROR([
-	The SDL2_image library not found. Check that it is installed on your system. If it is not, download and install it 
-	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.) 
-	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR. 
+	The SDL2_image library not found. Check that it is installed on your system. If it is not, download and install it
+	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.)
+	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR.
 	Execute "configure -h" for more info.
 		])
 	])
 
-AC_CHECK_HEADERS([SDL2/SDL_image.h], [], 
+AC_CHECK_HEADERS([SDL2/SDL_image.h], [],
 			[
 		AC_MSG_ERROR(
-	[The SDL2_image library was found, but there is no corresponding header file. Check that the DEVEL version of the library 
+	[The SDL2_image library was found, but there is no corresponding header file. Check that the DEVEL version of the library
 	is installed on your system.])
 			])
 
@@ -106,9 +117,9 @@ dnl #
 
 AC_CHECK_LIB(SDL2_ttf, TTF_Init, [], [
 	AC_MSG_ERROR([
-	The SDL2_ttf library not found. Check that it is installed on your system. If it is not, download and install it 
-	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.) 
-	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR. 
+	The SDL2_ttf library not found. Check that it is installed on your system. If it is not, download and install it
+	(preferably using your configuration manager -	i.e. the application called Add/Remove Programs or something like yum or dnf.)
+	Remember to install the DEVEL version. If it is installed elswehere you can run the script "configure" with the option --libdir=DIR.
 	Execute "configure -h" for more info.
 		])
 	])
@@ -117,12 +128,14 @@ AC_CHECK_LIB(SDL2_ttf, TTF_Init, [], [
 	AC_SUBST(SDL2_TTF_LIBS, `pkg-config --libs SDL2_ttf`)
 	AC_SUBST(CFLAGS, ["$CFLAGS $SDL2_TTF_CFLAGS"])
 	AC_SUBST(CPPFLAGS, ["$CPPFLAGS $SDL2_TTF_CFLAGS"])
-	AC_CHECK_HEADERS([SDL2/SDL_ttf.h], [], 
+	AC_CHECK_HEADERS([SDL2/SDL_ttf.h], [],
 		[
 	AC_MSG_ERROR(
-	[The SDL2_ttf library was found, but there is no corresponding header file. Check that the DEVEL version of the library 
+	[The SDL2_ttf library was found, but there is no corresponding header file. Check that the DEVEL version of the library
 	is installed on your system.])
 		])
+fi
+
 
 
 AC_CONFIG_FILES([Makefile

@@ -660,6 +660,7 @@ SDL2_TTF_LIBS
 SDL2_TTF_CFLAGS
 SDL2_LIBS
 SDL2_CFLAGS
+sdl_chomik_dir
 sdl_chomik_libs
 sdl_chomik_compiler_flags
 sdl_chomik_linker_flags
@@ -815,6 +816,7 @@ enable_libtool_lock
 with_pkgconfigdir
 enable_chomik_servers
 enable_windows_build
+enable_sdl_chomik
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1474,6 +1476,7 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-chomik-servers          Build the http library and servers.
   --enable-windows-build          Build for Windows.
+  --enable-sdl-chomik				Build SDL_chomik.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -17548,6 +17551,26 @@ fi
 
 # Checks for library functions.
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking --enable-sdl-chomik argument" >&5
+printf %s "checking --enable-sdl-chomik argument... " >&6; }
+# Check whether --enable-sdl-chomik was given.
+if test ${enable_sdl_chomik+y}
+then :
+  enableval=$enable_sdl_chomik; enable_sdl_chomik=$enableval
+else case e in #(
+  e) enable_sdl_chomik="yes" ;;
+esac
+fi
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $enable_sdl_chomik" >&5
+printf "%s\n" "$enable_sdl_chomik" >&6; }
+sdl_chomik_dir=""
+
+if test "$enable_sdl_chomik" = "yes"; then
+
+	sdl_chomik_dir="src2"
+
+
 
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking sdl2" >&5
 printf %s "checking sdl2... " >&6; }
@@ -17803,6 +17826,8 @@ esac
 fi
 
 done
+fi
+
 
 
 ac_config_files="$ac_config_files Makefile 3d/Makefile css/Makefile examples/Makefile font/Makefile image/Makefile doc/Makefile dox/Makefile inc/Makefile src/Makefile src2/Makefile src3/Makefile src4/Makefile tests/Makefile libchomik.pc libhttpchomik.pc"

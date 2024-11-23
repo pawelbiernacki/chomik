@@ -568,6 +568,7 @@ psdir = @psdir@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
 sdl_chomik_compiler_flags = @sdl_chomik_compiler_flags@
+sdl_chomik_dir = @sdl_chomik_dir@
 sdl_chomik_libs = @sdl_chomik_libs@
 sdl_chomik_linker_flags = @sdl_chomik_linker_flags@
 sharedstatedir = @sharedstatedir@

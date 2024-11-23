@@ -1,6 +1,6 @@
 
 
-SUBDIRS = 3d css examples font image doc dox inc src src2 $(chomik_servers_dirs) tests
+SUBDIRS = 3d css examples font image doc dox inc src $(sdl_chomik_dir) $(chomik_servers_dirs) tests
 
 EXTRA_DIST = Doxyfile
 
