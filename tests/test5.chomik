@@ -5,14 +5,17 @@
 variable return 1 on wrong result (X:compare_result_type):code;
 let return 1 on wrong result equal=value code
 {
+    <print "it was equal!">;
     let the program return = value integer 0;
 };
 let return 1 on wrong result lower=value code
 {
+    <print "it was lower!">;
     let the program return = value integer 1;
 };
 let return 1 on wrong result greater=value code
 {
+    <print "it was greater!">;
     let the program return = value integer 1;
 };
 
@@ -21,3 +24,4 @@ let return 1 on wrong result greater=value code
 
 <compare "integer" <the add result "integer"> 4>;
 <return 1 on wrong result <the compare result>>;
+let the program return = value integer 0;
