@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(chomik LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 set(version 0.2.1)
 set(HEADER_FILES config.h inc/chomik.h)
 
@@ -44,4 +48,25 @@ target_link_libraries(sdl_chomik libchomik ${SDL2_LIBRARY} ${IMAGE_LIBRARY} ${TT
 install(PROGRAMS sdl_chomik DESTINATION bin)
 include(CTest)
 add_subdirectory(tests)
+
+add_library(libhttpchomik SHARED src3/machine.cc src3/server.cc src3/wrapper_base.cc)
+target_include_directories(libhttpchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
+set(datadir "${DESTINATION}/share")
+target_compile_definitions(libhttpchomik PUBLIC -DDATADIR="${datadir}")
+install(TARGETS libhttpchomik DESTINATION lib)
+
+
+
+add_executable(fancy_http_chomik src4/fancy_http_chomik.cc)
+target_include_directories(fancy_http_chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
+target_link_libraries(fancy_http_chomik libchomik libhttpchomik)
+install(PROGRAMS fancy_http_chomik DESTINATION bin)
+install(FILES "${PROJECT_SOURCE_DIR}/css/chomik.css" DESTINATION share/http_chomik)
+install(FILES "${PROJECT_SOURCE_DIR}/image/chomik.png" DESTINATION share/http_chomik)
+
+add_executable(http_chomik src4/http_chomik.cc)
+target_include_directories(http_chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
+target_link_libraries(http_chomik libchomik libhttpchomik)
+install(PROGRAMS http_chomik DESTINATION bin)
+
 
