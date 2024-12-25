@@ -13,6 +13,7 @@ set(VERSION "${version}")
 set(PACKAGE_URL "https://www.chomik.tech")
 set(PACKAGE_STRING "chomik ${version}")
 
+# create config.h in build directory ${CMAKE_CURRENT_BINARY_DIR}
 configure_file(cmake.config.h.in config.h)
 set(HEADER_FILES config.h inc/chomik.h)
 
@@ -30,14 +31,12 @@ add_library(libchomik SHARED src/execute.cc src/generators.cc src/get_actual_cod
     src/parser_functions.cc src/parser.c src/report.cc src/scanner_functions.cc src/scanner.c
     src/various_functions.cc)
 
-target_include_directories(libchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
+target_include_directories(libchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 install(TARGETS libchomik DESTINATION lib)
 
 add_executable(chomik src/chomik.cc)
 
 target_include_directories(chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
-
-find_path(CHOMIK_INCLUDES chomik.h inc)
 
 target_link_libraries(chomik libchomik)
 target_include_directories(chomik PUBLIC "${PROJECT_SOURCE_DIR}" "${CHOMIK_INCLUDES}")
@@ -53,11 +52,18 @@ find_library(IMAGE_LIBRARY NAMES SDL2_image)
 find_library(SDL2_LIBRARY NAMES SDL2)
 
 
-target_link_libraries(sdl_chomik libchomik ${SDL2_LIBRARY} ${IMAGE_LIBRARY} ${TTF_LIBRARY})
+target_link_libraries(sdl_chomik 
+    libchomik 
+    ${SDL2_LIBRARY} 
+	$<$<BOOL:${WIN32}>:SDL2main> # fix problem on windows "undefined symbol: WinMain"
+    ${IMAGE_LIBRARY} 
+    ${TTF_LIBRARY}
+)
 install(PROGRAMS sdl_chomik DESTINATION bin)
 include(CTest)
 add_subdirectory(tests)
 
+if(NOT WIN32)
 add_library(libhttpchomik SHARED src3/machine.cc src3/server.cc src3/wrapper_base.cc)
 target_include_directories(libhttpchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
 set(datadir "${DESTINATION}/share")
@@ -78,4 +84,5 @@ target_include_directories(http_chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PRO
 target_link_libraries(http_chomik libchomik libhttpchomik)
 install(PROGRAMS http_chomik DESTINATION bin)
 
+endif()
 
