@@ -5,13 +5,22 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(version 0.2.1)
+set(PACKAGE "chomik")
+set(PACKAGE_BUGREPORT "pawel.f.biernacki@gmail.com")
+set(PACKAGE_NAME "chomik")
+set(PACKAGE_VERSION "${version}")
+set(VERSION "${version}")
+set(PACKAGE_URL "https://www.chomik.tech")
+set(PACKAGE_STRING "chomik ${version}")
+
+configure_file(cmake.config.h.in config.h)
 set(HEADER_FILES config.h inc/chomik.h)
 
 find_package(FLEX)
 find_package(BISON)
 
 flex_target(lexer src/scanner.l src/scanner.c)
-bison_target(parser src/parser.y src/parser.c DEFINES_FILE src/parsertab.h)
+bison_target(parser src/parser.y src/parser.c DEFINES_FILE src/parser.tab.h)
 
 add_flex_bison_dependency(lexer parser)
 

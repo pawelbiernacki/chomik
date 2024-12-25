@@ -1,0 +1,7 @@
+#cmakedefine PACKAGE "@PACKAGE@"
+#cmakedefine PACKAGE_BUGREPORT "@PACKAGE_BUGREPORT@"
+#cmakedefine PACKAGE_NAME "@PACKAGE_NAME@"
+#cmakedefine PACKAGE_VERSION "@PACKAGE_VERSION@"
+#cmakedefine VERSION "@VERSION@"
+#cmakedefine PACKAGE_URL "@PACKAGE_URL@"
+#cmakedefine PACKAGE_STRING "@PACKAGE_STRING@"
