@@ -29,3 +29,4 @@ libhttpchomik.pc
 tests/*.trs
 tests/*.log
 
+/build
