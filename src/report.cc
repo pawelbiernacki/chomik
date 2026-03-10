@@ -46,7 +46,14 @@ void chomik::execute_variable_value_statement::report(std::ostream & s) const
 
 void chomik::type_definition::report(std::ostream & s) const
 {
-    s << name << "=";
+    if (has_complex_name)
+    {
+        s << "complex [" << *complex_type_name << "] =";
+    }
+    else
+    {
+        s << simple_type_name << "=";
+    }
     body->report(s);
     s << "";
 }

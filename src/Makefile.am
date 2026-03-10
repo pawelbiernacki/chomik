@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libchomik.la
 
 
 libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc execute.cc get_actual_code_value.cc \
-		get_result_replacing_placeholders.cc various_functions.cc generators.cc
+		get_result_replacing_placeholders.cc various_functions.cc generators.cc language_specific_code.cc
 
 
 chomik_SOURCES = chomik.cc

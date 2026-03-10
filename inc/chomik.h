@@ -627,6 +627,8 @@ namespace chomik
         {
             return false;// The named types are not "ad hoc" types
         }
+
+        bool get_has_complex_name() const { return has_complex_name; }
     };        
 
     
@@ -1404,7 +1406,7 @@ namespace chomik
     private:
         const bool has_complex_name;
 
-        const std::string name;
+        const std::string simple_type_name;
         std::unique_ptr<generic_name> complex_type_name;
 
         std::unique_ptr<type_definition_body> body;
@@ -1412,24 +1414,29 @@ namespace chomik
         /**
          * This constructor takes the second parameter and owns it, the type_definition_body must not be destroyed by the parser!
          */        
-        type_definition(const char * const type_name, type_definition_body * const b): name{type_name}, body{b}, has_complex_name{false} {}
+        type_definition(const char * const type_name, type_definition_body * const b): simple_type_name{type_name}, body{b}, has_complex_name{false} {}
 
-        type_definition(generic_name * const new_complex_type_name, type_definition_body * const b): complex_type_name{new_complex_type_name}, body{b}, has_complex_name{true} {}
+        type_definition(generic_name * const new_complex_type_name, type_definition_body * const b): simple_type_name{"complex [...]"}, complex_type_name{new_complex_type_name}, body{b}, has_complex_name{true} {}
 
         void report(std::ostream & s) const;
         
         void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const;
         
         void add_placeholders_to_generator(basic_generator & g) const;
+
+        bool get_has_complex_name() const { return has_complex_name; }
+
+        const generic_name& get_complex_type_name() const;
         
-        const std::string & get_name() const { return name; }
+        const std::string & get_name() const;
         
         bool get_is_range() const;
         
         type_definition_body& get_body() { return *body; }
     };
+
+
     class type_instance;
-    
     class type_definition_body
     {
     private:
@@ -1438,8 +1445,10 @@ namespace chomik
         
         virtual void report(std::ostream & s) const = 0;
         
-        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const = 0;
-        
+        virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const = 0;
+
+        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const = 0;
+
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
         virtual bool get_is_range() const = 0;
@@ -1464,8 +1473,10 @@ namespace chomik
             r->report(s);
         }
         
-        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const override;
-        
+        virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const override;
+
+        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const override;
+
         virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
             r->add_placeholders_to_generator(g);
@@ -1790,7 +1801,9 @@ namespace chomik
                 
         virtual void report(std::ostream & s) const override;
         
-        virtual void expand(machine & m, int depth, const std::string & n, std::shared_ptr<type_instance> & e) const override;
+        virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const override;
+
+        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
@@ -3458,7 +3471,10 @@ namespace chomik
         std::vector<std::unique_ptr<generic_stream>> vector_of_streams;
 
         std::vector<std::unique_ptr<signature_regular_expression>> vector_of_signature_regular_expressions;
-                
+
+    protected:
+        void create_new_type_instance_for_the_type_instance_simple_name(const std::shared_ptr<type_definition> &k, const std::string & simple_type_name, std::vector<std::shared_ptr<type_definition>> & temporary_vector_of_type_definitions, std::vector<std::shared_ptr<type_instance>> & temporary_vector_of_type_instances, std::vector<bool> & temporary_vector_of_flags_type_is_new);
+
     public:
         // these methods are useful for certain reflection-like capabilities
         int get_amount_of_variables_in_the_memory() const { return memory.size(); }

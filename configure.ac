@@ -11,7 +11,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
-AM_PROG_LEX
+AM_PROG_LEX([noyywrap])
 AC_PROG_YACC
 LT_INIT
 
