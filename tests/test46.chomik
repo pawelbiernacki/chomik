@@ -1,0 +1,11 @@
+#!/usr/local/bin/chomik
+
+# this test requires complex type names
+
+variable beta: integer;
+
+let beta = value integer 1;
+
+variable alpha: <beta> gamma;
+
+
