@@ -12,6 +12,8 @@ int yyerror(char *);
 #include <stdio.h>
 
 void * chomik_create_generic_type_named(const char * const type_name);
+void * chomik_create_generic_complex_name_type_named(void * const complex_type_name);
+void * chomik_create_complex_name_generic_type_definition(void * const complex_type_name, void * t);
 void * chomik_create_generic_range(void * const l, void * const r);
 void * chomik_create_generic_range_boundary_int_literal(int i);
 void * chomik_create_generic_range_boundary_variable_value(void * const gn);
@@ -48,6 +50,8 @@ void * chomik_create_integer_literal(int v);
 void * chomik_create_float_literal(double v);
 void * chomik_create_string_literal(const char * const v);
 void * chomik_create_code_literal(void * const l);
+void * chomik_create_complex_name_enum_literal(void * const complex_type_name, void * const l);
+void * chomik_create_complex_name_enum_literal_placeholder(void * const complex_type_name, const char * const p, void * const l);
 void * chomik_create_execute_variable_value_statement(void * const l, unsigned new_line_number);
 void * chomik_create_execute_value_statement(void * const l, unsigned new_line_number);
 void * chomik_create_integer_literal_placeholder(const char * const p, void * const l);
@@ -75,7 +79,7 @@ int value_int;
 void * value_pointer;
 }
 
-%token T_TYPE T_VARIABLE T_LET T_EXECUTE T_EXPAND T_VALUE T_RANGE T_INTEGER T_FLOAT T_STRING T_CODE
+%token T_TYPE T_VARIABLE T_LET T_EXECUTE T_EXPAND T_VALUE T_DOUBLE_POINT T_INTEGER T_FLOAT T_STRING T_CODE T_COMPLEX T_RANGE
 
 %token<value_string> T_IDENTIFIER T_STRING_LITERAL
 %token<value_float> T_FLOAT_LITERAL
@@ -105,9 +109,10 @@ nonempty_list_of_type_definitions: type_definition ',' nonempty_list_of_type_def
         | type_definition { $$=chomik_create_list_of_type_definitions($1, NULL); /* no need to destroy $1 !!! */ } 
 
 type_definition: T_IDENTIFIER '=' type_definition_body { $$ = chomik_create_type_definition($1, $3); free($1); /* no need to destroy $3 !!! */ }
+        | T_COMPLEX '[' name ']' '=' type_definition_body { $$ = chomik_create_complex_name_generic_type_definition($3, $6); /* no need to destroy $3 or $6 !!! */ }
 
 type_definition_body: '{' nonempty_list_of_names '}' { $$=chomik_create_type_definition_body_enum($2); chomik_destroy_list_of_names($2); } 
-            | range { $$=chomik_create_type_definition_body_range($1); /* no need to destroy $1 !!! */ }
+            | optional_range_keyword range { $$=chomik_create_type_definition_body_range($2); /* no need to destroy $2 !!! */ }
 
 nonempty_list_of_names: name ',' nonempty_list_of_names { $$ = chomik_create_list_of_generic_names($1, $3); /* no need to destroy $1 !!! */ chomik_destroy_list_of_names($3); } 
     | name { $$ = chomik_create_list_of_generic_names($1, NULL); /* no need to destroy $1 !!! */ }    
@@ -125,9 +130,12 @@ type_name: T_INTEGER { $$=chomik_create_generic_type_named("integer"); }
         | T_STRING { $$=chomik_create_generic_type_named("string"); }
         | T_CODE { $$=chomik_create_generic_type_named("code"); }
         | T_IDENTIFIER { $$=chomik_create_generic_type_named($1); free($1); } 
-        | range { $$=chomik_create_generic_type_range($1); }
+        | optional_range_keyword range { $$=chomik_create_generic_type_range($2); }
+        | T_COMPLEX '[' name ']' { $$=chomik_create_generic_complex_name_type_named($3); }
 
-range: min_boundary T_RANGE max_boundary { $$=chomik_create_generic_range($1, $3); /* no need to destroy $1 and $3 !!! */ }
+optional_range_keyword: T_RANGE |
+
+range: min_boundary T_DOUBLE_POINT max_boundary { $$=chomik_create_generic_range($1, $3); /* no need to destroy $1 and $3 !!! */ }
 
 min_boundary: T_INT_LITERAL { $$=chomik_create_generic_range_boundary_int_literal($1); } 
         | '<' name '>' { $$=chomik_create_generic_range_boundary_variable_value($2); /* no need to destroy $2 !!! */ }
@@ -170,6 +178,9 @@ constant_value_literal:
         | T_FLOAT '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_float_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
         | T_STRING T_STRING_LITERAL { $$ = chomik_create_string_literal($2); free($2); }
         | T_STRING '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_string_literal_placeholder($4, $6); free($4); /* no need to destroy $6 !!! */ }
+        | T_COMPLEX '[' name ']' name { $$ = chomik_create_complex_name_enum_literal($3, $5); }
+        | T_COMPLEX '[' name ']' '[' '(' T_IDENTIFIER ':' type_name ')' ']' { $$ = chomik_create_complex_name_enum_literal_placeholder($3, $7, $9); free($7); /* no need to destroy $3 or $9 !!! */ }
+
         
 code_literal: '{' list_of_statements '}' { $$ = chomik_create_code_literal($2); chomik_destroy_list_of_statements($2); }
 

@@ -41,7 +41,7 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 <COMMENT>\n          yy_pop_state();
 <COMMENT>[^\n]+      
 
-".."                    return T_RANGE;
+".."                    return T_DOUBLE_POINT;
 
 ";"						return ';';
 ","						return ',';
@@ -70,7 +70,10 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 "float"                 { return T_FLOAT; }
 "string"                { return T_STRING; }
 "code"                  { return T_CODE; }
-"include"               { 
+"complex"               { return T_COMPLEX; }
+"range"                 { return T_RANGE; }
+
+"include"               {
                             BEGIN(INCLUDE); 
                         }
 

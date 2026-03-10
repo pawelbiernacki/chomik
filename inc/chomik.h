@@ -584,11 +584,18 @@ namespace chomik
     class generic_type_named: public generic_type
     {
     private:
+        const bool has_complex_name;
+
         const std::string name;
+
+        std::unique_ptr<generic_name> complex_type_name;
+
     public:
-        generic_type_named(const char * const n): name{n} {}
+        generic_type_named(const char * const n): name{n}, has_complex_name{false} {}
         
-        generic_type_named(const std::string & n): name{n} {}
+        generic_type_named(const std::string & n): name{n}, has_complex_name{false} {}
+
+        generic_type_named(generic_name * ctn): complex_type_name{ctn}, has_complex_name{true} {}
         
         virtual std::string get_type_name(const machine & m, const basic_generator & g) const override
         {
@@ -1411,14 +1418,20 @@ namespace chomik
     class type_definition
     {
     private:
+        const bool has_complex_name;
+
         const std::string name;
+        std::unique_ptr<generic_name> complex_type_name;
+
         std::unique_ptr<type_definition_body> body;
     public:
         /**
          * This constructor takes the second parameter and owns it, the type_definition_body must not be destroyed by the parser!
          */        
-        type_definition(const char * const type_name, type_definition_body * const b): name{type_name}, body{b} {}
-                
+        type_definition(const char * const type_name, type_definition_body * const b): name{type_name}, body{b}, has_complex_name{false} {}
+
+        type_definition(generic_name * const new_complex_type_name, type_definition_body * const b): complex_type_name{new_complex_type_name}, body{b}, has_complex_name{true} {}
+
         void report(std::ostream & s) const;
         
         void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const;
@@ -2190,18 +2203,27 @@ namespace chomik
     class generic_literal_placeholder: public generic_literal
     {
     private:
+        const bool has_complex_name;
+        std::unique_ptr<generic_name> complex_type_name;
+
         const std::string placeholder;
-        std::unique_ptr<generic_type> type_name;
+        std::unique_ptr<generic_type> type_name; // this is not really a type name, but a type definition
         const variable_with_value::actual_memory_representation_type expected_type;
     public:
         /**
          * This constructor owns the second parameter, it must not be destroyed by the parser!
          */
         generic_literal_placeholder(const char * const p, generic_type * const t, variable_with_value::actual_memory_representation_type e): 
-            placeholder{p}, type_name{t}, expected_type{e} {}
+            placeholder{p}, type_name{t}, expected_type{e}, has_complex_name{false} {}
             
         generic_literal_placeholder(const std::string & p, std::unique_ptr<generic_type> && t, variable_with_value::actual_memory_representation_type e):
-            placeholder{p}, type_name{std::move(t)}, expected_type{e} {}
+            placeholder{p}, type_name{std::move(t)}, expected_type{e}, has_complex_name{false} {}
+
+        generic_literal_placeholder(generic_name * const tn, const std::string & p, generic_type * const t, variable_with_value::actual_memory_representation_type e):
+            complex_type_name{tn}, placeholder{p}, type_name{t}, expected_type{e}, has_complex_name{true} {}
+
+        generic_literal_placeholder(generic_name * const tn, const std::string & p, std::unique_ptr<generic_type> && t, variable_with_value::actual_memory_representation_type e):
+            complex_type_name{tn}, placeholder{p}, type_name{std::move(t)}, expected_type{e}, has_complex_name{true} {}
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const override { return expected_type; }
         
@@ -2444,15 +2466,21 @@ namespace chomik
     class generic_literal_enum: public generic_literal
     {
     private:
+        const bool has_complex_name;
         const std::string type_name;
+        std::unique_ptr<generic_name> complex_type_name;
+
         std::unique_ptr<generic_name> name;
     public:
         /**
          * This constructor owns the second parameter, it must not be destroyed by the parser!
          */
-        generic_literal_enum(const char * const tn, generic_name * const gn): type_name{tn}, name{gn} {}
+        generic_literal_enum(const char * const tn, generic_name * const gn): type_name{tn}, name{gn}, has_complex_name{false} {}
         
-        generic_literal_enum(const std::string & tn, const generic_name & gn): type_name{tn}, name{std::make_unique<generic_name>(gn)} {}
+        generic_literal_enum(const std::string & tn, const generic_name & gn): type_name{tn}, name{std::make_unique<generic_name>(gn)}, has_complex_name{false} {}
+
+        generic_literal_enum(generic_name * tn, generic_name * const gn): complex_type_name{tn}, name{gn}, has_complex_name{true} {}
+
 
         virtual void report(std::ostream & s) const override
         {

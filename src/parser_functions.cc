@@ -7,6 +7,11 @@ extern "C" void * chomik_create_generic_type_named(const char * const type_name)
     return new chomik::generic_type_named(type_name);
 }
 
+extern "C" void * chomik_create_generic_complex_name_type_named(void * const complex_type_name)
+{
+    return new chomik::generic_type_named(static_cast<chomik::generic_name*>(complex_type_name));
+}
+
 extern "C" void * chomik_create_generic_range_boundary_int_literal(int i)
 {
     return new chomik::generic_range_boundary_int_literal(i);
@@ -25,6 +30,11 @@ extern "C" void * chomik_create_generic_name(void * const l)
 extern "C" void * chomik_create_type_definition(const char * const type_name, void * t)
 {
     return new chomik::type_definition(type_name, static_cast<chomik::type_definition_body*>(t));
+}
+
+extern "C" void * chomik_create_complex_name_generic_type_definition(void * const complex_type_name, void * t)
+{
+    return new chomik::type_definition(static_cast<chomik::generic_name*>(complex_type_name), static_cast<chomik::type_definition_body*>(t));
 }
 
 extern "C" void chomik_copy_list_of_statements_to_the_program(void * const l)
@@ -173,6 +183,17 @@ extern "C" void * chomik_create_string_literal(const char * const v)
 extern "C" void * chomik_create_enum_literal(const char * const type_name, void * const n)
 {
     return new chomik::generic_literal_enum(type_name, static_cast<chomik::generic_name*>(n));
+}
+
+
+extern "C" void * chomik_create_complex_name_enum_literal(void * const complex_type_name, void * const l)
+{
+    return new chomik::generic_literal_enum(static_cast<chomik::generic_name*>(complex_type_name), static_cast<chomik::generic_name*>(l));
+}
+
+extern "C" void * chomik_create_complex_name_enum_literal_placeholder(void * const complex_type_name, const char * const p, void * const l)
+{
+    return new chomik::generic_literal_placeholder(static_cast<chomik::generic_name*>(complex_type_name), p, static_cast<chomik::generic_type*>(l), chomik::variable_with_value::actual_memory_representation_type::ENUM);
 }
 
 

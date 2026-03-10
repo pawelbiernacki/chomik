@@ -6,6 +6,11 @@ variable beta: integer;
 
 let beta = value integer 1;
 
-variable alpha: <beta> gamma;
+variable alpha: complex [<beta> gamma];
 
+type complex [1 gamma] = {a,b,c};
+type complex [2 gamma] = {d,e};
 
+expand(1);
+
+let alpha = value complex [<beta> gamma] a;

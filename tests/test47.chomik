@@ -1,0 +1,16 @@
+#!/usr/local/bin/chomik
+
+# this test requires complex type names
+
+
+type complex [1 gamma] = {a,b,c};
+type complex [2 gamma] = {d,e};
+
+expand(1);
+
+variable beta: integer;
+
+let beta = value integer 1;
+
+<print (A:complex [<beta> gamma])>;   # here we use a complex type name, the value of beta controlls the type
+
