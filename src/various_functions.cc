@@ -2871,4 +2871,22 @@ const chomik::generic_name& chomik::type_definition::get_complex_type_name() con
     return *complex_type_name;
 }
 
+void chomik::generic_literal_placeholder::get_copy(std::unique_ptr<generic_literal> & target) const
+{
+    std::unique_ptr<generic_type> t;
+    type_name->get_copy(t);
+
+
+    if (has_complex_name)
+    {
+        std::unique_ptr<generic_name> c;
+        complex_type_name->get_copy(c);
+
+        target = std::make_unique<generic_literal_placeholder>(std::move(c), placeholder, std::move(t), expected_type);
+    }
+    else
+    {
+        target = std::make_unique<generic_literal_placeholder>(placeholder, std::move(t), expected_type);
+    }
+}
 

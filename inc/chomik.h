@@ -2221,7 +2221,10 @@ namespace chomik
 
         generic_literal_placeholder(generic_name * const tn, const std::string & p, std::unique_ptr<generic_type> && t, variable_with_value::actual_memory_representation_type e):
             complex_type_name{tn}, placeholder{p}, type_name{std::move(t)}, expected_type{e}, has_complex_name{true} {}
-        
+
+        generic_literal_placeholder(std::unique_ptr<generic_name> && tn, const std::string & p, std::unique_ptr<generic_type> && t, variable_with_value::actual_memory_representation_type e):
+            complex_type_name{std::move(tn)}, placeholder{p}, type_name{std::move(t)}, expected_type{e}, has_complex_name{true} {}
+
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const override { return expected_type; }
         
         virtual void report(std::ostream & s) const override;
@@ -2240,12 +2243,7 @@ namespace chomik
 
         virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
-        virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
-        {
-            std::unique_ptr<generic_type> t;
-            type_name->get_copy(t);
-            target = std::make_unique<generic_literal_placeholder>(placeholder, std::move(t), expected_type);
-        }
+        virtual void get_copy(std::unique_ptr<generic_literal> & target) const override;
         
         virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override;
     };
