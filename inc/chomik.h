@@ -586,57 +586,36 @@ namespace chomik
     private:
         const bool has_complex_name;
 
-        const std::string name;
+        const std::string simple_type_name;
 
         std::unique_ptr<generic_name> complex_type_name;
 
     public:
-        generic_type_named(const char * const n): name{n}, has_complex_name{false} {}
+        generic_type_named(const char * const n): simple_type_name{n}, has_complex_name{false} {}
         
-        generic_type_named(const std::string & n): name{n}, has_complex_name{false} {}
+        generic_type_named(const std::string & n): simple_type_name{n}, has_complex_name{false} {}
 
-        generic_type_named(generic_name * ctn): complex_type_name{ctn}, has_complex_name{true} {}
-        
-        virtual std::string get_type_name(const machine & m, const basic_generator & g) const override
-        {
-            return name;
-        }
+        generic_type_named(generic_name * ctn): complex_type_name{ctn}, simple_type_name{"complex [...]"}, has_complex_name{true} {}
 
-        virtual std::string get_generic_type_name() const override
-        {
-            return name;
-        }
+        generic_type_named(std::unique_ptr<generic_name> && ctn): complex_type_name{std::move(ctn)}, simple_type_name{"complex [...]"}, has_complex_name{true} {}
+
+        virtual std::string get_type_name(const machine & m, const basic_generator & g) const override;
+
+        virtual std::string get_generic_type_name() const override;
         
-        virtual std::string get_low_level_type_name() const override 
-        {
-            return name;
-        }
+        virtual std::string get_low_level_type_name() const override;
         
-        virtual void report(std::ostream & s) const
-        {
-            s << name;
-        }
+        virtual void report(std::ostream & s) const override;
         
-        virtual bool get_is_finite() const override
-        {            
-            if (name == "integer" || name == "float" || name=="string" || name=="code")   // these types are built-in and infinite
-                return false;
-            return true;
-        }
+        virtual bool get_is_finite() const override;
         
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(const machine & m) const override;
         
-        virtual void add_placeholders_to_generator(basic_generator & g) const override {}
+        virtual void add_placeholders_to_generator(basic_generator & g) const override;
         
-        virtual void get_copy(std::shared_ptr<generic_type> & target) const override
-        {
-            target = std::make_shared<generic_type_named>(name);
-        }
+        virtual void get_copy(std::shared_ptr<generic_type> & target) const override;
         
-        virtual void get_copy(std::unique_ptr<generic_type> & target) const override
-        {
-            target = std::make_unique<generic_type_named>(name);
-        }
+        virtual void get_copy(std::unique_ptr<generic_type> & target) const override;
 
         virtual bool get_is_equal(const generic_type & t) const override
         {
@@ -974,6 +953,11 @@ namespace chomik
         void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const;
 
         bool operator==(const generic_name & n) const;
+
+        void get_copy(std::shared_ptr<generic_name> & target) const;
+
+        void get_copy(std::unique_ptr<generic_name> & target) const;
+
     };
 
     /**

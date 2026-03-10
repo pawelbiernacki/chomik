@@ -14,3 +14,5 @@ type complex [2 gamma] = {d,e};
 expand(1);
 
 let alpha = value complex [<beta> gamma] a;
+
+<print "alpha=" <alpha>>;

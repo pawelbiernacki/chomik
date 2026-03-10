@@ -339,3 +339,18 @@ void chomik::list_of_statements::report(std::ostream & s) const
     }
 }
 
+void chomik::generic_type_named::report(std::ostream & s) const
+{
+    if (has_complex_name)
+    {
+        s << "complex [";
+        complex_type_name->report(s);
+        s << "]";
+    }
+    else
+    {
+        s << simple_type_name;
+    }
+}
+
+

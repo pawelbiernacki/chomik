@@ -3861,19 +3861,26 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
 
 chomik::variable_with_value::actual_memory_representation_type chomik::generic_type_named::get_actual_memory_representation_type(const machine & m) const 
 {
-    if (name == "integer")
+    if (has_complex_name)
+    {
+        // maybe in the future we will allow types with the complex names to be something else than enums?
+        return variable_with_value::actual_memory_representation_type::ENUM;
+    }
+
+
+    if (simple_type_name == "integer")
         return variable_with_value::actual_memory_representation_type::INTEGER;
-    if (name == "float")
+    if (simple_type_name == "float")
         return variable_with_value::actual_memory_representation_type::FLOAT;
-    if (name == "string")
+    if (simple_type_name == "string")
         return variable_with_value::actual_memory_representation_type::STRING;
-    if (name == "code")
+    if (simple_type_name == "code")
         return variable_with_value::actual_memory_representation_type::CODE;
             
     
-    if (m.get_type_instance_is_known(name))
+    if (m.get_type_instance_is_known(simple_type_name))
     {
-        switch (m.get_type_instance(name).get_mode())
+        switch (m.get_type_instance(simple_type_name).get_mode())
         {
             case type_instance::type_instance_mode::INTEGER:
                 return variable_with_value::actual_memory_representation_type::INTEGER;
@@ -3884,7 +3891,7 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
     }
     else
     {
-        CHOMIK_STDERR("type_instance " << name << " is unknown\n");
+        CHOMIK_STDERR("type_instance " << simple_type_name << " is unknown\n");
     }
     
     return variable_with_value::actual_memory_representation_type::NONE;
@@ -4385,3 +4392,105 @@ bool chomik::variable_value_name_item::get_match_code(const code & v, const mach
     // TODO - we ignore infinite families here!
     return false;
 }
+
+std::string chomik::generic_type_named::get_type_name(const machine & m, const basic_generator & g) const
+{
+    if (has_complex_name)
+    {
+        return complex_type_name->get_actual_text_representation(m, g);
+    }
+    return simple_type_name;
+}
+
+std::string chomik::generic_type_named::get_generic_type_name() const
+{
+    if (has_complex_name)
+    {
+        throw std::runtime_error("there is no generic type name in this case");
+    }
+    return simple_type_name;
+}
+
+std::string chomik::generic_type_named::get_low_level_type_name() const
+{
+    if (has_complex_name)
+    {
+        throw std::runtime_error("there is no generic type name in this case");
+    }
+    return simple_type_name;
+}
+
+bool chomik::generic_type_named::get_is_finite() const
+{
+    if (has_complex_name)
+    {
+        return false; // maybe in the future we will allow types with complex names that are infinite???
+    }
+
+    if (simple_type_name == "integer" || simple_type_name == "float" || simple_type_name=="string" || simple_type_name=="code")   // these types are built-in and infinite
+        return false;
+
+    return true;
+}
+
+void chomik::generic_type_named::add_placeholders_to_generator(basic_generator & g) const
+{
+    if (has_complex_name)
+    {
+        complex_type_name->add_placeholders_to_generator(g);
+    }
+}
+
+void chomik::generic_type_named::get_copy(std::shared_ptr<generic_type> & target) const
+{
+    if (has_complex_name)
+    {
+        std::unique_ptr<generic_name> t;
+        complex_type_name->get_copy(t);
+
+        target = std::make_shared<generic_type_named>(std::move(t));
+    }
+    else
+    {
+        target = std::make_shared<generic_type_named>(simple_type_name);
+    }
+}
+
+void chomik::generic_type_named::get_copy(std::unique_ptr<generic_type> & target) const
+{
+    if (has_complex_name)
+    {
+        std::unique_ptr<generic_name> t;
+        complex_type_name->get_copy(t);
+
+        target = std::make_unique<generic_type_named>(std::move(t));
+    }
+    else
+    {
+        target = std::make_unique<generic_type_named>(simple_type_name);
+    }
+}
+
+void chomik::generic_name::get_copy(std::shared_ptr<generic_name> & target) const
+{
+    target = std::make_shared<generic_name>();
+
+    for (auto & i: vector_of_name_items)
+    {
+        std::shared_ptr<generic_name_item> p{i};
+        target->add_generic_name_item(std::move(p));
+    }
+}
+
+void chomik::generic_name::get_copy(std::unique_ptr<generic_name> & target) const
+{
+    target = std::make_unique<generic_name>();
+
+    for (auto & i: vector_of_name_items)
+    {
+        std::shared_ptr<generic_name_item> p{i};
+        target->add_generic_name_item(std::move(p));
+    }
+}
+
+
