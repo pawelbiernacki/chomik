@@ -13,7 +13,7 @@ int yyerror(char *);
 
 void * chomik_create_generic_type_named(const char * const type_name);
 void * chomik_create_generic_range(void * const l, void * const r);
-void * chomik_create_generic_range_boundary_int_literal();
+void * chomik_create_generic_range_boundary_int_literal(int i);
 void * chomik_create_generic_range_boundary_variable_value(void * const gn);
 void * chomik_create_generic_name(void * const l);
 void * chomik_create_type_definition(const char * const type_name, void * type_definition_body);
