@@ -275,13 +275,16 @@ bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small(
 
 bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_finite() const
 {
+    DEBUG("checking whether the cartesian product is finite");
     for (auto & i: vector_of_placeholders)
     {
         if (!i->get_type_is_finite())
         {
+            DEBUG("the cartesian product is NOT finite, due to " << i->get_name());
             return false;
         }
     }
+    DEBUG("yes, the cartesian product is finite");
     return true;
 }
 

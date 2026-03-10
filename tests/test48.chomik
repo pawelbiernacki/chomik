@@ -1,0 +1,15 @@
+#!/usr/local/bin/chomik
+
+# this test requires complex type names and recursive cyclic expand
+
+type
+    complex [my person]={Gotrek, Gwaigilion, Gerrudir},
+    complex [my place]={Krakow, Warszawa, Wroclaw, Poznan, Gdansk};
+
+type complex [my information]={(X:complex [my person]) is in (Y:complex [my place]), (X:complex [my person]) has told (Y:complex [my person]) that (I:complex [my information]), (X:complex [my person]) has done (A:complex [my action])};
+
+type complex [my action]={tell (X:complex [my person]) that (I:complex [my information]), go to (X:complex [my place])};
+
+expand(3);
+<print (I:complex [my information])>;
+

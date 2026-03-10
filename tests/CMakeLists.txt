@@ -50,6 +50,7 @@ add_test(NAME test44 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test44.chomik)
 add_test(NAME test45 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test45.chomik)
 add_test(NAME test46 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test46.chomik)
 add_test(NAME test47 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test47.chomik)
+add_test(NAME test48 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test48.chomik)
 
 # set WORKING_DIRECTORY for test with files
 set_tests_properties(test29 test30 test36

@@ -1447,7 +1447,7 @@ namespace chomik
         
         virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const = 0;
 
-        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const = 0;
+        virtual void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const = 0;
 
         virtual void add_placeholders_to_generator(basic_generator & g) const = 0;
         
@@ -1475,7 +1475,7 @@ namespace chomik
         
         virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const override;
 
-        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const override;
+        virtual void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const override;
 
         virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
@@ -1803,7 +1803,7 @@ namespace chomik
         
         virtual void expand(machine & m, int depth, const std::string & simple_type_name, std::shared_ptr<type_instance> & e) const override;
 
-        virtual void expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const override;
+        virtual void expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const override;
         
         virtual void add_placeholders_to_generator(basic_generator & g) const override;
         

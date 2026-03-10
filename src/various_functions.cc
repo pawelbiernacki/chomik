@@ -1911,7 +1911,7 @@ void chomik::type_definition::expand(machine & m, int depth, std::shared_ptr<typ
     if (has_complex_name)
     {
         DEBUG("expanding type " << *complex_type_name << " for depth " << depth << " - " << *body);
-        body->expand(m, depth, *complex_type_name, e);
+        body->expand(m, depth, e);
     }
     else
     {
@@ -2079,22 +2079,28 @@ void chomik::execute_value_statement::add_placeholders_to_generator(basic_genera
     value->add_placeholders_to_generator(g);
 }
 
-void chomik::type_definition_body_enum::expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const
+
+void chomik::type_definition_body_enum::expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const
 {
     std::vector<std::string> temporary_vector_of_type_instance_enums;
 
-    DEBUG("expand is not implemented for type_definition_body_enum with complex type name " << complex_type_name);
+    DEBUG("expand for type_definition_body_enum with complex type name, depth = " << depth);
 
     for (auto & i: vector_of_names)
     {
         generator g{*i, __FILE__, __LINE__};
 
+        DEBUG("go through the generator g " << g);
+
         if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
         {
+            DEBUG("the cartesian product is empty");
         }
         else
         if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
         {
+            DEBUG("the cartesian product has one item");
+
             if (depth == 1)
             {
                 signature x{*i, m, g};
@@ -2105,6 +2111,8 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const gen
         else
         if (g.get_the_cartesian_product_of_placeholder_types_is_finite())
         {
+            DEBUG("the cartesian product has a finite amount of items");
+
             for (g.initialize(m); !g.get_terminated(); g.increment(m))
             {
                 if (g.get_is_valid())
@@ -2124,6 +2132,10 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const gen
                     }
                 }
             }
+        }
+        else
+        {
+            DEBUG("the cartesian product has an infinite amount of items !!!");
         }
     }
 
@@ -2760,7 +2772,7 @@ bool chomik::generic_type_named::get_is_finite() const
 {
     if (has_complex_name)
     {
-        return false; // maybe in the future we will allow types with complex names that are infinite???
+        return true; // maybe in the future we will allow types with complex names that are infinite???
     }
 
     if (simple_type_name == "integer" || simple_type_name == "float" || simple_type_name=="string" || simple_type_name=="code")   // these types are built-in and infinite
@@ -2838,9 +2850,9 @@ const std::string & chomik::type_definition::get_name() const
     return simple_type_name;
 }
 
-void chomik::type_definition_body_range::expand(machine & m, int depth, const generic_name & complex_type_name, std::shared_ptr<type_instance> & e) const
+void chomik::type_definition_body_range::expand(machine & m, int depth, std::shared_ptr<type_instance> & e) const
 {
-    DEBUG("it is not really implemented for type_definition_body_range with the complex type names " << complex_type_name);
+    DEBUG("expand for type_definition_body_range with the complex type name");
 }
 
 
