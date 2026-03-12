@@ -125,10 +125,14 @@ void chomik::generator::initialize(machine & m)
         }
         else
         {
+            DEBUG("generator::initialize - it is NOT an ad hoc type");
+
             switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
             {
                 case variable_with_value::actual_memory_representation_type::INTEGER:
                 {
+                    DEBUG("generator::initialize - it an integer");
+
                 const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
                 int f, l;
                 if (m.get_type_instance_is_known(type_name))
@@ -155,6 +159,8 @@ void chomik::generator::initialize(machine & m)
 
             case variable_with_value::actual_memory_representation_type::CODE:
             {
+                DEBUG("generator::initialize - it a code");
+
                 const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
 
                 DEBUG("NOT IMPLEMENTED");
@@ -183,7 +189,49 @@ void chomik::generator::initialize(machine & m)
             
             case variable_with_value::actual_memory_representation_type::ENUM:
             {
+                DEBUG("generator::initialize - it an enum");
+
+
+                if (i->get_placeholder_type().get_has_complex_name())
+                {
+                    DEBUG("the type has complex name " << i->get_placeholder_type());
+
+                    std::unique_ptr<generic_name> tn;
+
+                    i->get_placeholder_type().get_type_complex_name_copy(tn);
+
+                    signature actual_name{*tn, m, *this};
+
+                    DEBUG("actual type name " << actual_name);
+
+                    const std::string type_name{actual_name.get_string_representation()};
+
+                    std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f,l;
+
+                    if (m.get_type_instance_is_known(type_name))
+                    {
+                        DEBUG("generator::initialize - the type instance is known");
+
+                        std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), &i->get_placeholder_type())};
+
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    else
+                    {
+                        DEBUG("generator::initialize - the type instance " << type_name << " is NOT known");
+
+                        for (auto & ti: m.vector_of_type_instances)
+                        {
+                            DEBUG("there is a type instance " << ti->get_name());
+                        }
+                    }
+                    break;
+                }
+
+
                 const std::string type_name = i->get_placeholder_type().get_type_name(m, *this);
+
+                DEBUG("generator::initialize - the type name is " << type_name);
                 
                 std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f,l;
                 
@@ -191,13 +239,29 @@ void chomik::generator::initialize(machine & m)
                 
                 if (m.get_type_instance_is_known(type_name))
                 {
+                    DEBUG("generator::initialize - the type instance is known");
+
                     m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
                     std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), f, l, nullptr)};
         
                     add_placeholder_with_value(std::move(x));
                 }
+                else
+                {
+                    DEBUG("generator::initialize - the type instance " << type_name << " is NOT known");
+
+                    for (auto & ti: m.vector_of_type_instances)
+                    {
+                        DEBUG("there is a type instance " << ti->get_name());
+                    }
+                }
             }
             break;            
+
+
+            default:
+                DEBUG("generator::initialize - I do not know the type");
+                break;
             }
         }
     }
@@ -219,6 +283,7 @@ void chomik::generator::increment(machine & m)
         {
             for (int j=i+1;j<memory.size(); j++)
             {
+                memory[j]->update_type_instance_if_necessary(m, *this); // type instance can depend on former placeholder values
                 memory[j]->update_ad_hoc_range_type_instance(m, *this);
             }
             return; // we DONT't increment the father
@@ -742,3 +807,23 @@ void chomik::external_placeholder_generator::add_placeholder_with_value(std::sha
 
     memory.push_back(std::move(p));
 }
+
+std::string chomik::generator::get_actual_text_representation_of_a_placeholder(const machine & m, const std::string & placeholder) const
+{
+    auto p = map_placeholder_names_to_placeholders.find(placeholder);
+
+    if (p != map_placeholder_names_to_placeholders.end())
+    {
+        auto pv = map_placeholder_names_to_placeholders_with_value.find(placeholder);
+
+        if (pv != map_placeholder_names_to_placeholders_with_value.end())
+        {
+            DEBUG("found the placeholder with value " << placeholder);
+
+            return "UNKNOWN_PLACEHOLDER";
+        }
+    }
+
+    return "unknown_placeholder";
+}
+

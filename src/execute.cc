@@ -797,7 +797,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
     g->initialize(m);
 
     //DEBUG("got father generator " << *father);
-    //DEBUG("created a generator " << *g);
+    DEBUG("created a generator " << *g);
 
     // "the break flag" is a predefined boolean variable used to terminate the implicit loops
     bool the_break_flag=false;
@@ -826,12 +826,17 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
         DEBUG("code line number " << line_number << ": execute variable value (small and finite loop)");
         for (; !g->get_terminated(); g->increment(m))
         {
+            DEBUG("checking whether generator state is valid " << *g);
+
             if (g->get_is_valid())
             {
-                DEBUG("generator " << *g);
+                DEBUG("generator is valid " << *g);
                 execute_if_cartesian_product_is_finite_and_small(m, g);
             }
-            
+            else
+            {
+                DEBUG("generator is NOT valid " << *g);
+            }
                         
             switch (m.get_actual_memory_representation_type_of_the_variable(s))
             {

@@ -126,6 +126,8 @@ namespace chomik
         
         virtual int get_level() const { return 0; }
 
+        virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) {}
+
         virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) {}
 
         virtual void update_int_value(int f, int l) {}
@@ -577,6 +579,10 @@ namespace chomik
         virtual bool get_is_an_ad_hoc_type() const = 0;
 
         virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const {}
+
+        virtual bool get_has_complex_name() const = 0;
+
+        virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const = 0;
     };
     
     
@@ -628,7 +634,9 @@ namespace chomik
             return false;// The named types are not "ad hoc" types
         }
 
-        bool get_has_complex_name() const { return has_complex_name; }
+        virtual bool get_has_complex_name() const override { return has_complex_name; }
+
+        virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const override;
     };        
 
     
@@ -831,6 +839,10 @@ namespace chomik
             f = get_min_value(m, g);
             l = get_max_value(m, g);
         }
+
+        virtual bool get_has_complex_name() const override { return false; }
+
+        virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const override;
     };
             
     class replacing_policy;
@@ -1590,7 +1602,7 @@ namespace chomik
         
         virtual bool get_terminated() const  { return true; }
         
-        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) const { return ""; }
+        virtual std::string get_actual_text_representation_of_a_placeholder(const machine &m, const std::string & placeholder) const { return ""; }
         
         virtual bool get_has_placeholder(const std::string & p) const { return false; }
                                 
@@ -1705,10 +1717,7 @@ namespace chomik
 
         virtual void get_placeholder_value_code(const std::string & p, code & target) const override;
         
-        virtual std::string get_actual_text_representation_of_a_placeholder(const std::string & placeholder) const override
-        {
-            return "unknown_placeholder";
-        }
+        virtual std::string get_actual_text_representation_of_a_placeholder(const machine & m, const std::string & placeholder) const override;
                 
         virtual void add_placeholder(const std::string & p, std::shared_ptr<generic_type> && t) override;
         
@@ -2857,6 +2866,10 @@ namespace chomik
 
         virtual void update_int_value(TYPE f, TYPE l) { value = f; }
 
+        virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) override
+        {
+            my_type_instance = nullptr;
+        }
 
         virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) override
         {
@@ -3199,15 +3212,29 @@ namespace chomik
     {
     private:
         using iterator_type = std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator;
-        const iterator_type first, last;
+        iterator_type first, last;
+
+        const generic_type * original_type;
     public:
         simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
             {p, f, ti}, first{f}, last{l} {}
-            
+
+        // this constructor is used when the type has complex name and may need to be updated depending on the generator
+        simple_placeholder_for_enum(const std::string & p, const generic_type * t):
+            simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
+            {p, static_cast<iterator_type>(nullptr), nullptr},
+            first{static_cast<iterator_type>(nullptr)},
+            last{static_cast<iterator_type>(nullptr)}, original_type{t} {}
+
         virtual void report(std::ostream & s) const override
         {
-            s << placeholder << '=' << (*value)->get_name() << "\n";
+            s << placeholder;
+            if (value != last)
+            {
+                s  << '=' << (*value)->get_name();
+            }
+            s << "\n";
         }        
         
         virtual bool get_is_valid() const override
@@ -3219,16 +3246,36 @@ namespace chomik
         {
             return value == last;
         }
-        virtual void increment() override { if (value == last) value = first; else value++; }
+        virtual void increment() override
+        {
+            if (value == last) value = first; else value++;
+        }
         
-        virtual std::string get_value_enum() const override { return (*value)->get_name(); }
+        virtual std::string get_value_enum() const override
+        {
+            return (*value)->get_name();
+        }
         
         virtual bool get_exceeds_level(int max_level) const
         {
+            if (value == static_cast<iterator_type>(nullptr))
+            {
+                return true;
+            }
+
             return (*value)->get_level() > max_level;
         }
         
-        virtual int get_level() const { return (*value)->get_level(); }
+        virtual int get_level() const
+        {
+            if (value == static_cast<iterator_type>(nullptr))
+            {
+                return 0;
+            }
+            return (*value)->get_level();
+        }
+
+        virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) override;
     };
     
     
@@ -3449,6 +3496,7 @@ namespace chomik
     private:
         friend class signature_common_data;
         friend class signature;
+        friend class generator;
         static constexpr int max_match_group_index = 10;
 
     protected:

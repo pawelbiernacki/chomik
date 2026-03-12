@@ -332,7 +332,7 @@ chomik::code_name_item::code_name_item(const code & c): my_code{std::make_unique
 
 std::string chomik::placeholder_name_item::get_actual_text_representation(const machine & m, const basic_generator & g) const
 {
-    return g.get_actual_text_representation_of_a_placeholder(placeholder);
+    return g.get_actual_text_representation_of_a_placeholder(m, placeholder);
 }
 
 std::string chomik::variable_value_name_item::get_actual_text_representation(const machine & m, const basic_generator & g) const
@@ -402,7 +402,7 @@ bool chomik::predefined_variables::get_variable_is_predefined(const std::string 
 
 std::string chomik::generic_value_placeholder::get_actual_text_representation(const machine & m, const basic_generator & g) const
 {
-    return g.get_actual_text_representation_of_a_placeholder(placeholder);
+    return g.get_actual_text_representation_of_a_placeholder(m, placeholder);
 }
 
 std::string chomik::generic_name::get_actual_text_representation(const machine & m, const basic_generator & g) const
@@ -1960,6 +1960,10 @@ void chomik::placeholder_name_item::add_placeholders_to_generator(basic_generato
 
     if (!g.get_has_placeholder(placeholder))
     {
+        DEBUG("the generator " << g << " does not have the placeholder " << placeholder);
+
+        type_name->add_placeholders_to_generator(g);
+
         std::shared_ptr<generic_type> x{type_name};
         g.add_placeholder(placeholder, std::move(x));
     }
@@ -1967,7 +1971,9 @@ void chomik::placeholder_name_item::add_placeholders_to_generator(basic_generato
     {
         // TODO the placeholder is already there, check that it has identical type
         //std::cout << "check that the placeholders have identical type\n";
-        
+
+        DEBUG("the generator " << g << " does have the placeholder " << placeholder);
+
     }
 }
 
@@ -1977,7 +1983,7 @@ std::string chomik::signature::get_string_representation() const
     
     for (auto & i: vector_of_items)
     {
-        i->report(s);
+        i->print(s);
     }
     
     //DEBUG("signature::get_string_representation - result " << s.str());
@@ -2889,4 +2895,39 @@ void chomik::generic_literal_placeholder::get_copy(std::unique_ptr<generic_liter
         target = std::make_unique<generic_literal_placeholder>(placeholder, std::move(t), expected_type);
     }
 }
+
+void chomik::generic_type_named::get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const
+{
+    complex_type_name->get_copy(target);
+}
+
+void chomik::generic_type_range::get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const
+{
+    throw std::runtime_error("this is not supported");
+}
+
+void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(machine & m, basic_generator & g)
+{
+    std::unique_ptr<generic_name> tn;
+    original_type->get_type_complex_name_copy(tn);
+    signature actual_name{*tn, m, g};
+    const std::string type_name{actual_name.get_string_representation()};
+
+    std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f,l;
+
+    if (m.get_type_instance_is_known(type_name))
+    {
+        m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
+        value = f;
+        first = f;
+        last = l;
+    }
+    else
+    {
+        value = static_cast<iterator_type>(nullptr);
+        first = static_cast<iterator_type>(nullptr);
+        last = static_cast<iterator_type>(nullptr);
+    }
+}
+
 
