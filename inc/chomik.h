@@ -1721,17 +1721,7 @@ namespace chomik
                 
         virtual void add_placeholder(const std::string & p, std::shared_ptr<generic_type> && t) override;
         
-        void add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p)
-        {
-            std::shared_ptr<placeholder_with_value> p2{p};
-            auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
-            if (!success)
-            {
-                throw std::runtime_error("failed to insert a placeholder with value");
-            }
-            
-            memory.push_back(std::move(p));
-        }
+        void add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p);
         
         virtual void report(std::ostream & s) const override;
         
@@ -2866,11 +2856,6 @@ namespace chomik
 
         virtual void update_int_value(TYPE f, TYPE l) { value = f; }
 
-        virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) override
-        {
-            my_type_instance = nullptr;
-        }
-
         virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) override
         {
             // if the placeholder type instance is an ad hoc range
@@ -3218,7 +3203,7 @@ namespace chomik
     public:
         simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f, ti}, first{f}, last{l} {}
+            {p, f, ti}, first{f}, last{l}, original_type{nullptr} {}
 
         // this constructor is used when the type has complex name and may need to be updated depending on the generator
         simple_placeholder_for_enum(const std::string & p, const generic_type * t):
@@ -3234,27 +3219,17 @@ namespace chomik
             {
                 s  << '=' << (*value)->get_name();
             }
-            s << "\n";
         }        
         
-        virtual bool get_is_valid() const override
-        {
-            return value != last;
-        }
-        
+        virtual bool get_is_valid() const override;
+
         virtual bool get_is_terminated() const override
         {
             return value == last;
         }
-        virtual void increment() override
-        {
-            if (value == last) value = first; else value++;
-        }
+        virtual void increment() override;
         
-        virtual std::string get_value_enum() const override
-        {
-            return (*value)->get_name();
-        }
+        virtual std::string get_value_enum() const override;
         
         virtual bool get_exceeds_level(int max_level) const
         {
@@ -3576,11 +3551,7 @@ namespace chomik
             return *map_type_name_to_type_instance.at(type_name);
         }
         
-        void get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const
-        {
-            f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_enum();
-            l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_enum();
-        }
+        void get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const;
         
         void get_first_and_last_iterators_for_range_type(const std::string & type_name, int & f, int & l) const
         {

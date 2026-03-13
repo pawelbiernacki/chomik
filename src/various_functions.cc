@@ -2909,6 +2909,11 @@ void chomik::generic_type_range::get_type_complex_name_copy(std::unique_ptr<gene
 void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(machine & m, basic_generator & g)
 {
     std::unique_ptr<generic_name> tn;
+
+    if (original_type == nullptr)
+    {
+        return;
+    }
     original_type->get_type_complex_name_copy(tn);
     signature actual_name{*tn, m, g};
     const std::string type_name{actual_name.get_string_representation()};
@@ -2917,17 +2922,65 @@ void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(mach
 
     if (m.get_type_instance_is_known(type_name))
     {
-        m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
-        value = f;
+
+        type_instance & ti{m.get_type_instance(type_name)};
+
+        DEBUG("type_instance " << ti.get_name() << " has " << ti.get_amount_of_values() << " values");
+
+        m.get_first_and_last_iterators_for_enum_type(ti.get_name(), f, l);
+
+        if (*f)
+        {
+            DEBUG("for " << type_name << " got type instance, and the first value is " << (*f)->get_name());
+        }
+        else
+        {
+            DEBUG("for " << type_name << " got type instance, but it seems not to have any value");
+        }
+
+
+        value = l;
         first = f;
         last = l;
+
+        DEBUG("found the type instance for " << type_name);
     }
     else
     {
         value = static_cast<iterator_type>(nullptr);
         first = static_cast<iterator_type>(nullptr);
         last = static_cast<iterator_type>(nullptr);
+
+        DEBUG("could not find the type instance for " << type_name);
     }
 }
 
+
+void chomik::simple_placeholder_for_enum::increment()
+{
+    if (value == last) value = first; else value++;
+}
+
+
+std::string chomik::simple_placeholder_for_enum::get_value_enum() const
+{
+    if (value == last)
+    {
+        return "!unknown_enum_value!";
+    }
+    return (*value)->get_name();
+}
+
+void chomik::machine::get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const
+{
+    f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_enum();
+    l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_enum();
+}
+
+bool chomik::simple_placeholder_for_enum::get_is_valid() const
+{
+    DEBUG("the simple_placeholder_for_enum " << placeholder << " is " << (value != last ? "valid" : "NOT valid"));
+
+    return value != last;
+}
 

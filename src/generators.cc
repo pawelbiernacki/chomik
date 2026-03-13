@@ -37,11 +37,26 @@ chomik::generator::generator(const generic_name & gn, const std::string & filena
 
 bool chomik::generator::get_is_valid()
 {
+    DEBUG("checking whether the generator is valid");
+
     for (auto & i: memory)
     {
         if (!i->get_is_valid())
+        {
+            DEBUG("it is not valid due to the placeholder " << i->get_name() << ", which is " << *i);
+            if (get_has_placeholder_with_value(i->get_name()))
+            {
+                placeholder_with_value& pwv{get_placeholder_with_value(i->get_name())};
+                DEBUG("the placeholder for " << i->get_name() << " is" << pwv.get_value_enum());
+            }
+            else
+            {
+                DEBUG("the reason is the fact it does not have any placeholder_with_value " << i->get_name());
+            }
             return false;
+        }
     }
+    DEBUG("the generator is valid");
     return true;
 }
         
@@ -210,9 +225,11 @@ void chomik::generator::initialize(machine & m)
 
                     if (m.get_type_instance_is_known(type_name))
                     {
-                        DEBUG("generator::initialize - the type instance is known");
+                        DEBUG("generator::initialize - " << i->get_name() << " the type instance is knownm it is " << type_name);
 
                         std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), &i->get_placeholder_type())};
+
+                        x->update_type_instance_if_necessary(m, *this);
 
                         add_placeholder_with_value(std::move(x));
                     }
@@ -277,7 +294,7 @@ void chomik::generator::increment(machine & m)
     {
         memory[i]->increment();
 
-        DEBUG("incremented " << i);
+        DEBUG("incremented placeholder at " << i << ", which is " << memory[i]->get_name());
 
         if (memory[i]->get_is_valid())
         {
@@ -289,7 +306,10 @@ void chomik::generator::increment(machine & m)
             return; // we DONT't increment the father
         }
         else
+        {
+            DEBUG("it is not valid! -");
             continue;
+        }
     }
 }
 
@@ -340,16 +360,16 @@ bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small(
 
 bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_finite() const
 {
-    DEBUG("checking whether the cartesian product is finite");
+    //DEBUG("checking whether the cartesian product is finite");
     for (auto & i: vector_of_placeholders)
     {
         if (!i->get_type_is_finite())
         {
-            DEBUG("the cartesian product is NOT finite, due to " << i->get_name());
+            //DEBUG("the cartesian product is NOT finite, due to " << i->get_name());
             return false;
         }
     }
-    DEBUG("yes, the cartesian product is finite");
+    //DEBUG("yes, the cartesian product is finite");
     return true;
 }
 
@@ -477,7 +497,7 @@ const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_va
         throw std::runtime_error(message.str());        
     }    
     
-    DEBUG("got a placeholder " << *f->second);
+    DEBUG("got a placeholder \'" << *f->second << "\'");
     
     return *f->second;
 }
@@ -716,7 +736,7 @@ bool chomik::basic_generator::get_the_cartesian_product_of_placeholder_types_has
 
 bool chomik::generator::get_the_cartesian_product_of_placeholder_types_has_one_item() const
 {
-    DEBUG("the generator's vector of placeholders size equals " << vector_of_placeholders.size());
+    //DEBUG("the generator's vector of placeholders size equals " << vector_of_placeholders.size());
     return vector_of_placeholders.size()==0;
 }
 
@@ -825,5 +845,20 @@ std::string chomik::generator::get_actual_text_representation_of_a_placeholder(c
     }
 
     return "unknown_placeholder";
+}
+
+
+void chomik::generator::add_placeholder_with_value(std::shared_ptr<placeholder_with_value> && p)
+{
+    DEBUG("add placeholder " << p->get_name());
+
+    std::shared_ptr<placeholder_with_value> p2{p};
+    auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
+    if (!success)
+    {
+        throw std::runtime_error("failed to insert a placeholder with value");
+    }
+
+    memory.push_back(std::move(p));
 }
 

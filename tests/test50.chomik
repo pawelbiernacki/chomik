@@ -1,0 +1,35 @@
+#!/usr/local/bin/chomik
+
+# This test is not supposed to fail, just to demonstrate
+# the usage of a new feature - due to the complex type names
+# it is possible to use families of types in iterations.
+
+# it is a variation of the test49.chomik, but this time we control the type chosen with a variable
+
+type complex [my special small abc] = { a, b, c };
+type complex [my special small def] = { d, e, f };
+
+type complex [my special capital abc] = { A, B, C };
+type complex [my special capital def] = { D, E, F };
+
+type t = { abc, def };
+type size = { small, capital };
+
+expand(1);
+
+# here we first iterate over Y, then X, because the type of X depends on Y
+
+# these are the variables controlling the type applied to X
+let current size 1 = value size small;
+let current size 2 = value size capital;
+
+<print "start of the test 1">;
+<print (X1:complex [my special <current size 1> (Y:t)]) "and" (X2:complex [my special <current size 2> (Y:t)])>;
+
+# now we use the same code, but we swap the values of the variables controlling the type selection
+
+let current size 1 = value size capital;
+let current size 2 = value size small;
+
+<print "start of the test 2">;
+<print (X1:complex [my special <current size 1> (Y:t)]) "and" (X2:complex [my special <current size 2> (Y:t)])>;

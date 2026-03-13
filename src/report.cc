@@ -163,6 +163,8 @@ void chomik::generator::report(std::ostream & s) const
         s << i->get_name();
         first = false;
     }
+
+    s << " ";
     
     if (get_the_cartesian_product_of_placeholder_types_is_empty())
     {

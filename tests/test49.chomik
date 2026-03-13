@@ -1,0 +1,16 @@
+#!/usr/local/bin/chomik
+
+# This test is not supposed to fail, just to demonstrate
+# the usage of a new feature - due to the complex type names
+# it is possible to use families of types in iterations.
+
+type complex [my special abc] = { a, b, c };
+type complex [my special def] = { d, e, f };
+
+type t = { abc, def };
+expand(1);
+
+# here we first iterate over Y, then X, because the type of X depends on Y
+
+<print (X:complex [my special (Y:t)])>;
+
