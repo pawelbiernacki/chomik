@@ -2939,7 +2939,7 @@ void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(mach
         }
 
 
-        value = l;
+        value = f;
         first = f;
         last = l;
 
