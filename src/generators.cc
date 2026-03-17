@@ -27,8 +27,9 @@ chomik::generator::generator(const std::string & filename, unsigned new_line_num
 chomik::generator::generator(const generic_name & gn, const std::string & filename, unsigned new_line_number): my_filename{filename}, line_number{new_line_number}
 {
     DEBUG("created a new generator in " << filename << " at " << line_number);
-    gn.add_placeholders_to_generator(*this);    
-    
+
+    gn.add_placeholders_to_generator(*this);
+
     DEBUG("generator::generator got a generic name " << gn);
     DEBUG("created a new generator in " << filename << " at " << line_number << ", after initialization it is " << *this);
 
@@ -95,13 +96,17 @@ bool chomik::generator::get_does_not_exceed_level(int max_level) const
 
 void chomik::generator::finalize(machine & m)
 {
+    DEBUG("finalize - we begin with " << initial_amount_of_ad_hoc_type_instances);
+
     m.destroy_ad_hoc_type_instances_above(initial_amount_of_ad_hoc_type_instances);
 }
 
 
-void chomik::generator::initialize(machine & m)
+void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator> & yourself)
 {    
     initial_amount_of_ad_hoc_type_instances = m.get_amount_of_ad_hoc_type_instances();
+
+    DEBUG("initial_amount_of_ad_hoc_type_instances = " << initial_amount_of_ad_hoc_type_instances);
 
     DEBUG("generator::initialize, amount of placeholders " << vector_of_placeholders.size());
 
@@ -113,11 +118,12 @@ void chomik::generator::initialize(machine & m)
         {
             DEBUG("generator::initialize - it is an ad hoc type");
 
-            const std::string type_name = i->get_placeholder_type().get_generic_type_name();
+            auto * my_type_instance = m.create_an_ad_hoc_type(i->get_placeholder_type(), yourself);
 
-            DEBUG("the type name is " << type_name);
-
-            auto * my_type_instance = m.create_an_ad_hoc_type(i->get_placeholder_type(), *this, type_name);
+            if (my_type_instance == nullptr)
+            {
+                throw std::runtime_error("failed to create an ad hoc type instance");
+            }
 
             switch (i->get_placeholder_type().get_actual_memory_representation_type(m))
             {
@@ -126,15 +132,27 @@ void chomik::generator::initialize(machine & m)
                     DEBUG("it is an integer range");
 
                     int f,l;
-                    m.get_first_and_last_iterators_for_ad_hoc_range_type(type_name, f, l);
+                    m.get_first_and_last_iterators_for_ad_hoc_range_type(my_type_instance->get_ad_hoc_index(), f, l);
 
-                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), f, l, my_type_instance)};
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_range>(i->get_name(), my_type_instance->get_ad_hoc_index(), f, l, my_type_instance)};
 
                     DEBUG("it is a range " << f << ".." << l);
 
                     add_placeholder_with_value(std::move(x));
                 };
+                break;
 
+                case variable_with_value::actual_memory_representation_type::ENUM:
+                {
+                    DEBUG("it is a list of enums");
+                    std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f, l;
+
+                    m.get_first_and_last_iterators_for_ad_hoc_enum_type(my_type_instance->get_ad_hoc_index(), f, l);
+
+                    std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), my_type_instance->get_ad_hoc_index(), f, l, my_type_instance)};
+
+                    add_placeholder_with_value(std::move(x));
+                }
                 default:;
             }
         }
@@ -185,7 +203,7 @@ void chomik::generator::initialize(machine & m)
             case variable_with_value::actual_memory_representation_type::FLOAT:
             {
                 DEBUG("it is a float (" << i->get_name() << ")");
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 0.0, nullptr)};
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 0.0, nullptr)};
         
                 add_placeholder_with_value(std::move(x));
             }
@@ -193,7 +211,7 @@ void chomik::generator::initialize(machine & m)
             case variable_with_value::actual_memory_representation_type::STRING:
             {
                 DEBUG("it is a string (" << i->get_name() << ")");
-                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "", nullptr)};
+                std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(i->get_name(), "", nullptr)};
         
 
                 DEBUG("add placeholder with value " << *x << " to the generator " << *this);
@@ -282,6 +300,30 @@ void chomik::generator::initialize(machine & m)
             }
         }
     }
+
+    notify_the_generator_placeholders_about_the_current_type_instances();
+}
+
+void chomik::generator::notify_the_generator_placeholders_about_the_current_type_instances()
+{
+    // the type instances can change - therefore we notify the genrator_placeholder instances about their current type_instance
+    for (int i=0; i<vector_of_placeholders.size(); i++)
+    {
+        auto & p{vector_of_placeholders[i]};
+        std::string current_placeholder_name{p->get_name()};
+
+        auto pv = map_placeholder_names_to_placeholders_with_value.find(current_placeholder_name);
+
+        if (pv != map_placeholder_names_to_placeholders_with_value.end())
+        {
+            //std::cout << "found type instance for " << current_placeholder_name << "\n";
+            vector_of_placeholders[i]->set_type_instance((*pv).second->get_type_instance());
+        }
+        else
+        {
+            vector_of_placeholders[i]->set_type_instance(nullptr);
+        }
+    }
 }
 
 void chomik::generator::increment(machine & m)
@@ -294,7 +336,7 @@ void chomik::generator::increment(machine & m)
     {
         memory[i]->increment();
 
-        DEBUG("incremented placeholder at " << i << ", which is " << memory[i]->get_name());
+        DEBUG("incremented placeholder at " << i << ", which is " << memory[i]->get_name() << ", at present " << *memory[i]);
 
         if (memory[i]->get_is_valid())
         {
@@ -303,14 +345,17 @@ void chomik::generator::increment(machine & m)
                 memory[j]->update_type_instance_if_necessary(m, *this); // type instance can depend on former placeholder values
                 memory[j]->update_ad_hoc_range_type_instance(m, *this);
             }
+            notify_the_generator_placeholders_about_the_current_type_instances();
             return; // we DONT't increment the father
         }
         else
         {
-            DEBUG("it is not valid! -");
+            DEBUG("it is not valid, because of " << memory[i]->get_name() << ", which is " << *memory[i]);
             continue;
         }
     }
+
+    notify_the_generator_placeholders_about_the_current_type_instances();
 }
 
 bool chomik::generator::get_terminated() const
@@ -342,7 +387,7 @@ bool chomik::generator::get_the_cartesian_product_of_placeholder_types_is_small(
             }
             else
             {
-                DEBUG("can be an ad_hoc type " << t.get_type_name(m, *this));
+                DEBUG("can be an ad_hoc type " << t.get_type_name(m, *this) << ".");
                 // TODO - handle the ad hoc type
             }
         }
@@ -502,7 +547,7 @@ const chomik::placeholder_with_value& chomik::generator::get_placeholder_with_va
     return *f->second;
 }
 
-chomik::simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", -1, nullptr};
+chomik::simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> chomik::basic_generator::dummy{"", -1, nullptr};
 
 bool chomik::mapping_generator::get_has_placeholder_with_value(const std::string & p) const
 { 
@@ -544,13 +589,13 @@ const chomik::placeholder_with_value& chomik::mapping_generator::get_placeholder
 }
 
 
-void chomik::mapping_generator::initialize(machine & m)
+void chomik::mapping_generator::initialize(machine & m, std::shared_ptr<basic_generator> & yourself)
 {
     DEBUG("mapping generator initialize");
         
     if (auto o = my_father.lock())
     {
-        o->initialize(m);
+        o->initialize(m, yourself);
     }
 }
 
@@ -571,11 +616,11 @@ int chomik::generator::get_placeholder_value_integer(const std::string & p) cons
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
     
-    const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
+    //const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
     
-    int v = y.get_value();
+    int v = get_placeholder_with_value(p).get_value_integer();
 
-    DEBUG("result " << v);
+    DEBUG("result " << v << " for " << *this << ".");
     
     return v;
 }
@@ -586,9 +631,9 @@ double chomik::generator::get_placeholder_value_float(const std::string & p) con
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
 
-    const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
+    //const simple_placeholder_with_value<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
 
-    double v = y.get_value();
+    double v = x.get_value_float();
 
     DEBUG("result " << std::showpoint << v);
 
@@ -603,9 +648,9 @@ void chomik::generator::get_placeholder_value_code(const std::string & p, code &
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
 
-    const simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>&>(x)};
+    //const simple_placeholder_with_value<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)> &y{reinterpret_cast<const simple_placeholder_with_value<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>&>(x)};
 
-    target = y.get_value();
+    x.get_value_code(target);
 
     DEBUG("result " << target);
 }
@@ -617,9 +662,9 @@ int chomik::basic_generator::get_placeholder_value_integer(const std::string & p
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
     
-    const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
+    //const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
     
-    int v = y.get_value();
+    int v = get_placeholder_with_value(p).get_value_integer();
     
     DEBUG("result " << v);
         
@@ -632,9 +677,10 @@ double chomik::basic_generator::get_placeholder_value_float(const std::string & 
     
     const placeholder_with_value &x{get_placeholder_with_value(p)};
     
-    const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
-    
-    double v = y.get_value();
+    /*
+    const simple_placeholder_with_value<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)> &y{reinterpret_cast<const simple_placeholder_with_value<double, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::FLOAT)>&>(x)};
+    */
+    double v = x.get_value_float();
     
     DEBUG("result " << v);
         
@@ -647,10 +693,12 @@ std::string chomik::basic_generator::get_placeholder_value_string(const std::str
 
     const placeholder_with_value &x{get_placeholder_with_value(p)};
 
-    const simple_placeholder_with_value_and_report<std::string,
-            static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)> &y{reinterpret_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)>&>(x)};
-    
-    std::string v{y.get_value()};
+    /*
+    const simple_placeholder_with_value<std::string,
+            static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)> &y{reinterpret_cast<const simple_placeholder_with_value<std::string, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::STRING)>&>(x)};
+    */
+
+    std::string v{x.get_value_string()};
     
     DEBUG("the placeholder value is \'" << v << "\'");
     
@@ -669,12 +717,9 @@ void chomik::basic_generator::get_placeholder_value_code(const std::string & p, 
 {
     DEBUG("get placeholder " << p << " value code");
 
+    auto& pp{static_cast<const simple_placeholder_for_code&>(get_placeholder_with_value(p))};
 
-    using placeholder_with_code = simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>;
-
-    const placeholder_with_code& pp{static_cast<const placeholder_with_code&>(get_placeholder_with_value(p))};
-
-    target = pp.get_value();
+    pp.get_value_code(target);
 
     DEBUG("result is " << target);
 }
@@ -747,7 +792,7 @@ chomik::external_placeholder_generator::external_placeholder_generator(const std
 }
 
 
-void chomik::external_placeholder_generator::initialize(machine & m)
+void chomik::external_placeholder_generator::initialize(machine & m, std::shared_ptr<basic_generator> & yourself)
 {
     // nothing to be done
 }
@@ -756,6 +801,8 @@ void chomik::external_placeholder_generator::initialize(machine & m)
 void chomik::external_placeholder_generator::increment(machine & m)
 {
     // nothing to be done
+    DEBUG("external_placeholder_generator is not really incremented");
+
 }
 
 void chomik::external_placeholder_generator::initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const
@@ -797,19 +844,19 @@ void chomik::generator::debug() const
 
 bool chomik::external_placeholder_generator::get_has_placeholder_with_value(const std::string & p) const
 {
-    DEBUG("get_has_placeholder_with_value");
+    DEBUG("get_has_placeholder_with_value for " << p);
     return map_placeholder_names_to_placeholders_with_value.find(p) != map_placeholder_names_to_placeholders_with_value.end();
 }
 
 chomik::placeholder_with_value& chomik::external_placeholder_generator::get_placeholder_with_value(const std::string & p)
 {
-    DEBUG("get_placeholder_with_value");
+    DEBUG("get_placeholder_with_value for " << p);
     return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
 }
 
 const chomik::placeholder_with_value& chomik::external_placeholder_generator::get_placeholder_with_value(const std::string & p) const
 {
-    DEBUG("get_placeholder_with_value");
+    DEBUG("get_placeholder_with_value for " << p);
     return *map_placeholder_names_to_placeholders_with_value.find(p)->second;
 }
 
@@ -832,19 +879,80 @@ std::string chomik::generator::get_actual_text_representation_of_a_placeholder(c
 {
     auto p = map_placeholder_names_to_placeholders.find(placeholder);
 
+    //std::cout << "placeholder " << placeholder << " - get text representation\n";
+
     if (p != map_placeholder_names_to_placeholders.end())
     {
         auto pv = map_placeholder_names_to_placeholders_with_value.find(placeholder);
 
-        if (pv != map_placeholder_names_to_placeholders_with_value.end())
+
+        if ((*p).second->get_placeholder_type().get_is_an_ad_hoc_type())
         {
+            //std::cout << "placeholder " << placeholder << " is an ad hoc\n";
+
             DEBUG("found the placeholder with value " << placeholder);
 
-            return "UNKNOWN_PLACEHOLDER";
+            if (pv != map_placeholder_names_to_placeholders_with_value.end())
+            {
+                DEBUG("the placeholder with value " << placeholder);
+
+                type_instance * pti = (*p).second->get_type_instance();
+
+                if (pti != nullptr)
+                {
+                    switch (pti->get_mode())
+                    {
+                        case type_instance::type_instance_mode::INTEGER:
+                            return std::to_string((*pv).second->get_value_integer());
+                            break;
+                        case type_instance::type_instance_mode::ENUM:
+                            return (*pv).second->get_value_enum();
+                            break;
+
+                        default:;
+                            //std::cout << "placeholder " << placeholder << " has wrong mode\n";
+                    }
+                }
+                else
+                {
+                    //std::cout << "placeholder " << placeholder << " type instance is nullptr\n";
+                }
+            }
+            else
+            {
+                //std::cout << "placeholder " << placeholder << " is ad hoc, and has no value\n";
+            }
+        }
+        else
+        {
+            if (pv != map_placeholder_names_to_placeholders_with_value.end())
+            {
+                DEBUG("found the placeholder with value " << placeholder);
+
+                switch ((*pv).second->get_representation_type())
+                {
+                    case variable_with_value::actual_memory_representation_type::INTEGER:
+                        return std::to_string((*pv).second->get_value_integer());
+                        break;
+
+                    case variable_with_value::actual_memory_representation_type::ENUM:
+                        return (*pv).second->get_value_enum();
+                        break;
+                }
+                return "PLACEHOLDER";
+            }
+            else
+            {
+                //std::cout << "placeholder " << placeholder << " is not ad hoc, but has no value\n";
+            }
         }
     }
+    else
+    {
+        //std::cout << "placeholder " << placeholder << " has not value\n";
+    }
 
-    return "unknown_placeholder";
+    return "???";
 }
 
 
@@ -862,3 +970,14 @@ void chomik::generator::add_placeholder_with_value(std::shared_ptr<placeholder_w
     memory.push_back(std::move(p));
 }
 
+
+void chomik::mapping_generator::add_mapping(const std::string & f, const std::string & s)
+{
+    DEBUG("add_mapping " << f << " to " << s);
+
+    auto [it, success] = map_child_placeholder_to_father_placeholder.insert(std::pair(s, f));
+    if (!success)
+    {
+        throw std::runtime_error("failed to add mapping to a mapping generator");
+    }
+}

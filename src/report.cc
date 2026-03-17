@@ -129,11 +129,13 @@ void chomik::machine::report(std::ostream & s) const
     for (auto & i: vector_of_type_instances)
     {
         i->report(s);
+        s << "\n";
     }
     s << "memory:\n";
     for (auto & i: memory)
     {
         i->report(s);
+        s << "\n";
     }
 }
 
@@ -360,6 +362,20 @@ void chomik::generic_type_named::report(std::ostream & s) const
     {
         s << simple_type_name;
     }
+}
+
+void chomik::list_of_generic_names::report(std::ostream & s) const
+{
+    bool first = true;
+
+    s << "{";
+    for (auto & i: vector_of_names)
+    {
+        if (!first) s << ",";
+        i->report(s);
+        first = false;
+    }
+    s << "}";
 }
 
 

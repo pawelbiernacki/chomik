@@ -91,6 +91,7 @@ namespace chomik
     
     class machine;
     class basic_generator;
+    class type_instance;
 
     /**
      * Somewhat similar to the variable_with_value class, this class is used to represent placeholders with their values in generators.
@@ -115,10 +116,14 @@ namespace chomik
         virtual bool get_is_terminated() const { return false; }
         
         virtual void increment() {}
+
+        virtual int get_value_integer() const { return 0; }
         
         virtual std::string get_value_string() const { return ""; }
         
         virtual std::string get_value_enum() const { return ""; }
+
+        virtual double get_value_float() const { return 0.0; }
 
         virtual void get_value_code(code & target) const {}
         
@@ -132,6 +137,11 @@ namespace chomik
 
         virtual void update_int_value(int f, int l) {}
 
+        virtual bool get_type_instance_needs_to_be_updated() const { return false; }
+
+        virtual type_instance * get_type_instance() const { return nullptr; }
+
+        virtual type_instance* get_updated_type_instance(chomik::machine& m, chomik::basic_generator& g) { return nullptr; }
     };
     
     class mapping_generator;
@@ -551,6 +561,8 @@ namespace chomik
         std::regex& get_regular_expression() { return *my_regular_expression; }
     };
     
+    class type_instance_enum_value;
+    class type_instance_ad_hoc_enum;
     
     /**
      * This class is a base class of all classes representing the types.
@@ -578,11 +590,16 @@ namespace chomik
 
         virtual bool get_is_an_ad_hoc_type() const = 0;
 
-        virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const {}
+        using const_iterator = std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator;
 
         virtual bool get_has_complex_name() const = 0;
 
         virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const = 0;
+
+        virtual void update_int_boundaries(const machine & m, const basic_generator & g, int & f, int & l) const {};
+
+        virtual void expand_ad_hoc_type_instance(machine & m, std::shared_ptr<basic_generator> & g, std::shared_ptr<type_instance_ad_hoc_enum> & target) const {}
+
     };
     
     
@@ -748,6 +765,72 @@ namespace chomik
             target = std::make_unique<generic_range>(std::move(a), std::move(b));
         }
     };
+
+    class list_of_generic_names;
+
+    // this is introduced for convenience only - it is an ad hoc type consisting of enums
+    // in fact it is just used for a syntactic sygar, when you do not need to declare enum types, but use it directly
+    class generic_type_list: public generic_type
+    {
+    private:
+        std::unique_ptr<list_of_generic_names> my_list;
+    public:
+        generic_type_list(list_of_generic_names * const l): my_list{l} {}
+        generic_type_list(const list_of_generic_names & l);
+
+        virtual void report(std::ostream & s) const override;
+        virtual bool get_is_finite() const override
+        {
+            return true;
+        }
+
+        virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(const machine & m) const override
+        { return variable_with_value::actual_memory_representation_type::ENUM; }
+
+        virtual void add_placeholders_to_generator(basic_generator & g) const override;
+
+        virtual std::string get_type_name(const machine & m, const basic_generator & g) const override
+        {
+            std::stringstream s;
+            s << "list {";
+            s << "}";
+            return s.str();
+        }
+
+        virtual std::string get_generic_type_name() const override;
+
+        virtual std::string get_low_level_type_name() const override
+        {
+            return "enum";
+        }
+
+        virtual void get_copy(std::shared_ptr<generic_type> & target) const override
+        {
+            target = std::make_shared<generic_type_list>(*my_list);
+        }
+
+        virtual void get_copy(std::unique_ptr<generic_type> & target) const override
+        {
+            target = std::make_unique<generic_type_list>(*my_list);
+        }
+
+        virtual bool get_is_equal(const generic_type & t) const override
+        {
+            // TODO fix me
+            return false;
+        }
+
+        virtual bool get_is_an_ad_hoc_type() const override
+        {
+            return true;
+        }
+
+        virtual bool get_has_complex_name() const override { return false; }
+
+        virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const override {}
+
+        virtual void expand_ad_hoc_type_instance(machine & m, std::shared_ptr<basic_generator> & g, std::shared_ptr<type_instance_ad_hoc_enum> & target) const override;
+    };
     
     class generic_type_range: public generic_type
     {
@@ -766,7 +849,7 @@ namespace chomik
             r = std::move(i);
         }
         
-        virtual void report(std::ostream & s) const
+        virtual void report(std::ostream & s) const override
         {
             r->report(s);
         }
@@ -788,7 +871,7 @@ namespace chomik
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(const machine & m) const override 
         { return variable_with_value::actual_memory_representation_type::INTEGER; }
         
-        virtual void add_placeholders_to_generator(basic_generator & g) const
+        virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
             r->add_placeholders_to_generator(g);
         }
@@ -834,15 +917,15 @@ namespace chomik
             return true;
         }
 
-        virtual void update_boundaries(machine & m, int & f, int & l, basic_generator & g) const override
-        {
-            f = get_min_value(m, g);
-            l = get_max_value(m, g);
-        }
-
         virtual bool get_has_complex_name() const override { return false; }
 
         virtual void get_type_complex_name_copy(std::unique_ptr<generic_name> & target) const override;
+
+        virtual void update_int_boundaries(const machine & m, const basic_generator & g, int & f, int & l) const override
+        {
+            f = r->get_min_value(m, g);
+            l = r->get_max_value(m, g);
+        };
     };
             
     class replacing_policy;
@@ -1518,9 +1601,11 @@ namespace chomik
     private:
         const std::string name;
         std::shared_ptr<generic_type> placeholder_type;
-        
+
+        type_instance * current_type_instance; // the type can change, since can depend on some other placeholders!
+
     public:
-        generator_placeholder(const std::string & n, std::shared_ptr<generic_type> && t): name{n}, placeholder_type{std::move(t)} {}
+        generator_placeholder(const std::string & n, std::shared_ptr<generic_type> && t): name{n}, placeholder_type{std::move(t)}, current_type_instance{nullptr} {}
         
         const std::string & get_name() const { return name; }
         
@@ -1532,13 +1617,16 @@ namespace chomik
         generic_type& get_placeholder_type() { return *placeholder_type; }
         
         const generic_type& get_placeholder_type() const { return *placeholder_type; }
+
+        type_instance * get_type_instance() { return current_type_instance; }
+
+        void set_type_instance(type_instance * ti) { current_type_instance = ti; }
     };    
     
     class generic_value;
     
     
     template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value;
-    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value_and_report;
 
     class description_of_a_cartesian_product;
     
@@ -1553,14 +1641,16 @@ namespace chomik
     protected:
         std::weak_ptr<basic_generator> my_father; // this pointer is used when the generators are nested        
         
-        static simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> dummy;
+        static simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> dummy;
         
     public:
         virtual ~basic_generator()
         {
         }
         
-        void set_father(std::shared_ptr<basic_generator> f) { my_father = f; }
+        virtual int get_memory_size() const { return 0; }
+
+        virtual void set_father(std::shared_ptr<basic_generator> f) { my_father = f; }
         
         virtual const std::string convert_childs_placeholder_name_to_father(const std::string & cpn) const { return cpn; }
         
@@ -1594,7 +1684,7 @@ namespace chomik
         
         virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const;
         
-        virtual void initialize(machine & m) = 0;
+        virtual void initialize(machine & m, std::shared_ptr<basic_generator> & yourself) = 0;
         
         virtual bool get_is_valid() { return true; }
         
@@ -1615,6 +1705,8 @@ namespace chomik
         virtual void debug() const {}
 
         virtual void finalize(machine & m) {}
+
+        virtual bool get_does_not_exceed_level(int max_level) const { return false; }
 
     };
     
@@ -1644,18 +1736,11 @@ namespace chomik
         
         virtual void initialize_description_of_a_cartesian_product(description_of_a_cartesian_product & target) const override;
         
-        virtual void initialize(machine & m) override;
+        virtual void initialize(machine & m, std::shared_ptr<basic_generator> & yourself) override;
         
         virtual void increment(machine & m) override;
         
-        virtual void add_mapping(const std::string & f, const std::string & s) 
-        { 
-            auto [it, success] = map_child_placeholder_to_father_placeholder.insert(std::pair(s, f));
-            if (!success)
-            {
-                throw std::runtime_error("failed to add mapping to a mapping generator");
-            }
-        }
+        virtual void add_mapping(const std::string & f, const std::string & s) override;
         
         void clear_mappings() { map_child_placeholder_to_father_placeholder.clear(); }
         
@@ -1685,13 +1770,17 @@ namespace chomik
         std::vector<std::shared_ptr<generator_placeholder>> vector_of_placeholders;
         std::map<std::string, std::shared_ptr<generator_placeholder>> map_placeholder_names_to_placeholders;
         
-        std::vector<std::shared_ptr<placeholder_with_value>> memory;
         std::map<std::string, std::shared_ptr<placeholder_with_value>> map_placeholder_names_to_placeholders_with_value;
         
         int initial_amount_of_ad_hoc_type_instances; // we need to remember this value, it will be necessary to clean the ad hoc types afterwards
         
         const std::string my_filename;
         const unsigned line_number;
+
+    protected:
+        std::vector<std::shared_ptr<placeholder_with_value>> memory;
+
+        void notify_the_generator_placeholders_about_the_current_type_instances();
         
     public:
         generator(const generic_name & gn, const std::string & filename, unsigned new_line_number);
@@ -1735,7 +1824,7 @@ namespace chomik
         // TODO - it is also possible for some types like range 1..1
         virtual bool get_the_cartesian_product_of_placeholder_types_has_one_item() const override;
         
-        virtual void initialize(machine & m) override;
+        virtual void initialize(machine & m, std::shared_ptr<basic_generator> & yourself) override;
         
         virtual bool get_is_valid() override;
         
@@ -1743,12 +1832,28 @@ namespace chomik
         
         virtual bool get_terminated() const override;
         
-        bool get_does_not_exceed_level(int max_level) const;
+        virtual bool get_does_not_exceed_level(int max_level) const override;
 
         virtual void debug() const override;
 
         virtual void finalize(machine & m) override;
+
+        virtual int get_memory_size() const { return memory.size(); }
+
     };
+
+
+    // the generator is used only for the ad hoc lists of enums
+    // it is not allowed to increment its father's placeholders
+    class generator_for_ad_hoc_list_of_enums: public generator
+    {
+    private:
+        //int my_fathers_first_placeholder_index;
+    public:
+        generator_for_ad_hoc_list_of_enums(const generic_name & gn, const std::string & filename, unsigned new_line_number):
+            generator{gn, filename, new_line_number} {}
+    };
+
     
     /**
      * This is a kind of generator used when the external placeholders are involved.
@@ -1768,7 +1873,7 @@ namespace chomik
         
         virtual void report(std::ostream & s) const override;        
         
-        virtual void initialize(machine & m) override;
+        virtual void initialize(machine & m, std::shared_ptr<basic_generator> & yourself) override;
         
         virtual void increment(machine & m) override;
         
@@ -1845,24 +1950,21 @@ namespace chomik
         /**
          * This constructor only copies the second parameter, it must be destroyed by the parser!
          */
-        list_of_generic_names(generic_name * const gn, list_of_generic_names * const l)
-        {
-            if (gn)
-            {
-                std::shared_ptr<generic_name> xt{gn};
-                vector_of_names.push_back(std::move(xt));
-            }
-            if (l)
-            {
-                for (auto & i: l->vector_of_names)
-                {
-                    std::shared_ptr<generic_name> yl{i};
-                    vector_of_names.push_back(std::move(yl));
-                }
-            }
-        }
+        list_of_generic_names(generic_name * const gn, list_of_generic_names * const l);
+
+        list_of_generic_names() = default;
+
+        list_of_generic_names(const std::vector<std::shared_ptr<generic_name>> & vn): vector_of_names{vn}{}
         
         std::vector<std::shared_ptr<generic_name>>& get_vector_of_names() { return vector_of_names; }
+
+        void get_copy(std::unique_ptr<list_of_generic_names> & target) const;
+
+        void report(std::ostream & s) const;
+
+        void add_placeholders_to_generator(basic_generator & g) const;
+
+        void expand_ad_hoc_type_instance(machine & m, std::shared_ptr<basic_generator> & g, std::shared_ptr<type_instance_ad_hoc_enum> & target) const;
     };
     
     /**
@@ -2464,22 +2566,33 @@ namespace chomik
         const std::string type_name;
         std::unique_ptr<generic_name> complex_type_name;
 
+        const bool has_generic_value;
         std::unique_ptr<generic_name> name;
+        std::string simple_value;
+
     public:
         /**
          * This constructor owns the second parameter, it must not be destroyed by the parser!
          */
-        generic_literal_enum(const char * const tn, generic_name * const gn): type_name{tn}, name{gn}, has_complex_name{false} {}
+        generic_literal_enum(const char * const tn, generic_name * const gn): type_name{tn}, name{gn}, has_complex_name{false}, has_generic_value{true} {}
         
-        generic_literal_enum(const std::string & tn, const generic_name & gn): type_name{tn}, name{std::make_unique<generic_name>(gn)}, has_complex_name{false} {}
+        generic_literal_enum(const std::string & tn, const generic_name & gn): type_name{tn}, name{std::make_unique<generic_name>(gn)}, has_complex_name{false}, has_generic_value{true} {}
 
-        generic_literal_enum(generic_name * tn, generic_name * const gn): complex_type_name{tn}, name{gn}, has_complex_name{true} {}
+        generic_literal_enum(generic_name * tn, generic_name * const gn): complex_type_name{tn}, name{gn}, has_complex_name{true}, has_generic_value{true} {}
 
+        generic_literal_enum(const std::string & v): simple_value{v}, has_complex_name{false}, has_generic_value{false} {}
 
         virtual void report(std::ostream & s) const override
         {
             s << "value " << type_name << ' ';
-            name->report(s);
+            if (has_generic_value)
+            {
+                name->report(s);
+            }
+            else
+            {
+                s << simple_value;
+            }
         }
 
         virtual variable_with_value::actual_memory_representation_type get_actual_memory_representation_type(machine & m, basic_generator & g) const override 
@@ -2489,22 +2602,34 @@ namespace chomik
         
         virtual std::string get_actual_text_representation(const machine & m, const basic_generator & g) const override
         {
-            return name->get_actual_text_representation(m, g);
+            if (has_generic_value)
+                return name->get_actual_text_representation(m, g);
+
+            return simple_value;
         }
         virtual void add_placeholders_to_generator(basic_generator & g) const override
         {
-            name->add_placeholders_to_generator(g);
+            if (has_generic_value)
+                name->add_placeholders_to_generator(g);
         }
         
         virtual void get_result_replacing_placeholders(const machine & m, const basic_generator & g, const replacing_policy & p, generic_name & target) const override
         {
         }        
         
-        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override { return name->get_actual_text_representation(m, g); }
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override
+        {
+            if (has_generic_value)
+                return name->get_actual_text_representation(m, g);
+            return simple_value;
+        }
         
         virtual void get_copy(std::unique_ptr<generic_literal> & target) const override
         {
-            target = std::make_unique<generic_literal_enum>(type_name, *name);
+            if (has_generic_value)
+                target = std::make_unique<generic_literal_enum>(type_name, *name);
+            else
+                target = std::make_unique<generic_literal_enum>(simple_value);
         }        
 
         virtual void make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const override
@@ -2625,11 +2750,11 @@ namespace chomik
     private:
         std::unique_ptr<generic_value> value;   // it should be a code
         
-        void execute_if_cartesian_product_has_one_item(machine & m, basic_generator & g) const;
+        void execute_if_cartesian_product_has_one_item(machine & m, std::shared_ptr<basic_generator> & g) const;
         
-        void execute_if_cartesian_product_is_finite_and_small(machine & m, basic_generator & g) const;
+        void execute_if_cartesian_product_is_finite_and_small(machine & m, std::shared_ptr<basic_generator> & g) const;
         
-        void execute_if_cartesian_product_is_large_or_infinite(machine & m, basic_generator & g) const;
+        void execute_if_cartesian_product_is_large_or_infinite(machine & m, std::shared_ptr<basic_generator> & g) const;
         
     public:                
         execute_value_statement(std::unique_ptr<generic_value> && v, unsigned new_line_number): value{std::move(v)}, execute_statement{new_line_number} {}
@@ -2804,12 +2929,18 @@ namespace chomik
     {
     private:
         static const std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator dummy;
+
+        int index;
     protected:
         std::string name;
+
+        int ad_hoc_index;
     public:
         enum class type_instance_mode { NONE, INTEGER, ENUM };
+
+        using const_iterator = std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator;
         
-        type_instance(const std::string & n): name{n} {}
+        type_instance(const std::string & n): name{n}, ad_hoc_index{-1} {}
         
         virtual void report(std::ostream & s) const = 0;
         
@@ -2833,10 +2964,21 @@ namespace chomik
 
         virtual void update(placeholder_with_value & v, machine & m, basic_generator & g) {}
 
+        virtual void update_enum_boundaries(machine & m, const_iterator & f, const_iterator & l, basic_generator & g) const {}
+
         void update_name(const std::string & n) { name = n; }
+
+        int get_ad_hoc_index()
+        {
+            return ad_hoc_index;
+        }
+
+        void set_ad_hoc_index(int i)
+        {
+            ad_hoc_index = i;
+        }
     };
     
-
 
     template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value: public placeholder_with_value
     {
@@ -2847,14 +2989,28 @@ namespace chomik
         simple_placeholder_with_value(const std::string & p, const TYPE v, type_instance * ti):
             placeholder_with_value{p}, value{v}, my_type_instance{ti} {}
 
+        simple_placeholder_with_value(const std::string & p, const TYPE v):
+            placeholder_with_value{p}, value{v}, my_type_instance{nullptr} {}
+
         virtual variable_with_value::actual_memory_representation_type get_representation_type() const override
         {
             return static_cast<variable_with_value::actual_memory_representation_type>(REPRESENTATION_TYPE);
         }
 
+        virtual void report(std::ostream & s) const override
+        {
+            s << placeholder;
+        }
+
         TYPE get_value() const { return value; }
 
-        virtual void update_int_value(TYPE f, TYPE l) { value = f; }
+        virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) override
+        {
+            if (get_type_instance_needs_to_be_updated())
+            {
+                my_type_instance = get_updated_type_instance(m, g);
+            }
+        }
 
         virtual void update_ad_hoc_range_type_instance(machine & m, basic_generator & g) override
         {
@@ -2862,23 +3018,9 @@ namespace chomik
             // then update its type instance
             if (my_type_instance) my_type_instance->update(*this, m, g);
         }
+
+        virtual type_instance * get_type_instance() const override { return my_type_instance; }
     };
-
-    template <typename TYPE, int REPRESENTATION_TYPE> class simple_placeholder_with_value_and_report: public simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>
-    {
-    public:
-        simple_placeholder_with_value_and_report(const std::string & p, const TYPE v, type_instance * ti): simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>{p, v, ti} {}
-
-        virtual void report(std::ostream & s) const override
-        {
-            auto & x=simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::value;
-
-            s << simple_placeholder_with_value<TYPE, REPRESENTATION_TYPE>::placeholder << '=';
-            //x,report(s);
-            s << ' ';
-        }
-    };
-
 
     class type_instance_enum_value
     {
@@ -2948,14 +3090,20 @@ namespace chomik
         const generic_type & my_type;
 
     public:
-        type_instance_ad_hoc_range(const generic_type & t, const std::string & n, int b1, int b2):
-            my_type{t}, type_instance_range{n, b1, b2}
+        type_instance_ad_hoc_range(const generic_type & t, int b1, int b2):
+            my_type{t}, type_instance_range{"range ..", b1, b2}
             {
             }
 
         virtual void update(placeholder_with_value & v, machine & m, basic_generator & g) override;
 
         virtual void report(std::ostream & s) const override;
+    };
+
+    class type_instance_ad_hoc_enum: public type_instance_enum
+    {
+    public:
+        type_instance_ad_hoc_enum(): type_instance_enum{"list {}"} {}
     };
     
     /**
@@ -3108,7 +3256,7 @@ namespace chomik
         virtual void report(std::ostream & s) const override
         {
             actual_name->report(s); 
-            s << '=' << value << "\n";
+            s << '=' << value;
         }
         
         virtual actual_memory_representation_type get_representation_type() const override
@@ -3132,18 +3280,6 @@ namespace chomik
         
     };
     
-    class simple_variable_with_value_float: public simple_variable_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>
-    {
-    public:
-        simple_variable_with_value_float(std::shared_ptr<signature> && s, double v): simple_variable_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>(std::move(s), v) {}        
-        
-        virtual double get_value_float() const override { return value; }
-        
-        virtual void assign_value_float(double v) override { value = v; }
-
-        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_float"; }
-    };
-
     class simple_variable_with_value_string: public simple_variable_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>
     {
     public:
@@ -3167,6 +3303,21 @@ namespace chomik
 
         virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_enum"; }
     };
+
+
+    class simple_variable_with_value_float: public simple_variable_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>
+    {
+    public:
+        simple_variable_with_value_float(std::shared_ptr<signature> && s, double v): simple_variable_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>(std::move(s), v) {}
+
+        virtual double get_value_float() const override { return value; }
+
+        virtual void assign_value_float(double v) override { value = v; }
+
+        virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_float"; }
+    };
+
+
     
     /**
      * This class is used to represent a variable_with_value with the value of the built-in type code.
@@ -3192,7 +3343,53 @@ namespace chomik
         virtual std::string get_debug_type_name() const override { return "simple_variable_with_value_code"; }
     };
     
-    
+
+    class simple_placeholder_for_integer: public simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+    {
+    public:
+        simple_placeholder_for_integer(const std::string & p, int f):
+        simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+        {p, f} {}
+
+        simple_placeholder_for_integer(const std::string & p, int f, type_instance * ti):
+        simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+        {p, f, ti} {}
+
+        virtual void update_int_value(int f, int l) override;
+
+        virtual int get_value_integer() const override { return value; }
+
+        virtual type_instance* get_updated_type_instance(chomik::machine& m, chomik::basic_generator& g) override;
+    };
+
+    class simple_placeholder_for_float: public simple_placeholder_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>
+    {
+    public:
+        simple_placeholder_for_float(const std::string & p, double f):
+        simple_placeholder_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>
+        {p, f} {}
+
+        simple_placeholder_for_float(const std::string & p, double f, type_instance * ti):
+        simple_placeholder_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>
+        {p, f, ti} {}
+
+        virtual double get_value_float() const override { return value; }
+    };
+
+    class simple_placeholder_for_string: public simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>
+    {
+    public:
+        simple_placeholder_for_string(const std::string & p, std::string f):
+        simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>
+        {p, f} {}
+
+        simple_placeholder_for_string(const std::string & p, std::string f, type_instance * ti):
+        simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>
+        {p, f, ti} {}
+
+        virtual std::string get_value_string() const override { return value; }
+    };
+
     class simple_placeholder_for_enum: public simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
     {
     private:
@@ -3200,17 +3397,31 @@ namespace chomik
         iterator_type first, last;
 
         const generic_type * original_type;
+
+        int ad_hoc_index;
+
     public:
+        // this constructore is for the regular named enum types
         simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f, ti}, first{f}, last{l}, original_type{nullptr} {}
+            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{-1} {}
 
         // this constructor is used when the type has complex name and may need to be updated depending on the generator
         simple_placeholder_for_enum(const std::string & p, const generic_type * t):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
             {p, static_cast<iterator_type>(nullptr), nullptr},
             first{static_cast<iterator_type>(nullptr)},
-            last{static_cast<iterator_type>(nullptr)}, original_type{t} {}
+            last{static_cast<iterator_type>(nullptr)}, original_type{t}, ad_hoc_index{-1} {}
+
+        // this constructore is for the ad hoc enum types
+        simple_placeholder_for_enum(const std::string & p, int new_ad_hoc_index, const iterator_type f, const iterator_type l, type_instance * ti):
+            simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
+            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{new_ad_hoc_index} {}
+
+        // this is similar to the base class constructor
+        simple_placeholder_for_enum(const std::string & p, const iterator_type f):
+            simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
+            {p, f, nullptr}, first{f}, last{f}, original_type{nullptr}, ad_hoc_index{-1} {}
 
         virtual void report(std::ostream & s) const override
         {
@@ -3254,15 +3465,14 @@ namespace chomik
     };
     
     
-    class simple_placeholder_for_infinite_range: public simple_placeholder_with_value<int, 
-        static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+    class simple_placeholder_for_infinite_range: public simple_placeholder_for_integer
     {
     public:
-        simple_placeholder_for_infinite_range(const std::string & p, type_instance * ti): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, 0, ti} {}
+        simple_placeholder_for_infinite_range(const std::string & p, type_instance * ti): simple_placeholder_for_integer{p, 0, ti} {}
         
         virtual void report(std::ostream & s) const override
         {
-            s << placeholder << '=' << value << "\n";
+            s << placeholder << '=' << value;
         }
         virtual bool get_is_valid() const override
         {
@@ -3273,22 +3483,33 @@ namespace chomik
             return false;
         }        
         virtual void increment() override { value++; }
-        
+
+        virtual int get_value_integer() const override { return value; }
     };
     
     
-    class simple_placeholder_for_range: public simple_placeholder_with_value<int,
-        static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>
+    class simple_placeholder_for_range: public simple_placeholder_for_integer
     {
     private:
         int first, last;
 
+        int ad_hoc_index;
+
+        bool has_ad_hoc_type;
+
     public:
-        simple_placeholder_for_range(const std::string & p, const int f, const int l, type_instance * ti): simple_placeholder_with_value<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>{p, f, ti}, first{f}, last{l+1} {}
-        
+        // this constructor is used for a regular named range
+        simple_placeholder_for_range(const std::string & p, const int f, const int l, type_instance * ti):
+            simple_placeholder_for_integer{p, f, ti}, first{f}, last{l+1}, ad_hoc_index{-1}, has_ad_hoc_type{false}
+        {
+        }
+
+        // this placeholder is used for ad hoc ranges
+        simple_placeholder_for_range(const std::string & p, int new_ad_hoc_index, const int f, const int l, type_instance * ti): simple_placeholder_for_integer{p, f, ti}, first{f}, last{l+1}, ad_hoc_index{new_ad_hoc_index}, has_ad_hoc_type{true} {}
+
         virtual void report(std::ostream & s) const override
         {
-            s << placeholder << '=' << value << "\n";
+            s << placeholder << '=' << value;
         }
         virtual bool get_is_valid() const override
         {
@@ -3300,9 +3521,9 @@ namespace chomik
         }        
         virtual void increment() override { if (value == last) value = first; else value++; }
 
+        virtual bool get_type_instance_needs_to_be_updated() const { return has_ad_hoc_type; }
 
         virtual void update_int_value(int f, int l) override;
-
     };
     
     /**
@@ -3553,26 +3774,13 @@ namespace chomik
         
         void get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const;
         
-        void get_first_and_last_iterators_for_range_type(const std::string & type_name, int & f, int & l) const
-        {
-            f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_range();
-            l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_range();
-        }
+        void get_first_and_last_iterators_for_range_type(const std::string & type_name, int & f, int & l) const;
 
-        void get_first_and_last_iterators_for_ad_hoc_range_type(const std::string & type_name, int & f, int & l) const;
+        void get_first_and_last_iterators_for_ad_hoc_enum_type(int ad_hoc_type_instance_index, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const;
 
-        void add_type_instance(std::shared_ptr<type_instance> && i)
-        {
-            auto [it, success] = map_type_name_to_type_instance.insert(std::pair(i->get_name(), i));
-            
-            if (!success)
-            {
-                throw std::runtime_error("failed to insert a type instance into machine's map");
-            }
-            
-            std::shared_ptr<type_instance> i2{i};
-            vector_of_type_instances.push_back(std::move(i2));
-        }
+        void get_first_and_last_iterators_for_ad_hoc_range_type(int ad_hoc_type_instance_index, int & f, int & l) const;
+
+        void add_type_instance(std::shared_ptr<type_instance> && i);
         
         /**
          * For each newly created type instance some special variables of that type are created.
@@ -3630,9 +3838,9 @@ namespace chomik
 
         signature_regular_expression& get_signature_regular_expression(int i) { return *vector_of_signature_regular_expressions[i]; }
 
-        type_instance* create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn);
+        type_instance* create_an_ad_hoc_type(const generic_type & t, std::shared_ptr<basic_generator> & g);
 
-        void add_ad_hoc_type(std::shared_ptr<type_instance_ad_hoc_range> && t);
+        type_instance* add_ad_hoc_type(std::shared_ptr<type_instance> && t);
 
         void destroy_ad_hoc_type_instances_above(int amount);
 
@@ -3697,6 +3905,21 @@ namespace chomik
 
         bool operator==(const code & c) const;
     };
+
+    class simple_placeholder_for_code: public simple_placeholder_with_value<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>
+    {
+    public:
+        simple_placeholder_for_code(const std::string & p, const code & f):
+        simple_placeholder_with_value<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>
+        {p, f} {}
+
+        simple_placeholder_for_code(const std::string & p, const code & f, type_instance * ti):
+        simple_placeholder_with_value<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>
+        {p, f, ti} {}
+
+        virtual void get_value_code(code & target) const override;
+    };
+
     
     /**
      * An instance of this class is created in the interpreter, it is configured by the parser, can be reported and executed.

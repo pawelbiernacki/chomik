@@ -24,7 +24,7 @@ TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tes
         ../tests/test31.chomik ../tests/test32.chomik ../tests/test33.chomik ../tests/test34.chomik ../tests/test35.chomik ../tests/test36.chomik \
         ../tests/test37.chomik ../tests/test38.chomik ../tests/test39.chomik ../tests/test40.chomik ../tests/test41.chomik ../tests/test42.chomik \
         ../tests/test43.chomik ../tests/test44.chomik ../tests/test45.chomik ../tests/test46.chomik ../tests/test47.chomik ../tests/test48.chomik \
-        ../tests/test49.chomik ../tests/test50.chomik
+        ../tests/test49.chomik ../tests/test50.chomik ../tests/test51.chomik ../tests/test52.chomik
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 

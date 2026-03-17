@@ -7,6 +7,11 @@ extern "C" void * chomik_create_generic_type_named(const char * const type_name)
     return new chomik::generic_type_named(type_name);
 }
 
+extern "C" void * chomik_create_generic_type_list(void * const l)
+{
+    return new chomik::generic_type_list(static_cast<chomik::list_of_generic_names*>(l));
+}
+
 extern "C" void * chomik_create_generic_complex_name_type_named(void * const complex_type_name)
 {
     return new chomik::generic_type_named(static_cast<chomik::generic_name*>(complex_type_name));

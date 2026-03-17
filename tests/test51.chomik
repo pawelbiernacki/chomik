@@ -1,0 +1,10 @@
+#!/usr/local/bin/chomik
+
+# This test is not supposed to fail, just to demonstrate a new feature - ad hoc list types
+
+<print (X:list {a, b, c})>;
+
+# this is just a convenience - we do not need to declare the types, their instances are created ad hoc, just like for the ad hoc ranges
+
+
+

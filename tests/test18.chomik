@@ -1,26 +1,35 @@
 #!/usr/local/bin/chomik
 
+# this test represents a kind of querying technique - we first specify objects (by giving their attributes boolean values)
+# and then query whether these objects exist - given some searching criteria
+
 type 
     search_argument_range=1..5; # we may have max 5 arguments in our query
 expand(1);
 
 variable object (X:integer) has attribute (Y:integer):boolean;
 
-let object (X:integer) has attribute (Y:integer)=value boolean false;
+let max object id = value integer 5;
+
+let object (X:0..<max object id>) has attribute (Y:search_argument_range)=value boolean false;
+
 
 # data:
+let object 1 exists = value boolean true;
 let object 1 has attribute 1=value boolean true;
 let object 1 has attribute 2=value boolean true;
 let object 1 has attribute 3=value boolean true;
 
+let object 2 exists = value boolean true;
 let object 2 has attribute 4=value boolean true;
 let object 2 has attribute 5=value boolean true;
+let object 1 exists = value boolean true;
 
+let object 3 exists = value boolean true;
 let object 3 has attribute 2=value boolean true;
 let object 3 has attribute 4=value boolean true;
 let object 3 has attribute 3=value boolean true;
 
-let max object id = value integer 10;
 
 # search
 
@@ -28,7 +37,7 @@ variable search argument active (NUMBER:search_argument_range):boolean, search a
 let search argument active (NUMBER:search_argument_range)=value boolean false;
 
 variable search response (X:integer):boolean;
-let search response (X:integer)=value boolean false;
+let search response (X:integer)=value boolean true;
 
 
 variable stop search on (A:compare_result):code;
@@ -39,7 +48,11 @@ let stop search on equal=value code { let the break flag = value boolean true; }
 variable current object id:integer;
 variable matching the search argument (Q:boolean):code;
 let matching the search argument true=value code {};
-let matching the search argument false=value code { let search response <current object id>=value boolean false; };
+let matching the search argument false=value code
+{
+    <print "we set the search response for" <current object id> "to false!">;
+    let search response <current object id>=value boolean false;
+};
 
 variable matching result:boolean;
 let matching result=value boolean false;
@@ -49,8 +62,14 @@ variable on search argument (B:boolean) do processing:code;
 let on search argument false do processing = value code {};
 let on search argument true do processing = value code 
 {
+    let search response <current object id> = <object <current object id> exists>;
+
     let matching result=<object <current object id> has attribute <search argument <current argument number>>>;
+    <print "originally for" <current object id> "the matching result is" <matching result>>;
+
     <matching the search argument <matching result>>;
+
+    <print "for object" <current object id> "and attribute" <current argument number> "got matching result" <matching result>>;
 };
 
 
@@ -58,6 +77,9 @@ variable on current object and current search attribute (X:search_argument_range
 let on current object and current search attribute (X:search_argument_range) do processing = value code
 {
     let variable current argument number=value integer [(X:search_argument_range)];
+
+    <print "object" <current object id> "search argument" <current argument number>>;
+
     <on search argument <search argument active <current argument number>> do processing>;
 };
 
@@ -78,13 +100,14 @@ let for all objects (X:integer) do search=value code
 variable search:code;
 let search =value code
 {
+    <print "performing a search">;
     <for all objects (A:integer) do search>;
     let the break flag = value boolean false;
 };
 
 variable on (B:boolean) print current object id:code;
 let on false print current object id=value code {};
-let on true print current object id=value code { <print "object" <current object id>>; };
+let on true print current object id=value code { <print "for object" <current object id> "the search response equals" <search response <current object id>>>; };
 
 
 
@@ -117,7 +140,6 @@ let search argument 1=value integer 2;
 let search argument active 1=value boolean true;
 let search argument 2=value integer 3;
 let search argument active 2=value boolean true;
-let b=value boolean false;
 
 <search>;
 
@@ -130,18 +152,28 @@ let return 1 on wrong result equal=value code
 };
 let return 1 on wrong result lower=value code
 {
+    <print "it is lower than expected!">;
     let the program return = value integer 1;
 };
 let return 1 on wrong result greater=value code
 {
+    <print "it is greater than expected!">;
     let the program return = value integer 1;
 };
 
 let the program return = value integer 0;
+
+<print "search response" (X:0..<max object id>) "=" <search response (X:0..<max object id>)> ". ">;
+
+<print "check search response 1 - it should be true and is" <search response 1>>;
 <compare "boolean" <search response 1> true>;
 <return 1 on wrong result <the compare result>>;
+
+<print "check search response 2 - it should be false and is" <search response 2>>;
 <compare "boolean" <search response 2> false>;
 <return 1 on wrong result <the compare result>>;
+
+<print "check search response 3 - it should be true and is" <search response 3>>;
 <compare "boolean" <search response 3> true>;
 <return 1 on wrong result <the compare result>>;
 

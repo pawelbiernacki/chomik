@@ -21,10 +21,22 @@ variable run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum
 
 let run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)=value code
 {
+    <print "X" (X:some_range)>;
+
+    let my y = value integer [(Y:integer)];
+    <print "Y" <my y>>;
+
+    <print "Y lower boundary" <minimum (X:some_range)>>;
+    <print "Y upper boundary" <maximum (X:some_range)>>;
+
     <print "test" (X:some_range) "and" (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)>;
+
+    <print "previous amount of iterations" <amount of iterations>>;
 
     <add "integer" <amount of iterations> 1>;
     let amount of iterations = <the add result "integer">;
+
+    <print "current amount of iterations" <amount of iterations>>;
 };
 
 
@@ -34,13 +46,13 @@ let run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:s
 #
 <run test (X:some_range) generates (Y:<minimum (X:some_range)>..<maximum (X:some_range)>)>;
 
-<print "amount of iterations" <amount of iterations>>;
-
 variable on (X:compare_result) set the program return:code;
-let on lower set the program return = value code { let the program return = value integer 1; <print "error!">; };
-let on greater set the program return = value code { let the program return = value integer 1; <print "error!">; };
+let on lower set the program return = value code { let the program return = value integer 1; <print "error! (lower)">; };
+let on greater set the program return = value code { let the program return = value integer 1; <print "error! (greater)">; };
 let on equal set the program return = value code { let the program return = value integer 0; };
 
 <compare "integer" <amount of iterations> 17>;
 <on <the compare result> set the program return>;
+
+<print "amount of iterations" <amount of iterations>>;
 

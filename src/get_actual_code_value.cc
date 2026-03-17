@@ -97,7 +97,7 @@ void chomik::generic_literal_placeholder::get_actual_code_value(const machine & 
             {
                 DEBUG("it is a code !!!");
 
-                using pp = simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>;
+                using pp = simple_placeholder_with_value<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>;
                 const pp& x2{static_cast<const pp&>(x)};
 
                 target = x2.get_value();

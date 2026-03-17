@@ -17,8 +17,12 @@ let <prefix> the prefixed routine alpha (X:integer)=value code
     <<prefix> the prefixed routine beta 1>;
 };
 
+<print "start test45">;
+
 <<prefix> the prefixed routine alpha 10>;
 <compare "integer" <x> 2>;
+
+<print "now x is" <x>>;
 
 let on lower set the program return = value code { let the program return = value integer 1; };
 let on greater set the program return = value code { let the program return = value integer 1; };

@@ -12,6 +12,7 @@ int yyerror(char *);
 #include <stdio.h>
 
 void * chomik_create_generic_type_named(const char * const type_name);
+void * chomik_create_generic_type_list(void * const l);
 void * chomik_create_generic_complex_name_type_named(void * const complex_type_name);
 void * chomik_create_complex_name_generic_type_definition(void * const complex_type_name, void * t);
 void * chomik_create_generic_range(void * const l, void * const r);
@@ -79,7 +80,7 @@ int value_int;
 void * value_pointer;
 }
 
-%token T_TYPE T_VARIABLE T_LET T_EXECUTE T_EXPAND T_VALUE T_DOUBLE_POINT T_INTEGER T_FLOAT T_STRING T_CODE T_COMPLEX T_RANGE
+%token T_TYPE T_VARIABLE T_LET T_EXECUTE T_EXPAND T_VALUE T_DOUBLE_POINT T_INTEGER T_FLOAT T_STRING T_CODE T_COMPLEX T_RANGE T_LIST
 
 %token<value_string> T_IDENTIFIER T_STRING_LITERAL
 %token<value_float> T_FLOAT_LITERAL
@@ -132,6 +133,8 @@ type_name: T_INTEGER { $$=chomik_create_generic_type_named("integer"); }
         | T_IDENTIFIER { $$=chomik_create_generic_type_named($1); free($1); } 
         | optional_range_keyword range { $$=chomik_create_generic_type_range($2); }
         | T_COMPLEX '[' name ']' { $$=chomik_create_generic_complex_name_type_named($3); }
+        | T_LIST '{' nonempty_list_of_names '}' { $$=chomik_create_generic_type_list($3); }
+
 
 optional_range_keyword: T_RANGE |
 

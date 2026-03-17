@@ -332,7 +332,13 @@ chomik::code_name_item::code_name_item(const code & c): my_code{std::make_unique
 
 std::string chomik::placeholder_name_item::get_actual_text_representation(const machine & m, const basic_generator & g) const
 {
-    return g.get_actual_text_representation_of_a_placeholder(m, placeholder);
+    replacing_policy_exhaustive p;
+    generic_name gn;
+
+    get_result_replacing_placeholders(m, g, p, gn);
+    signature s{gn, m, g};
+
+    return s.get_string_representation();
 }
 
 std::string chomik::variable_value_name_item::get_actual_text_representation(const machine & m, const basic_generator & g) const
@@ -567,7 +573,7 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
         auto b=std::make_shared<generic_type_named>("integer");
         target.add_placeholder(a->first, std::move(b));
         
-        auto c = std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr);
+        auto c = std::make_shared<simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr);
                 
         target.add_placeholder_with_value(std::move(c));
     }
@@ -578,7 +584,7 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
         auto b=std::make_shared<generic_type_named>("code");
         target.add_placeholder(a->first, std::move(b));
 
-        auto c = std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second, nullptr);
+        auto c = std::make_shared<simple_placeholder_with_value<code, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second, nullptr);
 
         target.add_placeholder_with_value(std::move(c));
     }
@@ -1029,7 +1035,7 @@ bool chomik::simple_value_string_signature_item::get_match(const generic_name_it
         
         if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
         {
-            const simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)> & pwv = static_cast<const simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>&>(g.get_placeholder_with_value(gni.get_placeholder_name()));
+            const simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)> & pwv = static_cast<const simple_placeholder_with_value<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>&>(g.get_placeholder_with_value(gni.get_placeholder_name()));
             
             DEBUG("g has this placeholder with value " << pwv);
                         
@@ -1214,7 +1220,7 @@ chomik::signature::signature(const generic_name & gn, const machine & m, const b
         i->add_content_to_signature(*this, m, g);
     }
     
-    DEBUG("the signature constructor produced " << *this);
+    DEBUG("the signature constructor produced " << *this << ".");
 }
 
 chomik::signature::signature(const generic_name & gn): line_number(0)
@@ -1223,7 +1229,7 @@ chomik::signature::signature(const generic_name & gn): line_number(0)
     {
         i->add_content_to_signature(*this);
     }
-    DEBUG("the signature constructor produced " << *this);
+    DEBUG("the signature constructor produced " << *this << ".");
 }
 
 chomik::signature::signature(): line_number(0)
@@ -1308,7 +1314,7 @@ std::string chomik::generic_literal_placeholder::get_actual_string_value(const m
         DEBUG("got placeholder with value " << g.get_placeholder_with_value(placeholder));
         DEBUG("the value is " << g.get_placeholder_with_value(placeholder).get_value_string());
     
-        const simple_placeholder_with_value_and_report<std::string, 3> & x{static_cast<const simple_placeholder_with_value_and_report<std::string,3>&>(g.get_placeholder_with_value(placeholder))};
+        const simple_placeholder_with_value<std::string, 3> & x{static_cast<const simple_placeholder_with_value<std::string,3>&>(g.get_placeholder_with_value(placeholder))};
     
         return x.get_value();
     }
@@ -1735,7 +1741,6 @@ void chomik::machine::expand(int i)
                 DEBUG("expand for types with complex type name " << k->get_complex_type_name());
 
                 std::shared_ptr<basic_generator> g=std::make_shared<generator>(k->get_complex_type_name(), __FILE__, __LINE__);
-                machine_finalization_guard<basic_generator> guard{*this, *g};
 
                 if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
                 {
@@ -1855,7 +1860,7 @@ void chomik::machine::create_auxilliary_variables_for_type_instance(type_instanc
 
 void chomik::variable_definition::expand(machine & m, int depth) const
 {
-    generator g{*name, __FILE__, __LINE__};
+    std::shared_ptr<basic_generator> g = std::make_shared<generator>(*name, __FILE__, __LINE__);
     
     /*
     std::cout << "for name ";
@@ -1865,12 +1870,12 @@ void chomik::variable_definition::expand(machine & m, int depth) const
     std::cout << "\n";
     */
         
-    if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
+    if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
     {
         // skip
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
+    if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
     {
         if (depth == 1)
         {
@@ -1878,11 +1883,11 @@ void chomik::variable_definition::expand(machine & m, int depth) const
         }
     }
     else
-    if (g.get_the_cartesian_product_of_placeholder_types_is_finite() && g.get_the_cartesian_product_of_placeholder_types_is_small(m))
+    if (g->get_the_cartesian_product_of_placeholder_types_is_finite() && g->get_the_cartesian_product_of_placeholder_types_is_small(m))
     {
-        for (g.initialize(m); !g.get_terminated(); g.increment(m))
+        for (g->initialize(m, g); !g->get_terminated(); g->increment(m))
         {
-            if (g.get_is_valid())
+            if (g->get_is_valid())
             {
                 /*
                 std::cout << "got a generator ";
@@ -1966,6 +1971,8 @@ void chomik::placeholder_name_item::add_placeholders_to_generator(basic_generato
 
         std::shared_ptr<generic_type> x{type_name};
         g.add_placeholder(placeholder, std::move(x));
+
+        DEBUG("now the generator is " << g);
     }
     else
     {
@@ -2094,47 +2101,48 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, std::shar
 
     for (auto & i: vector_of_names)
     {
-        generator g{*i, __FILE__, __LINE__};
+        std::shared_ptr<basic_generator> g=std::make_shared<generator>(*i, __FILE__, __LINE__);
+        //machine_finalization_guard<basic_generator> guard{m, *g};
 
-        DEBUG("go through the generator g " << g);
+        DEBUG("go through the generator g " << *g);
 
-        if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
+        if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
         {
             DEBUG("the cartesian product is empty");
         }
         else
-        if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
+        if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
         {
             DEBUG("the cartesian product has one item");
 
             if (depth == 1)
             {
-                signature x{*i, m, g};
+                signature x{*i, m, *g};
                 e->add_type_instance_enum_value(x, depth);
                 DEBUG("add type instance enum " << x << " for level 1");
             }
         }
         else
-        if (g.get_the_cartesian_product_of_placeholder_types_is_finite())
+        if (g->get_the_cartesian_product_of_placeholder_types_is_finite())
         {
             DEBUG("the cartesian product has a finite amount of items");
 
-            for (g.initialize(m); !g.get_terminated(); g.increment(m))
+            for (g->initialize(m, g); !g->get_terminated(); g->increment(m))
             {
-                if (g.get_is_valid())
+                if (g->get_is_valid())
                 {
-                    DEBUG("for " << *this << " got a generator " << g);
+                    DEBUG("for " << *this << " got a generator " << *g);
 
-                    if (g.get_does_not_exceed_level(depth-1))
+                    if (g->get_does_not_exceed_level(depth-1))
                     {
-                        signature x{*i, m, g};
+                        signature x{*i, m, *g};
                         temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
 
                         DEBUG("add type instance enum " << x << " for level " << depth);
                     }
                     else
                     {
-                        DEBUG("the generator " << g << " exceeds level " << (depth-1));
+                        DEBUG("the generator " << *g << " exceeds level " << (depth-1));
                     }
                 }
             }
@@ -2164,46 +2172,48 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, const std
     
     for (auto & i: vector_of_names)
     {    
-        generator g{*i, __FILE__, __LINE__};
+        std::shared_ptr<basic_generator> g = std::make_shared<generator>(*i, __FILE__, __LINE__);
+        machine_finalization_guard<basic_generator> guard{m, *g};
+
+        g->initialize(m, g);
     
-        if (g.get_the_cartesian_product_of_placeholder_types_is_empty())
+        if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
         {
         }
         else
-        if (g.get_the_cartesian_product_of_placeholder_types_has_one_item())
+        if (g->get_the_cartesian_product_of_placeholder_types_has_one_item())
         {
             if (depth == 1)
             {
-                signature x{*i, m, g};
+                signature x{*i, m, *g};
                 e->add_type_instance_enum_value(x, depth);
                 DEBUG("add type instance enum " << x << " for level 1");
             }
         }        
         else
-        if (g.get_the_cartesian_product_of_placeholder_types_is_finite())
+        if (g->get_the_cartesian_product_of_placeholder_types_is_finite())
         {
-            for (g.initialize(m); !g.get_terminated(); g.increment(m))
+            for (; !g->get_terminated(); g->increment(m))
             {
-                if (g.get_is_valid())
+                if (g->get_is_valid())
                 {
-                    DEBUG("for " << *this << " got a generator " << g);
+                    DEBUG("for " << *this << " got a generator " << *g);
                     
-                    if (g.get_does_not_exceed_level(depth-1))
+                    if (g->get_does_not_exceed_level(depth-1))
                     {                                        
-                        signature x{*i, m, g};
+                        signature x{*i, m, *g};
                         temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
                         
                         DEBUG("add type instance enum " << x << " for level " << depth);
                     }
                     else
                     {
-                        DEBUG("the generator " << g << " exceeds level " << (depth-1));
+                        DEBUG("the generator " << *g << " exceeds level " << (depth-1));
                     }
                 }
             }
         }        
     }
-    
     
     for (auto & i: temporary_vector_of_type_instance_enums)
     {
@@ -2442,27 +2452,39 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
     {
         DEBUG("add placeholder integer " << a->second << " -> " << a->first);
         
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<int, static_cast<int>(variable_with_value::actual_memory_representation_type::INTEGER)>>(a->first, a->second, nullptr));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_integer>(a->first, a->second));
     }    
     for (auto a=map_placeholder_names_to_float.begin(); a!=map_placeholder_names_to_float.end(); a++)
     {
         DEBUG("add placeholder float " << std::showpoint << a->second << " -> " << a->first);
 
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(a->first, a->second, nullptr));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_float>(a->first, a->second));
     }
     for (auto a=map_placeholder_names_to_string.begin(); a!=map_placeholder_names_to_string.end(); a++)
     {
         DEBUG("add placeholder string " << a->second << " -> " << a->first);
         
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<std::string, static_cast<int>(variable_with_value::actual_memory_representation_type::STRING)>>(a->first, a->second, nullptr));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_string>(a->first, a->second));
     }        
     for (auto a=map_placeholder_names_to_code.begin(); a!=map_placeholder_names_to_code.end(); a++)
     {
         DEBUG("add placeholder code " << a->second << " -> " << a->first);
 
-        target.add_placeholder_with_value(std::make_shared<simple_placeholder_with_value_and_report<code, static_cast<int>(variable_with_value::actual_memory_representation_type::CODE)>>(a->first, a->second, nullptr));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_code>(a->first, a->second));
+    }
+    for (auto a=map_placeholder_names_to_identifier.begin(); a!=map_placeholder_names_to_identifier.end(); a++)
+    {
+        DEBUG("add placeholder enum " << a->second << " -> " << a->first);
+
+        //target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_enum>(a->first, a->second));
     }
 }
+
+void chomik::simple_placeholder_for_code::get_value_code(code & target) const
+{
+    target = value;
+}
+
 
 void chomik::generic_stream::read_string_of_x_characters(std::string & target, unsigned x)
 {
@@ -2580,44 +2602,161 @@ std::string chomik::code_name_item::get_actual_text_representation(const machine
 
 void chomik::machine::destroy_ad_hoc_type_instances_above(int amount)
 {
+    DEBUG("destroy ad hoc type instances above " << amount);
+
+    if (vector_of_ad_hoc_type_instances.size() < amount)
+    {
+        throw std::runtime_error("something is wrong with the destroying ad hoc type instances");
+    }
+
     vector_of_ad_hoc_type_instances.erase(vector_of_ad_hoc_type_instances.begin()+amount, vector_of_ad_hoc_type_instances.end());
 }
 
-chomik::type_instance * chomik::machine::create_an_ad_hoc_type(const generic_type & t, generator & g, const std::string & tn)
+void chomik::generic_type_list::expand_ad_hoc_type_instance(machine & m, std::shared_ptr<basic_generator> & g, std::shared_ptr<type_instance_ad_hoc_enum> & target) const
 {
-    DEBUG("create an ad hoc type " << t << " as " << tn);
-    int f,l;
+    my_list->expand_ad_hoc_type_instance(m, g, target);
+}
 
-    t.update_boundaries(*this, f, l, g);
+void chomik::list_of_generic_names::expand_ad_hoc_type_instance(machine & m, std::shared_ptr<basic_generator> & g, std::shared_ptr<type_instance_ad_hoc_enum> & target) const
+{
+    for (auto & i: vector_of_names)
+    {
+        std::shared_ptr<basic_generator> gle=std::make_shared<generator_for_ad_hoc_list_of_enums>(*i, __FILE__, __LINE__);
 
-    std::shared_ptr<type_instance_ad_hoc_range> x = std::make_shared<type_instance_ad_hoc_range>(t, tn, f, l);
-    type_instance * y = dynamic_cast<type_instance*>(&*x);
-//TODO fixme
-    add_ad_hoc_type(std::move(x));
+        gle->set_father(g);
+
+        gle->initialize(m, gle);
+
+        DEBUG("consider the name " << (*i) << " and the generator " << *gle);
+
+        if (gle->get_the_cartesian_product_of_placeholder_types_is_empty())
+        {
+            // nothing to be done
+            DEBUG("cartesian product for an ad hoc list of enums it is empty");
+        }
+        else
+        if (gle->get_the_cartesian_product_of_placeholder_types_has_one_item())
+        {
+            DEBUG("cartesian product for an ad hoc list of enums has one item");
+            signature s{*i, m, *gle};
+
+            std::string item_string = s.get_string_representation();
+            target->add_type_instance_enum_value(item_string, 1);
+        }
+        else
+        if (gle->get_the_cartesian_product_of_placeholder_types_is_finite())
+        {
+            DEBUG("cartesian product for an ad hoc list of enums is finite");
+            for (; !gle->get_terminated(); gle->increment(m))
+            {
+                if (gle->get_is_valid())
+                {
+                    DEBUG("it is valid for " << *gle);
+
+                    signature s{*i, m, *gle};
+
+                    std::string item_string = s.get_string_representation();
+
+                    DEBUG("item string is " << item_string);
+
+                    target->add_type_instance_enum_value(item_string, 1);
+                }
+                else
+                {
+                    DEBUG("it is NOT valid for " << *gle);
+                }
+            }
+        }
+        else
+        {
+            DEBUG("cartesian product for an ad hoc list of enums is infinite - WE DON'T SUPPORT THIS");
+        }
+
+        gle->finalize(m);
+    }
+
+    DEBUG("after expanding the ad hoc type has " << target->get_amount_of_values() << " values");
+
+}
+
+
+
+chomik::type_instance * chomik::machine::create_an_ad_hoc_type(const generic_type & t, std::shared_ptr<basic_generator> & g)
+{
+    DEBUG("create an ad hoc type " << t);
+
+    type_instance * y = nullptr;
+
+    switch (t.get_actual_memory_representation_type(*this))
+    {
+        case variable_with_value::actual_memory_representation_type::INTEGER:
+        {
+            int f,l;
+
+            t.update_int_boundaries(*this, *g, f, l);
+
+            std::shared_ptr<type_instance> x = std::make_shared<type_instance_ad_hoc_range>(t, f, l);
+            y = add_ad_hoc_type(std::move(x));
+        }
+        break;
+
+        case variable_with_value::actual_memory_representation_type::ENUM:
+        {
+            std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator f, l;
+
+            auto x = std::make_shared<type_instance_ad_hoc_enum>();
+            t.expand_ad_hoc_type_instance(*this, g, x);
+
+            y = add_ad_hoc_type(std::move(x));
+        }
+        break;
+    }
+
+    if (y == nullptr)
+    {
+        throw std::runtime_error("failed to create an ad hoc type instance");
+    }
     return y;
 }
 
-void chomik::machine::add_ad_hoc_type(std::shared_ptr<type_instance_ad_hoc_range> && t)
+chomik::type_instance* chomik::machine::add_ad_hoc_type(std::shared_ptr<type_instance> && t)
 {
-    DEBUG("add ad hoc type " << t->get_name());
+    DEBUG("add ad hoc type ");
 
+    int index = vector_of_ad_hoc_type_instances.size();
+
+    t->set_ad_hoc_index(index);
     vector_of_ad_hoc_type_instances.push_back(t);
+
+    return &*vector_of_ad_hoc_type_instances[index];
 }
 
-void chomik::machine::get_first_and_last_iterators_for_ad_hoc_range_type(const std::string & type_name, int & f, int & l) const
+void chomik::machine::get_first_and_last_iterators_for_ad_hoc_range_type(int ad_hoc_type_instance_index, int & f, int & l) const
 {
-    DEBUG("looking for ad hoc range type " << type_name);
-
-    for (int x=vector_of_ad_hoc_type_instances.size()-1;x>=0;x--)
+    if (ad_hoc_type_instance_index >= 0 && ad_hoc_type_instance_index < vector_of_ad_hoc_type_instances.size())
     {
-        if (vector_of_ad_hoc_type_instances[x]->get_name() == type_name)
-        {
-            f = vector_of_ad_hoc_type_instances[x]->get_first_iterator_for_range();
-            l = vector_of_ad_hoc_type_instances[x]->get_last_iterator_for_range();
-            return;
-        }
+        f = vector_of_ad_hoc_type_instances[ad_hoc_type_instance_index]->get_first_iterator_for_range();
+        l = vector_of_ad_hoc_type_instances[ad_hoc_type_instance_index]->get_last_iterator_for_range();
+    }
+    else
+    {
+        throw std::runtime_error("incorrect ad hoc index");
     }
 }
+
+void chomik::machine::get_first_and_last_iterators_for_ad_hoc_enum_type(int ad_hoc_type_instance_index, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const
+{
+    if (ad_hoc_type_instance_index >= 0 && ad_hoc_type_instance_index < vector_of_ad_hoc_type_instances.size())
+    {
+        f = vector_of_ad_hoc_type_instances[ad_hoc_type_instance_index]->get_first_iterator_for_enum();
+        l = vector_of_ad_hoc_type_instances[ad_hoc_type_instance_index]->get_last_iterator_for_enum();
+    }
+    else
+    {
+        throw std::runtime_error("incorrect ad hoc index");
+    }
+}
+
 
 chomik::placeholder_with_value& chomik::basic_generator::get_placeholder_with_value(const std::string & p)
 {
@@ -2631,7 +2770,7 @@ void chomik::type_instance_ad_hoc_range::update(placeholder_with_value & v, mach
 {
     DEBUG("update type instance " << name);
 
-    my_type.update_boundaries(m, min_boundary, max_boundary, g);
+    my_type.update_int_boundaries(m, g, min_boundary, max_boundary);
 
     DEBUG("updated type instance " << name << " as " << min_boundary << ".." << max_boundary);
 
@@ -2660,13 +2799,19 @@ void chomik::machine::add_variable_with_value(std::shared_ptr<variable_with_valu
 }
 
 
-void chomik::simple_placeholder_for_range::update_int_value(int f, int l)
+void chomik::simple_placeholder_for_integer::update_int_value(int f, int l)
 {
-    DEBUG("update int value " << f << ".." << l);
-    first = f;
-    last = l+1;
+    DEBUG("update int value " << f);
     value = f;
 }
+
+void chomik::simple_placeholder_for_range::update_int_value(int f, int l)
+{
+    simple_placeholder_for_integer::update_int_value(f, l);
+    first = f;
+    last = l + 1;
+}
+
 
 bool chomik::generic_value_variable_value::get_is_code(machine & m) const
 {
@@ -2929,7 +3074,7 @@ void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(mach
 
         m.get_first_and_last_iterators_for_enum_type(ti.get_name(), f, l);
 
-        if (*f)
+        if (f != static_cast<iterator_type>(nullptr))
         {
             DEBUG("for " << type_name << " got type instance, and the first value is " << (*f)->get_name());
         }
@@ -2973,9 +3118,39 @@ std::string chomik::simple_placeholder_for_enum::get_value_enum() const
 
 void chomik::machine::get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const
 {
+    if (map_type_name_to_type_instance.find(type_name) == map_type_name_to_type_instance.end())
+    {
+        throw std::runtime_error("failed to access the type instance");
+    }
+
     f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_enum();
     l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_enum();
 }
+
+void chomik::machine::get_first_and_last_iterators_for_range_type(const std::string & type_name, int & f, int & l) const
+{
+    if (map_type_name_to_type_instance.find(type_name) == map_type_name_to_type_instance.end())
+    {
+        throw std::runtime_error("failed to access the type instance");
+    }
+
+    f = map_type_name_to_type_instance.at(type_name)->get_first_iterator_for_range();
+    l = map_type_name_to_type_instance.at(type_name)->get_last_iterator_for_range();
+}
+
+void chomik::machine::add_type_instance(std::shared_ptr<type_instance> && i)
+{
+    auto [it, success] = map_type_name_to_type_instance.insert(std::pair(i->get_name(), i));
+
+    if (!success)
+    {
+        throw std::runtime_error("failed to insert a type instance into machine's map");
+    }
+
+    std::shared_ptr<type_instance> i2{i};
+    vector_of_type_instances.push_back(std::move(i2));
+}
+
 
 bool chomik::simple_placeholder_for_enum::get_is_valid() const
 {
@@ -2983,4 +3158,80 @@ bool chomik::simple_placeholder_for_enum::get_is_valid() const
 
     return value != last;
 }
+
+chomik::generic_type_list::generic_type_list(const list_of_generic_names & l)
+{
+    std::unique_ptr<list_of_generic_names> i;
+    l.get_copy(i);
+    my_list = std::move(i);
+}
+
+void chomik::generic_type_list::report(std::ostream & s) const
+{
+    my_list->report(s);
+}
+
+void chomik::generic_type_list::add_placeholders_to_generator(basic_generator & g) const
+{
+    DEBUG("we do not add the placeholders to the generator!");
+
+    // initially I thought the placeholders for this type should be added to the generator as well, but
+    // the generic_type_list should not do it! instead it expands the list on its own
+
+    //my_list->add_placeholders_to_generator(g);
+}
+
+std::string chomik::generic_type_list::get_generic_type_name() const
+{
+    std::stringstream s;
+    my_list->report(s);
+    return s.str();
+}
+
+void chomik::list_of_generic_names::get_copy(std::unique_ptr<list_of_generic_names> & target) const
+{
+    target = std::make_unique<list_of_generic_names>(vector_of_names);
+}
+
+chomik::list_of_generic_names::list_of_generic_names(generic_name * const gn, list_of_generic_names * const l)
+{
+    if (gn)
+    {
+        std::shared_ptr<generic_name> xt{gn};
+        vector_of_names.push_back(std::move(xt));
+    }
+    if (l)
+    {
+        for (auto & i: l->vector_of_names)
+        {
+            std::shared_ptr<generic_name> yl{i};
+            vector_of_names.push_back(std::move(yl));
+        }
+    }
+}
+
+
+void chomik::list_of_generic_names::add_placeholders_to_generator(basic_generator & g) const
+{
+    for (auto & i: vector_of_names)
+    {
+        i->add_placeholders_to_generator(g);
+    }
+}
+
+chomik::type_instance* chomik::simple_placeholder_for_integer::get_updated_type_instance(chomik::machine& m, chomik::basic_generator& g)
+{
+    DEBUG("we should update the type instance here");
+
+    if (my_type_instance)
+    {
+        my_type_instance->update(*this, m, g);
+        return my_type_instance;
+    }
+
+    DEBUG("BUT WE RETURN NULLPTR!!!");
+
+    return nullptr;
+}
+
 

@@ -59,6 +59,11 @@ void chomik::assignment_statement::make_copy_with_replacements(const machine & m
     std::shared_ptr<generic_value> t;
     value->make_copy_with_replacements(m, g, p, t);
 
+    if (!t)
+    {
+        throw std::runtime_error("failed to get a value copy");
+    }
+
     DEBUG("the copy " << *t);
        
     auto x = std::make_shared<assignment_statement>(*t, line_number);
@@ -77,9 +82,13 @@ void chomik::assignment_statement::make_copy_with_replacements(const machine & m
 void chomik::generic_value_variable_value::make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
     signature s{*name, m, g};
+
+    DEBUG("");
     
     if (p.replace_all_variables_with_their_values() && m.get_variable_is_represented_in_memory(s))
     {
+        DEBUG("memory representation " << static_cast<int>(m.get_actual_memory_representation_type_of_the_variable(s)));
+
         switch (m.get_actual_memory_representation_type_of_the_variable(s))
         {
             case variable_with_value::actual_memory_representation_type::INTEGER:
@@ -92,7 +101,7 @@ void chomik::generic_value_variable_value::make_copy_with_replacements(const mac
                 target = std::make_shared<generic_value_literal>(std::make_unique<simple_literal_string>(m.get_variable_value_string(s)));
                 break;
             case variable_with_value::actual_memory_representation_type::ENUM:
-                //target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_enum>("enum", m.get_variable_value_enum(s)));
+                target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_enum>(m.get_variable_value_enum(s)));
                 break;                
             case variable_with_value::actual_memory_representation_type::CODE:
             {
@@ -105,12 +114,16 @@ void chomik::generic_value_variable_value::make_copy_with_replacements(const mac
     }
     else
     {
+        DEBUG("");
+
         target = std::make_shared<generic_value_variable_value>(*name);
     }
 }
 
 void chomik::generic_value_literal::make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
+    DEBUG("");
+
     std::unique_ptr<generic_literal> x;
     literal->make_copy_with_replacements(m, g, p, x);
     target = std::make_shared<generic_value_literal>(std::move(x));
@@ -156,12 +169,16 @@ void chomik::generic_literal_placeholder::make_copy_with_replacements(const mach
     }
     else
     {
+        DEBUG("");
+
         get_copy(target);
     }
 }
 
 void chomik::generic_literal_code::make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::unique_ptr<generic_literal> & target) const
 {
+    DEBUG("");
+
     code c;
     my_code_pointer->get_actual_code_value(m, g, p, c);
     
@@ -171,6 +188,8 @@ void chomik::generic_literal_code::make_copy_with_replacements(const machine & m
 
 void chomik::generic_value_placeholder::make_copy_with_replacements(const machine & m, const basic_generator & g, const replacing_policy & p, std::shared_ptr<generic_value> & target) const
 {
+    DEBUG("");
+
     if (p.replace_known_placeholders_with_their_values() && g.get_has_placeholder_with_value(placeholder))
     {
         switch (g.get_placeholder_with_value(placeholder).get_representation_type())
@@ -204,6 +223,8 @@ void chomik::generic_value_placeholder::make_copy_with_replacements(const machin
     }
     else
     {
+        DEBUG("");
+
         std::unique_ptr<generic_value> t;
         get_copy(t);
         target = std::move(t);

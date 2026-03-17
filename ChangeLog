@@ -14,3 +14,5 @@ YYYY-MM-DD
 2023-04-04  release 0.1.0
 2024-02-18  release 0.1.15 - chomik::parser::register_parser is mandatory!!!
 2026-03-10  complex type names
+2026-03-13  ad hoc list types
+2026-03-17  release 0.2.3

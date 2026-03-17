@@ -72,6 +72,8 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 "code"                  { return T_CODE; }
 "complex"               { return T_COMPLEX; }
 "range"                 { return T_RANGE; }
+"list"                  { return T_LIST; }
+
 
 "include"               {
                             BEGIN(INCLUDE); 
