@@ -1672,7 +1672,7 @@ namespace chomik
         
         std::string get_placeholder_value_string(const std::string & p) const;
         
-        std::string get_placeholder_value_enum(const std::string & p) const;
+        virtual std::string get_placeholder_value_enum(const std::string & p) const;
 
         virtual void get_placeholder_value_code(const std::string & p, code & target) const;
         
@@ -1803,6 +1803,8 @@ namespace chomik
         virtual int get_placeholder_value_integer(const std::string & p) const override;
 
         virtual double get_placeholder_value_float(const std::string & p) const override;
+
+        virtual std::string get_placeholder_value_enum(const std::string & p) const override;
 
         virtual void get_placeholder_value_code(const std::string & p, code & target) const override;
         
@@ -2341,6 +2343,8 @@ namespace chomik
         virtual int get_actual_integer_value(const machine & m, const basic_generator & g) const override;
 
         virtual double get_actual_float_value(const machine & m, const basic_generator & g) const override;
+
+        virtual std::string get_actual_enum_value(const machine & m, const basic_generator & g) const override;
 
         virtual void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const override;
         
@@ -3400,35 +3404,51 @@ namespace chomik
 
         int ad_hoc_index;
 
+        bool is_iterable;
+
+        std::string just_a_value; // this is used for non-iterable placeholders
     public:
-        // this constructore is for the regular named enum types
+        // this constructore is for the regular named enum types, which are iterable
         simple_placeholder_for_enum(const std::string & p, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{-1} {}
+            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{-1}, is_iterable{true} {}
 
         // this constructor is used when the type has complex name and may need to be updated depending on the generator
         simple_placeholder_for_enum(const std::string & p, const generic_type * t):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
             {p, static_cast<iterator_type>(nullptr), nullptr},
             first{static_cast<iterator_type>(nullptr)},
-            last{static_cast<iterator_type>(nullptr)}, original_type{t}, ad_hoc_index{-1} {}
+            last{static_cast<iterator_type>(nullptr)}, original_type{t}, ad_hoc_index{-1}, is_iterable{true} {}
 
         // this constructore is for the ad hoc enum types
         simple_placeholder_for_enum(const std::string & p, int new_ad_hoc_index, const iterator_type f, const iterator_type l, type_instance * ti):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{new_ad_hoc_index} {}
+            {p, f, ti}, first{f}, last{l}, original_type{nullptr}, ad_hoc_index{new_ad_hoc_index}, is_iterable{true} {}
 
         // this is similar to the base class constructor
         simple_placeholder_for_enum(const std::string & p, const iterator_type f):
             simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
-            {p, f, nullptr}, first{f}, last{f}, original_type{nullptr}, ad_hoc_index{-1} {}
+            {p, f, nullptr}, first{f}, last{f}, original_type{nullptr}, ad_hoc_index{-1}, is_iterable{true} {}
+
+        // this is used for non-iterable placeholders
+        simple_placeholder_for_enum(const std::string & p, const std::string v):
+            simple_placeholder_with_value<std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator, static_cast<int>(variable_with_value::actual_memory_representation_type::ENUM)>
+            {p, static_cast<iterator_type>(nullptr), nullptr}, first{nullptr}, last{nullptr}, original_type{nullptr}, ad_hoc_index{-1}, is_iterable{false}, just_a_value{v} {}
 
         virtual void report(std::ostream & s) const override
         {
             s << placeholder;
-            if (value != last)
+
+            if (is_iterable)
             {
-                s  << '=' << (*value)->get_name();
+                if (value != last)
+                {
+                    s  << '=' << (*value)->get_name();
+                }
+            }
+            else
+            {
+                s << '=' << just_a_value;
             }
         }        
         
@@ -3436,7 +3456,11 @@ namespace chomik
 
         virtual bool get_is_terminated() const override
         {
-            return value == last;
+            if (is_iterable)
+            {
+                return value == last;
+            }
+            return true;
         }
         virtual void increment() override;
         
@@ -3444,21 +3468,29 @@ namespace chomik
         
         virtual bool get_exceeds_level(int max_level) const
         {
-            if (value == static_cast<iterator_type>(nullptr))
+            if (is_iterable)
             {
-                return true;
-            }
+                if (value == static_cast<iterator_type>(nullptr))
+                {
+                    return true;
+                }
 
-            return (*value)->get_level() > max_level;
+                return (*value)->get_level() > max_level;
+            }
+            return true;
         }
         
         virtual int get_level() const
         {
-            if (value == static_cast<iterator_type>(nullptr))
+            if (is_iterable)
             {
-                return 0;
+                if (value == static_cast<iterator_type>(nullptr))
+                {
+                    return 0;
+                }
+                return (*value)->get_level();
             }
-            return (*value)->get_level();
+            return 1;
         }
 
         virtual void update_type_instance_if_necessary(machine & m, basic_generator & g) override;

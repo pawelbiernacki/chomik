@@ -169,7 +169,7 @@ void chomik::assignment_statement::execute_if_cartesian_product_has_one_item(mac
                     {
                     //std::cout << "it should be enum\n";
 
-                    std::string v = value->get_actual_text_representation(m, *g);
+                    std::string v = value->get_actual_enum_value(m, *g);
 
                     DEBUG("it is " << *value << " got enum value " << v);
 

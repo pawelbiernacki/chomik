@@ -604,7 +604,7 @@ TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tes
         ../tests/test31.chomik ../tests/test32.chomik ../tests/test33.chomik ../tests/test34.chomik ../tests/test35.chomik ../tests/test36.chomik \
         ../tests/test37.chomik ../tests/test38.chomik ../tests/test39.chomik ../tests/test40.chomik ../tests/test41.chomik ../tests/test42.chomik \
         ../tests/test43.chomik ../tests/test44.chomik ../tests/test45.chomik ../tests/test46.chomik ../tests/test47.chomik ../tests/test48.chomik \
-        ../tests/test49.chomik ../tests/test50.chomik ../tests/test51.chomik ../tests/test52.chomik
+        ../tests/test49.chomik ../tests/test50.chomik ../tests/test51.chomik ../tests/test52.chomik ../tests/test53.chomik
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 all: all-am
@@ -1383,6 +1383,13 @@ recheck: all
 ../tests/test52.chomik.log: ../tests/test52.chomik
 	@p='../tests/test52.chomik'; \
 	b='../tests/test52.chomik'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+../tests/test53.chomik.log: ../tests/test53.chomik
+	@p='../tests/test53.chomik'; \
+	b='../tests/test53.chomik'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

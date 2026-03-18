@@ -610,6 +610,22 @@ void chomik::mapping_generator::increment(machine & m)
     }
 }
 
+std::string chomik::generator::get_placeholder_value_enum(const std::string & p) const
+{
+    DEBUG("get placeholder " << p << " value enum");
+
+    const placeholder_with_value &x{get_placeholder_with_value(p)};
+
+    //const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)> &y{reinterpret_cast<const simple_placeholder_with_value<int, static_cast<int>(chomik::variable_with_value::actual_memory_representation_type::INTEGER)>&>(x)};
+
+    std::string v = x.get_value_enum();
+
+    DEBUG("result " << v << " for " << *this << ".");
+
+    return v;
+}
+
+
 int chomik::generator::get_placeholder_value_integer(const std::string & p) const
 {
     DEBUG("get placeholder " << p << " value integer");

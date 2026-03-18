@@ -1,0 +1,17 @@
+#!/usr/local/bin/chomik
+
+# This test is not supposed to fail, just to check whether we can use types with complex names in a certain case
+
+type complex [knowledge about chomik writing style] = { traditional, recommended };
+expand(1);
+
+let knowledge about chomik print snippet (SNIPPET_NUMBER:integer) in style (STYLE:complex [knowledge about chomik writing style]) = value code
+{
+    let knowledge about chomik current snippet number = value integer [(SNIPPET_NUMBER:integer)];
+    let knowledge about chomik current snippet writing style = value complex [knowledge about chomik writing style] [(STYLE:complex [knowledge about chomik writing style])];
+
+    <print "The snippet" <knowledge about chomik current snippet number> "in the style" <knowledge about chomik current snippet writing style>>;
+};
+
+<knowledge about chomik print snippet 14 in style recommended>;
+

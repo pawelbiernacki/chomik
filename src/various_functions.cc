@@ -588,7 +588,15 @@ void chomik::matching_protocol::copy_bound_placeholders(generator & target) cons
 
         target.add_placeholder_with_value(std::move(c));
     }
-    
+    for (auto a=map_placeholder_names_to_identifier.begin(); a!=map_placeholder_names_to_identifier.end(); a++)
+    {
+        DEBUG("make a placeholder " << a->first << " with value " << a->second);
+
+        auto c = std::make_shared<simple_placeholder_for_enum>(a->first, a->second);
+
+        target.add_placeholder_with_value(std::move(c));
+    }
+
     DEBUG("produced " << target);
     
 }
@@ -755,6 +763,8 @@ void chomik::generic_value_literal::get_copy(std::unique_ptr<generic_value> & ta
     std::unique_ptr<generic_literal> i;
     literal->get_copy(i);
     target = std::make_unique<generic_value_literal>(std::move(i));
+
+    DEBUG("got " << *target);
 }
 
 
@@ -951,7 +961,7 @@ bool chomik::simple_value_integer_signature_item::get_match(const generic_name_i
                         return false;
                     }
                     break;
-                    
+
                 default:
                     // TODO - implement me
                     break;
@@ -1077,6 +1087,49 @@ bool chomik::simple_value_enum_signature_item::get_match(const generic_name_item
     else
     if (gni.get_is_placeholder())
     {
+        const auto * gni2 = static_cast<const placeholder_name_item*>(&gni);
+
+        DEBUG(gni << " is a placeholder of type " << gni2->get_type());
+
+        if (g.get_has_placeholder_with_value(gni.get_placeholder_name()))
+        {
+            DEBUG("it has a placeholder with value " << g << ", namely the placeholder " << gni.get_placeholder_name() << " has value " <<
+            g.get_placeholder_value_enum(gni.get_placeholder_name()));
+
+            switch (gni2->get_type().get_actual_memory_representation_type(m))
+            {
+                case variable_with_value::actual_memory_representation_type::ENUM:
+                {
+                    std::string v{get_enum()};
+                    if (target.get_is_placeholder_bound_as_identifier(gni.get_placeholder_name()))      // this is necessary since we might use the same placeholder twice
+                    {
+                        return v == target.get_placeholder_value_identifier(gni.get_placeholder_name());
+                    }
+                    else
+                    {
+                        DEBUG("looking for " << gni.get_placeholder_name() << ", translated to "
+                        << g.convert_childs_placeholder_name_to_father(gni.get_placeholder_name()));
+
+                        DEBUG("placeholder value " << g.get_placeholder_value_enum(gni.get_placeholder_name()));
+
+                        if (v == g.get_placeholder_value_enum(gni.get_placeholder_name()))
+                        {
+                            target.bind_placeholder_as_identifier(gni.get_placeholder_name(), v);
+                            return target.get_is_successful();
+                        }
+                        else
+                        {
+                            target.bind_placeholder_as_identifier(gni.get_placeholder_name(), v);
+                        }
+                        return false;
+                    }
+                }
+                    break;
+
+                default:;
+            }
+        }
+
         if (target.get_is_placeholder_bound_as_identifier(gni.get_placeholder_name()))           // this is necessary since we might use the same placeholder twice
         {
             return get_enum() == target.get_placeholder_value_identifier(gni.get_placeholder_name());
@@ -2476,7 +2529,7 @@ void chomik::matching_protocol::initialize_mapping(external_placeholder_generato
     {
         DEBUG("add placeholder enum " << a->second << " -> " << a->first);
 
-        //target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_enum>(a->first, a->second));
+        target.add_placeholder_with_value(std::make_shared<simple_placeholder_for_enum>(a->first, a->second));
     }
 }
 
@@ -2905,7 +2958,11 @@ std::string chomik::generic_type_named::get_generic_type_name() const
 {
     if (has_complex_name)
     {
-        throw std::runtime_error("there is no generic type name in this case");
+        std::stringstream s;
+        s << "complex [";
+        complex_type_name->report(s);
+        s << "]";
+        return s.str();
     }
     return simple_type_name;
 }
@@ -2914,7 +2971,7 @@ std::string chomik::generic_type_named::get_low_level_type_name() const
 {
     if (has_complex_name)
     {
-        throw std::runtime_error("there is no generic type name in this case");
+        return "enum";
     }
     return simple_type_name;
 }
@@ -3059,6 +3116,12 @@ void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(mach
     {
         return;
     }
+
+    if (!is_iterable)
+    {
+        return;
+    }
+
     original_type->get_type_complex_name_copy(tn);
     signature actual_name{*tn, m, g};
     const std::string type_name{actual_name.get_string_representation()};
@@ -3103,17 +3166,25 @@ void chomik::simple_placeholder_for_enum::update_type_instance_if_necessary(mach
 
 void chomik::simple_placeholder_for_enum::increment()
 {
-    if (value == last) value = first; else value++;
+    if (is_iterable)
+    {
+        if (value == last) value = first; else value++;
+    }
 }
 
 
 std::string chomik::simple_placeholder_for_enum::get_value_enum() const
 {
-    if (value == last)
+    if (is_iterable)
     {
-        return "!unknown_enum_value!";
+        if (value == last)
+        {
+            return "!unknown_enum_value!";
+        }
+        return (*value)->get_name();
     }
-    return (*value)->get_name();
+
+    return just_a_value;
 }
 
 void chomik::machine::get_first_and_last_iterators_for_enum_type(const std::string & type_name, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & f, std::vector<std::unique_ptr<type_instance_enum_value>>::const_iterator & l) const
@@ -3154,9 +3225,14 @@ void chomik::machine::add_type_instance(std::shared_ptr<type_instance> && i)
 
 bool chomik::simple_placeholder_for_enum::get_is_valid() const
 {
-    DEBUG("the simple_placeholder_for_enum " << placeholder << " is " << (value != last ? "valid" : "NOT valid"));
+    if (is_iterable)
+    {
+        DEBUG("the simple_placeholder_for_enum " << placeholder << " is " << (value != last ? "valid" : "NOT valid"));
 
-    return value != last;
+        return value != last;
+    }
+
+    return true;
 }
 
 chomik::generic_type_list::generic_type_list(const list_of_generic_names & l)
@@ -3234,4 +3310,19 @@ chomik::type_instance* chomik::simple_placeholder_for_integer::get_updated_type_
     return nullptr;
 }
 
+
+std::string chomik::generic_literal_placeholder::get_actual_enum_value(const machine & m, const basic_generator & g) const
+{
+    if (has_complex_name)
+    {
+        if (g.get_has_placeholder_with_value(placeholder))
+        {
+            return g.get_placeholder_value_enum(placeholder);
+        }
+
+        return "unknown placeholder!";
+    }
+
+    return g.get_placeholder_value_enum(placeholder);
+}
 

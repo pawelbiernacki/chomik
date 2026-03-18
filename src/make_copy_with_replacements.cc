@@ -207,7 +207,7 @@ void chomik::generic_value_placeholder::make_copy_with_replacements(const machin
                 break;                
                 
             case variable_with_value::actual_memory_representation_type::ENUM:
-                //target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_enum>(g.get_placeholder_value_enum(placeholder)));
+                target = std::make_shared<generic_value_literal>(std::make_unique<generic_literal_enum>(g.get_placeholder_value_enum(placeholder)));
                 break;
 
             case variable_with_value::actual_memory_representation_type::CODE:
