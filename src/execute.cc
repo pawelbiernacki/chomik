@@ -486,7 +486,7 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                             DEBUG("code line number " << line_number << ": got code " << ci);
 
                             code ca;
-                            replacing_policy_exhaustive p;
+                            replacing_policy_literal p;
                             ci.get_actual_code_value(m, *g, p, ca);
                             
                             DEBUG("code line number " << line_number << ": code to be executed: " << ca);

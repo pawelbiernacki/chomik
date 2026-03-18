@@ -627,6 +627,9 @@ void chomik::machine::get_variable_value_code(const signature & vn, code & targe
 const chomik::variable_with_value & chomik::machine::get_variable_with_value(const signature & vn) const
 {
     const std::string s = vn.get_string_representation();
+
+    DEBUG("got the signature string representation " << s);
+
     auto x = map_signature_string_representation_to_variable_with_value.find(s);
     
     if (x != map_signature_string_representation_to_variable_with_value.end())
