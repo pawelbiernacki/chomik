@@ -14,7 +14,17 @@ void chomik::code::execute(machine & m, std::shared_ptr<basic_generator> father)
 {
     for (auto & i: body->get_vector_of_statements())
     {
-        i->execute(m, i, father);
+        try
+        {
+            i->execute(m, i, father);
+        }
+        catch (std::runtime_error & e)
+        {
+            std::stringstream s;
+            s << "code line number " << i->get_line_number() << ": error " << e.what();
+
+            throw std::runtime_error(s.str());
+        }
     }
 }
 

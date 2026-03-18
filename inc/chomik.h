@@ -968,6 +968,8 @@ namespace chomik
                 
         
         virtual const std::vector<std::shared_ptr<type_definition>> & get_vector_of_type_definitions() const { return dummy; }
+
+        unsigned get_line_number() const { return line_number; }
     };    
 
     /**
