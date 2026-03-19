@@ -17,3 +17,5 @@ YYYY-MM-DD
 2026-03-13  ad hoc list types
 2026-03-17  release 0.2.3
 2026-03-18  release 0.2.4, improved error handling, release 0.2.5
+2026-03-19  expanding types with placeholders in names, improved error handling, release 0.3.0
+

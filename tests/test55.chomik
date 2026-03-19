@@ -1,0 +1,64 @@
+#!/usr/local/bin/chomik
+
+# In Chomik we can use the complex (compound) type names.
+# When we use a placeholder within such name the tyoe should be defined for all its values.
+# Infinite types are not allowed at the moment.
+
+# The test does not fail.
+
+let knowledge about chomik prefix = value integer 0;
+let chomik html creator prefix = value integer 10;
+
+type complex [<knowledge about chomik prefix> knowledge about chomik user profile] =
+    {
+        Chomik programmer,
+        SDL_Chomik programmer,
+        "C++" programmer chomik embedder,
+        "C++" programmer chomik extender,
+        "C++" programmer parser designer,
+        "C++" programmer willing to understand Chomik implementation,
+        programming language designer,
+        philosopher
+    };
+
+type complex [<chomik html creator prefix> chomik html creator categories for a user (USER_PROFILE:list {philosopher})] =
+    {
+    philosophy,
+    surprising fact,
+    user profile,
+    purpose,
+    features that look like a disadvantage,
+    what you can do with chomik,
+    license,
+    other stuff licenses,
+    how to get it,
+    operating system
+    };
+
+type complex [<chomik html creator prefix> chomik html creator categories for a user (USER_PROFILE:list {Chomik programmer, SDL_Chomik programmer})] =
+    {
+    surprising fact,
+    user profile,
+    purpose,
+    what you can do with chomik,
+    license,
+    other stuff licenses,
+    how to get it,
+    operating system
+    };
+
+expand(1);
+
+let something with semantics controllable by a user profile = value code
+{
+    <print "all categories for" <our user profile>>;
+    <print "category for" <our user profile> "is" (CATEGORY: complex [<chomik html creator prefix> chomik html creator categories for a user <our user profile>])>;
+};
+
+# here we use the code - we control the type used within the code without modifying the code itself - just by setting the value of the variable our user profile
+let our user profile = value complex [<knowledge about chomik prefix> knowledge about chomik user profile] Chomik programmer;
+<something with semantics controllable by a user profile>;
+
+# we do the trick again - for a different value
+let our user profile = value complex [<knowledge about chomik prefix> knowledge about chomik user profile] philosopher;
+<something with semantics controllable by a user profile>;

@@ -1031,5 +1031,7 @@ void chomik::execute_value_statement::execute(machine & m, std::shared_ptr<const
 
 void chomik::expand_statement::execute(machine & m, std::shared_ptr<const statement> && i, std::shared_ptr<basic_generator> father) const
 {
+    DEBUG("code line number " << line_number << ": expand " << depth);
+
     m.expand(depth);
 }

@@ -138,7 +138,16 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
 
                     DEBUG("it is a range " << f << ".." << l);
 
-                    add_placeholder_with_value(std::move(x));
+                    try
+                    {
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    catch (std::runtime_error & e)
+                    {
+                        std::stringstream s;
+                        s << "initialize - for range placeholder failed to add placeholder_with_value with " << f << ".." << l << ": " << e.what();
+                        throw std::runtime_error(s.str());
+                    }
                 };
                 break;
 
@@ -151,7 +160,17 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
 
                     std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), my_type_instance->get_ad_hoc_index(), f, l, my_type_instance)};
 
-                    add_placeholder_with_value(std::move(x));
+                    try
+                    {
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    catch (std::runtime_error & e)
+                    {
+                        std::stringstream s;
+                        s << "initialize - for enum placeholder failed to add placeholder_with_value with " << (*f)->get_name() << ".." << (*l)->get_name() << ": " << e.what();
+                        throw std::runtime_error(s.str());
+                    }
+
                 }
                 default:;
             }
@@ -178,14 +197,35 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
                 
                     // std::cout << "it is a range " << f << ".." << l << "\n";
         
-                    add_placeholder_with_value(std::move(x));
+                    try
+                    {
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    catch (std::runtime_error & e)
+                    {
+                        std::stringstream s;
+                        s << "initialize - for enum placeholder failed to add placeholder_with_value with " << f << ".." << l << ": " << e.what();
+                        throw std::runtime_error(s.str());
+                    }
+
                 }
                 else
                 {
                     // TODO we just assume it is infinite because there is no type instance - we should check whether the assumption is correct                                        
                     DEBUG("it is infinite");
                     std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_infinite_range>(i->get_name(), nullptr)};
-                    add_placeholder_with_value(std::move(x));
+
+                    try
+                    {
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    catch (std::runtime_error & e)
+                    {
+                        std::stringstream s;
+                        s << "initialize - for enum placeholder failed to add placeholder_with_value: " << e.what();
+                        throw std::runtime_error(s.str());
+                    }
+
                 }
             }
             break;
@@ -205,7 +245,16 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
                 DEBUG("it is a float (" << i->get_name() << ")");
                 std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_with_value<double, static_cast<int>(variable_with_value::actual_memory_representation_type::FLOAT)>>(i->get_name(), 0.0, nullptr)};
         
-                add_placeholder_with_value(std::move(x));
+                try
+                {
+                    add_placeholder_with_value(std::move(x));
+                }
+                catch (std::runtime_error & e)
+                {
+                    std::stringstream s;
+                    s << "initialize - for float placeholder " << i->get_name() << " failed to add placeholder_with_value: " << e.what();
+                    throw std::runtime_error(s.str());
+                }
             }
             break;
             case variable_with_value::actual_memory_representation_type::STRING:
@@ -216,7 +265,16 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
 
                 DEBUG("add placeholder with value " << *x << " to the generator " << *this);
 
-                add_placeholder_with_value(std::move(x));
+                try
+                {
+                    add_placeholder_with_value(std::move(x));
+                }
+                catch (std::runtime_error & e)
+                {
+                    std::stringstream s;
+                    s << "initialize - for string placeholder " << i->get_name() << " failed to add placeholder_with_value: " << e.what();
+                    throw std::runtime_error(s.str());
+                }
             }
             break;
             
@@ -249,7 +307,16 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
 
                         x->update_type_instance_if_necessary(m, *this);
 
-                        add_placeholder_with_value(std::move(x));
+                        try
+                        {
+                            add_placeholder_with_value(std::move(x));
+                        }
+                        catch (std::runtime_error & e)
+                        {
+                            std::stringstream s;
+                            s << "initialize - for enum placeholder " << i->get_name() << " failed to add placeholder_with_value: " << e.what();
+                            throw std::runtime_error(s.str());
+                        }
                     }
                     else
                     {
@@ -279,7 +346,17 @@ void chomik::generator::initialize(machine & m, std::shared_ptr<basic_generator>
                     m.get_first_and_last_iterators_for_enum_type(type_name, f, l);
                     std::unique_ptr<placeholder_with_value> x{std::make_unique<simple_placeholder_for_enum>(i->get_name(), f, l, nullptr)};
         
-                    add_placeholder_with_value(std::move(x));
+                    try
+                    {
+                        add_placeholder_with_value(std::move(x));
+                    }
+                    catch (std::runtime_error & e)
+                    {
+                        std::stringstream s;
+                        s << "initialize - for enum placeholder " << i->get_name() << " failed to add placeholder_with_value: " << e.what();
+                        throw std::runtime_error(s.str());
+                    }
+
                 }
                 else
                 {
@@ -885,7 +962,9 @@ void chomik::external_placeholder_generator::add_placeholder_with_value(std::sha
     auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
     if (!success)
     {
-        throw std::runtime_error("failed to insert a placeholder with value");
+        std::stringstream s;
+        s << "for placeholder " << p->get_name() << " failed to insert a placeholder with value " <<  *p;
+        throw std::runtime_error(s.str());
     }
 
     memory.push_back(std::move(p));
@@ -980,7 +1059,9 @@ void chomik::generator::add_placeholder_with_value(std::shared_ptr<placeholder_w
     auto [it, success] = map_placeholder_names_to_placeholders_with_value.insert(std::pair(p->get_name(), std::move(p2)));
     if (!success)
     {
-        throw std::runtime_error("failed to insert a placeholder with value");
+        std::stringstream s;
+        s << "for placeholder " << p->get_name() << " failed to insert a placeholder with value " <<  *p;
+        throw std::runtime_error(s.str());
     }
 
     memory.push_back(std::move(p));

@@ -636,7 +636,7 @@ const chomik::variable_with_value & chomik::machine::get_variable_with_value(con
         return *x->second;
     
     std::stringstream s2;
-    s2 << "unable to find the variable " << s;
+    s2 << "[" << __FILE__ << " " << __LINE__ << "]: unable to find the variable " << s;
     
     throw std::runtime_error(s2.str());
 }
@@ -659,7 +659,7 @@ chomik::variable_with_value & chomik::machine::get_variable_with_value(const sig
         return *x->second;
     
     std::stringstream s2;
-    s2 << "unable to find the variable " << s;
+    s2 << "[" << __FILE__ << " " << __LINE__ << "]: unable to find the variable " << s;
     
     throw std::runtime_error(s2.str());
 }
@@ -1335,7 +1335,7 @@ int chomik::generic_literal_placeholder::get_actual_integer_value(const machine 
     }    
     
     std::stringstream s;
-    s << "for placeholder " << placeholder << " the generator " << g << " does not contain any value";
+    s << "[" << __FILE__ << " " << __LINE__ << "]: for placeholder " << placeholder << " the generator " << g << " does not contain any value";
     throw std::runtime_error(s.str());
         
     return 0;
@@ -1354,7 +1354,7 @@ double chomik::generic_literal_placeholder::get_actual_float_value(const machine
     g.debug();
 
     std::stringstream s;
-    s << "for placeholder " << placeholder << " the generator " << g << " does not contain any value";
+    s << "[" << __FILE__ << " " << __LINE__ << "]: for placeholder " << placeholder << " the generator " << g << " does not contain any value";
     throw std::runtime_error(s.str());
 
     return 0;
@@ -1618,7 +1618,7 @@ void chomik::signature_regular_expression::parse(const std::string & c)
                         else
                         {
                             std::stringstream error_message_stream;
-                            error_message_stream << "integer expected, got \"" << id.str() << "\"";
+                            error_message_stream << "[" << __FILE__ << " " << __LINE__ << "]: integer expected, got \"" << id.str() << "\"";
                             throw std::runtime_error(error_message_stream.str());
                         }
 
@@ -1647,7 +1647,7 @@ void chomik::signature_regular_expression::parse(const std::string & c)
                         else
                         {
                             std::stringstream error_message_stream;
-                            error_message_stream << "integer expected, got \"" << id.str() << "\"";
+                            error_message_stream << "[" << __FILE__ << " " << __LINE__ << "]: integer expected, got \"" << id.str() << "\"";
                             throw std::runtime_error(error_message_stream.str());
                         }
 
@@ -1797,6 +1797,9 @@ void chomik::machine::expand(int i)
                 DEBUG("expand for types with complex type name " << k->get_complex_type_name());
 
                 std::shared_ptr<basic_generator> g=std::make_shared<generator>(k->get_complex_type_name(), __FILE__, __LINE__);
+                machine_finalization_guard<basic_generator> guard{*this, *g};
+
+                g->initialize(*this, g);
 
                 if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
                 {
@@ -1871,7 +1874,17 @@ void chomik::machine::expand(int i)
             if (temporary_vector_of_flags_type_is_new[l])   // skip the types that are already known
             {
                 DEBUG("expanding type definition for level " << k);
-                j->expand(*this, k, temporary_vector_of_type_instances[l]);
+
+                try
+                {
+                    j->expand(*this, k, temporary_vector_of_type_instances[l]);
+                }
+                catch (std::runtime_error & e)
+                {
+                    std::stringstream s;
+                    s << "[" << __FILE__ << " " << __LINE__ << "]: when trying to expand " << *j << " for level " << k << " an error occured " << e.what();
+                    throw std::runtime_error(s.str());
+                }
                 create_auxilliary_variables_for_type_instance(*temporary_vector_of_type_instances[l]);
             }
             l++;
@@ -1972,12 +1985,32 @@ void chomik::type_definition::expand(machine & m, int depth, std::shared_ptr<typ
     if (has_complex_name)
     {
         DEBUG("expanding type " << *complex_type_name << " for depth " << depth << " - " << *body);
-        body->expand(m, depth, e);
+
+        try
+        {
+            body->expand(m, depth, e);
+        }
+        catch (std::runtime_error & e)
+        {
+            std::stringstream s;
+            s << "[" << __FILE__ << " " << __LINE__ << "]: when trying to expand " << *body << " for level " << depth << " an error occured " << e.what();
+            throw std::runtime_error(s.str());
+        }
     }
     else
     {
         DEBUG("expanding type " << simple_type_name << " for depth " << depth << " - " << *body);
-        body->expand(m, depth, simple_type_name, e);
+
+        try
+        {
+            body->expand(m, depth, simple_type_name, e);
+        }
+        catch (std::runtime_error & e)
+        {
+            std::stringstream s;
+            s << "[" << __FILE__ << " " << __LINE__ << "]: when trying to expand " << *body << " for level " << depth << " an error occured " << e.what();
+            throw std::runtime_error(s.str());
+        }
     }
 }
 
@@ -2121,6 +2154,14 @@ void chomik::type_definition_statement::add_placeholders_to_generator(basic_gene
 void chomik::type_definition::add_placeholders_to_generator(basic_generator & g) const
 {
     DEBUG("add_placeholders_to_generator");
+
+    if (has_complex_name)
+    {
+        complex_type_name->add_placeholders_to_generator(g);
+    }
+
+    DEBUG("also do the same for the type definition body : add_placeholders_to_generator");
+
     body->add_placeholders_to_generator(g);
 }
 
@@ -2158,9 +2199,11 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, std::shar
     for (auto & i: vector_of_names)
     {
         std::shared_ptr<basic_generator> g=std::make_shared<generator>(*i, __FILE__, __LINE__);
-        //machine_finalization_guard<basic_generator> guard{m, *g};
+        machine_finalization_guard<basic_generator> guard{m, *g};
 
         DEBUG("go through the generator g " << *g);
+
+        g->initialize(m, g);
 
         if (g->get_the_cartesian_product_of_placeholder_types_is_empty())
         {
@@ -2183,7 +2226,7 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, std::shar
         {
             DEBUG("the cartesian product has a finite amount of items");
 
-            for (g->initialize(m, g); !g->get_terminated(); g->increment(m))
+            for (; !g->get_terminated(); g->increment(m))
             {
                 if (g->get_is_valid())
                 {
@@ -2192,6 +2235,7 @@ void chomik::type_definition_body_enum::expand(machine & m, int depth, std::shar
                     if (g->get_does_not_exceed_level(depth-1))
                     {
                         signature x{*i, m, *g};
+
                         temporary_vector_of_type_instance_enums.push_back(x.get_string_representation());
 
                         DEBUG("add type instance enum " << x << " for level " << depth);
@@ -2841,7 +2885,7 @@ void chomik::machine::add_variable_with_value(std::shared_ptr<variable_with_valu
     if (!success)
     {
         std::stringstream s;
-        s << "failed to insert a pair into machine's memory " << vv->get_signature_string_representation();
+        s << "[" << __FILE__ << " " << __LINE__ << "]: failed to insert a pair into machine's memory " << vv->get_signature_string_representation();
         throw std::runtime_error(s.str());
     }
 
@@ -3252,7 +3296,7 @@ void chomik::generic_type_list::report(std::ostream & s) const
 
 void chomik::generic_type_list::add_placeholders_to_generator(basic_generator & g) const
 {
-    DEBUG("we do not add the placeholders to the generator!");
+    DEBUG("we do not add the placeholders to the generator! - it is a generic_type_list");
 
     // initially I thought the placeholders for this type should be added to the generator as well, but
     // the generic_type_list should not do it! instead it expands the list on its own
