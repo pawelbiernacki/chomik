@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
         
         if (version_flag)
         {
-            std::cout << "chomik by Pawel Biernacki, Vantaa 2022\n";
+            std::cout << "chomik by Pawel Biernacki, Vantaa 2022-2026\n";
             std::cout << "version " << PACKAGE_VERSION << "\n";
         }
         else
