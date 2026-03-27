@@ -29,6 +29,7 @@ TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tes
 
 XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 
+TEST_ENVIRONMENT = ./chomik
 		
 lex.yy.c: scanner.l
 	flex $^
