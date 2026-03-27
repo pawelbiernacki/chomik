@@ -20,6 +20,9 @@ jobs:
     - name: Install autotools
       run: sudo apt-get install -y autoconf automake m4 libtool perl
       
+    - name: Run autoreconf
+      run: autoreconf -fiv
+      
     - name: configure
       run: ./configure
 
