@@ -17,6 +17,9 @@ jobs:
     - name: Install SDL2
       run: sudo apt-get update && sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 
+    - name: Install autotools
+      run: sudo apt-get install -y autoconf automake m4
+
     - name: configure
       run: ./configure
 
