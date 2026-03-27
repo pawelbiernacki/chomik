@@ -121,13 +121,13 @@ namespace http_chomik
 {                                   \
     std::stringstream s;            \
     s << X;                         \
-    syslog (LOG_PERROR, s.str().c_str());   \
+    syslog (LOG_PERROR, "%s", s.str().c_str());   \
 }
 #define HTTP_CHOMIK_LOG_NOTICE(X)   \
 {                                   \
     std::stringstream s;            \
     s << X;                         \
-    syslog (LOG_NOTICE, s.str().c_str());   \
+    syslog (LOG_NOTICE, "%s", s.str().c_str());   \
 }
 #else
 #define HTTP_CHOMIK_LOG_ERROR(X)    \
