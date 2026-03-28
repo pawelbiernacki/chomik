@@ -18,11 +18,11 @@ int yyparse (yyscan_t yyscanner, void *extra_chomik_parameter);
 
 #include <stdio.h>
 
-#define yylex chomik_scannerlex
-#define yyerror chomik_scannererror
+int chomik_parserlex(void * yylval_param, void * yyloc_param, yyscan_t scanner, void *extra_chomik_parameter);
+void chomik_parsererror(void * yyloc_param, yyscan_t scanner, void * chomik_extra_parameter, const char* msg);
 
-int yylex(void * yylval_param, void * yyloc_param, yyscan_t scanner, void *extra_chomik_parameter);
-void yyerror(void * yyloc_param, yyscan_t scanner, void * chomik_extra_parameter, const char* msg);
+int chomik_scannerlex(void * yylval_param, void * yyloc_param, yyscan_t scanner, void *extra_chomik_parameter);
+void chomik_scannererror(void * yyloc_param, yyscan_t scanner, void * chomik_extra_parameter, const char* msg);
 
 int chomik_get_current_yylineno(yyscan_t scanner, void * extra_chomik_parameter);
 
@@ -219,3 +219,13 @@ void chomik_reset_parser()
 {
 	// just for case we have some globals to be reset
 }
+
+int chomik_parserlex(void * yylval_param, void * yyloc_param, yyscan_t scanner, void *extra_chomik_parameter)
+{
+	return chomik_scannerlex(yylval_param, yyloc_param, scanner, extra_chomik_parameter);
+}
+void chomik_parsererror(void * yyloc_param, yyscan_t scanner, void * chomik_extra_parameter, const char* msg)
+{
+	chomik_scannererror(yyloc_param, scanner, chomik_extra_parameter, msg);
+}
+

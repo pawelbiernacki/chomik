@@ -4,7 +4,7 @@ project(chomik LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(version 0.2.1)
+set(version 0.4.0)
 set(PACKAGE "chomik")
 set(PACKAGE_BUGREPORT "pawel.f.biernacki@gmail.com")
 set(PACKAGE_NAME "chomik")
@@ -38,20 +38,20 @@ FLEX_TARGET(
 ADD_FLEX_BISON_DEPENDENCY(chomik_scanner chomik_parser)
 
 
-add_library(libchomik SHARED src/bridge.cc src/execute.cc src/generators.cc src/get_actual_code_value.cc
+add_library(chomik_library SHARED src/bridge.cc src/execute.cc src/generators.cc src/get_actual_code_value.cc
     src/get_result_replacing_placeholders.cc src/make_copy_with_replacements.cc
     src/language_specific_code.cc
     src/parser_functions.cc ${BISON_chomik_parser_OUTPUTS} src/report.cc src/scanner_functions.cc
     ${FLEX_chomik_scanner_OUTPUTS} src/various_functions.cc)
 
-target_include_directories(libchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
-install(TARGETS libchomik DESTINATION lib)
+target_include_directories(chomik_library PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
+install(TARGETS chomik_library DESTINATION lib)
 
 add_executable(chomik src/chomik.cc)
 
 target_include_directories(chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
 
-target_link_libraries(chomik libchomik)
+target_link_libraries(chomik chomik_library)
 target_include_directories(chomik PUBLIC "${PROJECT_SOURCE_DIR}" "${CHOMIK_INCLUDES}")
 
 install(PROGRAMS chomik DESTINATION bin)
@@ -65,8 +65,8 @@ find_library(IMAGE_LIBRARY NAMES SDL2_image)
 find_library(SDL2_LIBRARY NAMES SDL2)
 
 
-target_link_libraries(sdl_chomik 
-    libchomik 
+target_link_libraries(sdl_chomik
+    chomik_library
     ${SDL2_LIBRARY} 
 	$<$<BOOL:${WIN32}>:SDL2main> # fix problem on windows "undefined symbol: WinMain"
     ${IMAGE_LIBRARY} 
@@ -77,24 +77,24 @@ include(CTest)
 add_subdirectory(tests)
 
 if(NOT WIN32)
-add_library(libhttpchomik SHARED src3/machine.cc src3/server.cc src3/wrapper_base.cc)
-target_include_directories(libhttpchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
+add_library(httpchomik_library SHARED src3/machine.cc src3/server.cc src3/wrapper_base.cc)
+target_include_directories(httpchomik_library PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
 set(datadir "${DESTINATION}/share")
-target_compile_definitions(libhttpchomik PUBLIC -DDATADIR="${datadir}")
-install(TARGETS libhttpchomik DESTINATION lib)
+target_compile_definitions(httpchomik_library PUBLIC -DDATADIR="${datadir}")
+install(TARGETS httpchomik_library DESTINATION lib)
 
 
 
 add_executable(fancy_http_chomik src4/fancy_http_chomik.cc)
 target_include_directories(fancy_http_chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
-target_link_libraries(fancy_http_chomik libchomik libhttpchomik)
+target_link_libraries(fancy_http_chomik chomik_library httpchomik_library)
 install(PROGRAMS fancy_http_chomik DESTINATION bin)
 install(FILES "${PROJECT_SOURCE_DIR}/css/chomik.css" DESTINATION share/http_chomik)
 install(FILES "${PROJECT_SOURCE_DIR}/image/chomik.png" DESTINATION share/http_chomik)
 
 add_executable(http_chomik src4/http_chomik.cc)
 target_include_directories(http_chomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}")
-target_link_libraries(http_chomik libchomik libhttpchomik)
+target_link_libraries(http_chomik chomik_library httpchomik_library)
 install(PROGRAMS http_chomik DESTINATION bin)
 
 endif()

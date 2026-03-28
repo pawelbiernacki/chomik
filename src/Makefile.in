@@ -135,11 +135,12 @@ am__uninstall_files_from_dir = { \
   }
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libchomik_la_LIBADD =
-am_libchomik_la_OBJECTS = scanner.lo parser.lo parser_functions.lo \
-	scanner_functions.lo report.lo make_copy_with_replacements.lo \
-	execute.lo get_actual_code_value.lo \
-	get_result_replacing_placeholders.lo various_functions.lo \
-	generators.lo language_specific_code.lo bridge.lo
+am_libchomik_la_OBJECTS = lex.chomik_scanner.lo chomik_parser.tab.lo \
+	parser_functions.lo scanner_functions.lo report.lo \
+	make_copy_with_replacements.lo execute.lo \
+	get_actual_code_value.lo get_result_replacing_placeholders.lo \
+	various_functions.lo generators.lo language_specific_code.lo \
+	bridge.lo
 libchomik_la_OBJECTS = $(am_libchomik_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -167,13 +168,14 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/bridge.Plo ./$(DEPDIR)/chomik.Po \
-	./$(DEPDIR)/execute.Plo ./$(DEPDIR)/generators.Plo \
+	./$(DEPDIR)/chomik_parser.tab.Plo ./$(DEPDIR)/execute.Plo \
+	./$(DEPDIR)/generators.Plo \
 	./$(DEPDIR)/get_actual_code_value.Plo \
 	./$(DEPDIR)/get_result_replacing_placeholders.Plo \
 	./$(DEPDIR)/language_specific_code.Plo \
+	./$(DEPDIR)/lex.chomik_scanner.Plo \
 	./$(DEPDIR)/make_copy_with_replacements.Plo \
-	./$(DEPDIR)/parser.Plo ./$(DEPDIR)/parser_functions.Plo \
-	./$(DEPDIR)/report.Plo ./$(DEPDIR)/scanner.Plo \
+	./$(DEPDIR)/parser_functions.Plo ./$(DEPDIR)/report.Plo \
 	./$(DEPDIR)/scanner_functions.Plo \
 	./$(DEPDIR)/various_functions.Plo
 am__mv = mv -f
@@ -213,23 +215,6 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-LEXCOMPILE = $(LEX) $(AM_LFLAGS) $(LFLAGS)
-LTLEXCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(LEX) $(AM_LFLAGS) $(LFLAGS)
-AM_V_LEX = $(am__v_LEX_@AM_V@)
-am__v_LEX_ = $(am__v_LEX_@AM_DEFAULT_V@)
-am__v_LEX_0 = @echo "  LEX     " $@;
-am__v_LEX_1 = 
-YLWRAP = $(top_srcdir)/ylwrap
-am__yacc_c2h = sed -e s/cc$$/hh/ -e s/cpp$$/hpp/ -e s/cxx$$/hxx/ \
-		   -e s/c++$$/h++/ -e s/c$$/h/
-YACCCOMPILE = $(YACC) $(AM_YFLAGS) $(YFLAGS)
-LTYACCCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(YACC) $(AM_YFLAGS) $(YFLAGS)
-AM_V_YACC = $(am__v_YACC_@AM_V@)
-am__v_YACC_ = $(am__v_YACC_@AM_DEFAULT_V@)
-am__v_YACC_0 = @echo "  YACC    " $@;
-am__v_YACC_1 = 
 SOURCES = $(libchomik_la_SOURCES) $(chomik_SOURCES)
 DIST_SOURCES = $(libchomik_la_SOURCES) $(chomik_SOURCES)
 am__can_run_installinfo = \
@@ -439,8 +424,7 @@ TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp \
-	$(top_srcdir)/test-driver $(top_srcdir)/ylwrap parser.c \
-	scanner.c
+	$(top_srcdir)/test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -590,8 +574,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libchomik.la
-libchomik_la_SOURCES = scanner.l parser.y parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc execute.cc get_actual_code_value.cc \
-		get_result_replacing_placeholders.cc various_functions.cc generators.cc language_specific_code.cc bridge.cc
+libchomik_la_SOURCES = lex.chomik_scanner.c chomik_parser.tab.cc parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc \
+		execute.cc get_actual_code_value.cc get_result_replacing_placeholders.cc various_functions.cc generators.cc language_specific_code.cc bridge.cc
 
 chomik_SOURCES = chomik.cc
 chomik_LDFLAGS = @chomik_linker_flags@
@@ -612,7 +596,7 @@ XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cc .l .lo .log .o .obj .test .test$(EXEEXT) .trs .y
+.SUFFIXES: .c .cc .lo .log .o .obj .test .test$(EXEEXT) .trs
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -735,16 +719,16 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bridge.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chomik.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chomik_parser.tab.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/execute.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generators.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get_actual_code_value.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get_result_replacing_placeholders.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/language_specific_code.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lex.chomik_scanner.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/make_copy_with_replacements.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser_functions.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/report.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scanner.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scanner_functions.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/various_functions.Plo@am__quote@ # am--include-marker
 
@@ -795,12 +779,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-.l.c:
-	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
-
-.y.c:
-	$(AM_V_YACC)$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h `echo $@ | $(am__yacc_c2h)` y.output $*.output -- $(YACCCOMPILE)
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1516,8 +1494,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-$(am__rm_f) parser.c
-	-$(am__rm_f) scanner.c
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
@@ -1526,16 +1502,16 @@ clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
 distclean: distclean-am
 	-rm -f ./$(DEPDIR)/bridge.Plo
 	-rm -f ./$(DEPDIR)/chomik.Po
+	-rm -f ./$(DEPDIR)/chomik_parser.tab.Plo
 	-rm -f ./$(DEPDIR)/execute.Plo
 	-rm -f ./$(DEPDIR)/generators.Plo
 	-rm -f ./$(DEPDIR)/get_actual_code_value.Plo
 	-rm -f ./$(DEPDIR)/get_result_replacing_placeholders.Plo
 	-rm -f ./$(DEPDIR)/language_specific_code.Plo
+	-rm -f ./$(DEPDIR)/lex.chomik_scanner.Plo
 	-rm -f ./$(DEPDIR)/make_copy_with_replacements.Plo
-	-rm -f ./$(DEPDIR)/parser.Plo
 	-rm -f ./$(DEPDIR)/parser_functions.Plo
 	-rm -f ./$(DEPDIR)/report.Plo
-	-rm -f ./$(DEPDIR)/scanner.Plo
 	-rm -f ./$(DEPDIR)/scanner_functions.Plo
 	-rm -f ./$(DEPDIR)/various_functions.Plo
 	-rm -f Makefile
@@ -1585,16 +1561,16 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/bridge.Plo
 	-rm -f ./$(DEPDIR)/chomik.Po
+	-rm -f ./$(DEPDIR)/chomik_parser.tab.Plo
 	-rm -f ./$(DEPDIR)/execute.Plo
 	-rm -f ./$(DEPDIR)/generators.Plo
 	-rm -f ./$(DEPDIR)/get_actual_code_value.Plo
 	-rm -f ./$(DEPDIR)/get_result_replacing_placeholders.Plo
 	-rm -f ./$(DEPDIR)/language_specific_code.Plo
+	-rm -f ./$(DEPDIR)/lex.chomik_scanner.Plo
 	-rm -f ./$(DEPDIR)/make_copy_with_replacements.Plo
-	-rm -f ./$(DEPDIR)/parser.Plo
 	-rm -f ./$(DEPDIR)/parser_functions.Plo
 	-rm -f ./$(DEPDIR)/report.Plo
-	-rm -f ./$(DEPDIR)/scanner.Plo
 	-rm -f ./$(DEPDIR)/scanner_functions.Plo
 	-rm -f ./$(DEPDIR)/various_functions.Plo
 	-rm -f Makefile
