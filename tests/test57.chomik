@@ -1,0 +1,26 @@
+#!/usr/local/bin/chomik
+
+# This test shows the 'concatenate' - a new predefined family of codes.
+# It needs the version 0.4.0
+# It uses the same code as test56, but in addition assigns 'the concatenate separator', which is a predefined string variable
+
+let the concatenate separator = value string "hallo";
+
+<concatenate alpha "beta" 123>;
+<print <the concatenate result>>;
+
+let the compare result = value compare_result_type none;	# in fact 'none' does not belong to the type, but Chomik tolerates this as for now
+
+<compare "string" <the concatenate result> "alphahallobetahallo123">;
+
+let my action for lower = value code { let the program return = value integer 1; <print "the test fails">; };
+let my action for greater = value code { let the program return = value integer 1; <print "the test fails">; };
+let my action for equal = value code { let the program return = value integer 0; <print "the test succeeds">;};
+
+<my action for <the compare result>>;
+
+<print "the compare result is" <the compare result>>;
+
+
+
+

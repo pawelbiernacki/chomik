@@ -152,13 +152,13 @@ void http_chomik::server::add_html_body_for_code(std::ostream & message_stream, 
 {
     message_stream << "<image src=\"chomik.png\"/><h3>Result:</h3><pre>";
     
-    if (the_parser.parse_string(decoded_code, error_stream)==0)
+    if (the_parser.parse_string(decoded_code, &error_stream)==0)
     {
         std::unique_ptr<http_chomik::machine> my_machine;
         
         create_a_new_machine(my_machine); // you can redefine this method to use different machines        
         
-        chomik::machine::current_runtime_warning_stream = &error_stream2;
+        chomik::machine::current_error_stream = &error_stream2;
         
         my_machine->create_predefined_types();
         my_machine->create_predefined_variables();

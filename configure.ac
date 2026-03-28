@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([chomik], [0.3.0], [pawel.f.biernacki@gmail.com])
+AC_INIT([chomik], [0.4.0], [pawel.f.biernacki@gmail.com])
 AC_CONFIG_SRCDIR([src/chomik.cc])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE()
@@ -12,6 +12,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 AC_PROG_CXX
 AC_PROG_CC
 AM_PROG_LEX([noyywrap])
+AC_SUBST([AM_YFLAGS], [-Wno-yacc])
 AC_PROG_YACC
 LT_INIT
 

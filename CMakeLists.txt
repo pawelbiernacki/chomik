@@ -17,19 +17,32 @@ set(PACKAGE_STRING "chomik ${version}")
 configure_file(cmake.config.h.in config.h)
 set(HEADER_FILES config.h inc/chomik.h)
 
-find_package(FLEX)
-find_package(BISON)
+find_package(BISON REQUIRED)
+find_package(FLEX REQUIRED)
 
-flex_target(lexer src/scanner.l src/scanner.c)
-bison_target(parser src/parser.y src/parser.c DEFINES_FILE src/parser.tab.h)
+BISON_TARGET(
+    chomik_parser
+    src/parser.y
+    ${CMAKE_CURRENT_BINARY_DIR}/chomik_parser.tab.c
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/chomik_parser.tab.h
+    COMPILE_FLAGS "--language=C --file-prefix=chomik_parser -Dapi.prefix={chomik_parser}"
+)
 
-add_flex_bison_dependency(lexer parser)
+FLEX_TARGET(
+    chomik_scanner
+    src/scanner.l
+    ${CMAKE_CURRENT_BINARY_DIR}/lex.chomik_scanner.c
+    COMPILE_FLAGS "-Pchomik_scanner"
+)
+
+ADD_FLEX_BISON_DEPENDENCY(chomik_scanner chomik_parser)
 
 
-add_library(libchomik SHARED src/execute.cc src/generators.cc src/get_actual_code_value.cc
+add_library(libchomik SHARED src/bridge.cc src/execute.cc src/generators.cc src/get_actual_code_value.cc
     src/get_result_replacing_placeholders.cc src/make_copy_with_replacements.cc
-    src/parser_functions.cc src/parser.c src/report.cc src/scanner_functions.cc src/scanner.c
-    src/various_functions.cc)
+    src/language_specific_code.cc
+    src/parser_functions.cc ${BISON_chomik_parser_OUTPUTS} src/report.cc src/scanner_functions.cc
+    ${FLEX_chomik_scanner_OUTPUTS} src/various_functions.cc)
 
 target_include_directories(libchomik PUBLIC "${PROJECT_SOURCE_DIR}/inc" "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 install(TARGETS libchomik DESTINATION lib)

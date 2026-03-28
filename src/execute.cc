@@ -8,7 +8,9 @@
 #define DEBUG(X)
 #endif
 
-#define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
+#define CHOMIK_PARSER_STDERR(X) *chomik::parser::current_error_stream << X
+#define CHOMIK_MACHINE_STDERR(X) *chomik::machine::current_error_stream << X
+
 
 void chomik::code::execute(machine & m, std::shared_ptr<basic_generator> father) const
 {
@@ -462,19 +464,19 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_has_
                 switch (m.get_actual_memory_representation_type_of_the_variable(s))
                 {
                     case variable_with_value::actual_memory_representation_type::INTEGER:
-                        CHOMIK_STDERR("warning: cannot execute an integer!\n");
+                        CHOMIK_MACHINE_STDERR("warning: cannot execute an integer!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::FLOAT:
-                        CHOMIK_STDERR("warning: cannot execute a float!\n");
+                        CHOMIK_MACHINE_STDERR("warning: cannot execute a float!\n");
                         break;
 
                     case variable_with_value::actual_memory_representation_type::STRING:
-                        CHOMIK_STDERR("warning: cannot execute a string!\n");
+                        CHOMIK_MACHINE_STDERR("warning: cannot execute a string!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::ENUM:
-                        CHOMIK_STDERR("warning: cannot execute an enum!\n");
+                        CHOMIK_MACHINE_STDERR("warning: cannot execute an enum!\n");
                         break;
                                 
                     case variable_with_value::actual_memory_representation_type::CODE:
@@ -616,19 +618,19 @@ void chomik::execute_variable_value_statement::execute_if_cartesian_product_is_f
                         switch (m.get_actual_memory_representation_type_of_the_variable(s))
                         {
                             case variable_with_value::actual_memory_representation_type::INTEGER:
-                                CHOMIK_STDERR("warning: cannot execute an integer!\n");
+                                CHOMIK_MACHINE_STDERR("warning: cannot execute an integer!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::FLOAT:
-                                CHOMIK_STDERR("warning: cannot execute a float!\n");
+                                CHOMIK_MACHINE_STDERR("warning: cannot execute a float!\n");
                                 break;
 
                             case variable_with_value::actual_memory_representation_type::STRING:
-                                CHOMIK_STDERR("warning: cannot execute a string!\n");
+                                CHOMIK_MACHINE_STDERR("warning: cannot execute a string!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::ENUM:
-                                CHOMIK_STDERR("warning: cannot execute an enum!\n");
+                                CHOMIK_MACHINE_STDERR("warning: cannot execute an enum!\n");
                                 break;
                                 
                             case variable_with_value::actual_memory_representation_type::CODE:
@@ -902,7 +904,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
                     break;
                     
                 default:
-                    CHOMIK_STDERR("internal error\n"); // this  should never happen
+                    CHOMIK_MACHINE_STDERR("internal error\n"); // this  should never happen
             }
                                                 
             if (the_break_flag)
@@ -929,7 +931,7 @@ void chomik::execute_variable_value_statement::execute(machine & m, std::shared_
                     break;
                     
                 default:
-                    CHOMIK_STDERR("internal error\n"); // this  should never happen
+                    CHOMIK_MACHINE_STDERR("internal error\n"); // this  should never happen
             }
                                                 
             if (the_break_flag)

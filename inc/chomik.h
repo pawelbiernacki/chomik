@@ -483,7 +483,8 @@ namespace chomik
      */
     class signature
     {
-    private:       
+    private:
+		friend class machine;
         static std::unique_ptr<signature_common_data> our_common_data;
         
         std::vector<std::shared_ptr<signature_item>> vector_of_items;
@@ -507,6 +508,8 @@ namespace chomik
         void execute_predefined_match(machine & m) const;
         void execute_predefined_modulo(machine & m) const;
         void execute_predefined_cast(machine & m) const;
+		void execute_predefined_change(machine & m) const;
+		void execute_predefined_concatenate(machine & m) const;
 
         void set_stream_flags(machine & m, generic_stream & gs) const;
 
@@ -1272,6 +1275,8 @@ namespace chomik
     {
     private:
         friend class signature;
+		friend class machine;
+
         generic_name        generic_name_the_print_target_stream_index,
                             generic_name_the_print_separator,
                             generic_name_the_print_end_of_line,
@@ -1305,7 +1310,9 @@ namespace chomik
                             generic_name_the_multiply_result_float,
                             generic_name_the_cast_result_float,
                             generic_name_the_add_result_float,
-                            generic_name_the_subtract_result_float;
+                            generic_name_the_subtract_result_float,
+							generic_name_the_concatenate_separator,
+							generic_name_the_concatenate_result;
                             
         std::unique_ptr<signature>  signature_the_print_target_stream_index,
                                     signature_the_print_separator,
@@ -1340,10 +1347,14 @@ namespace chomik
                                     signature_the_multiply_result_float,
                                     signature_the_cast_result_float,
                                     signature_the_add_result_float,
-                                    signature_the_subtract_result_float;
+                                    signature_the_subtract_result_float,
+									signature_the_concatenate_separator,
+									signature_the_concatenate_result;
 
         std::vector<std::unique_ptr<signature>> signature_the_match_group_integer_x;
         std::vector<std::unique_ptr<signature>> signature_the_match_group_boolean_x;
+
+		std::vector<std::unique_ptr<signature>> signature_the_chomik_string_x;
 
     public:
         signature_common_data();
@@ -2898,6 +2909,8 @@ namespace chomik
         void get_actual_code_value(const machine & m, const basic_generator & g, const replacing_policy & p, code & target) const;
 
         bool operator==(const list_of_statements & l) const;
+
+		void clear() { vector_of_statements.clear(); }
     };
     
     
@@ -3727,7 +3740,6 @@ namespace chomik
         friend class signature_common_data;
         friend class signature;
         friend class generator;
-        static constexpr int max_match_group_index = 10;
 
     protected:
         std::vector<std::shared_ptr<const statement>> vector_of_type_definiton_statements;
@@ -3751,7 +3763,15 @@ namespace chomik
     protected:
         void create_new_type_instance_for_the_type_instance_simple_name(const std::shared_ptr<type_definition> &k, const std::string & simple_type_name, std::vector<std::shared_ptr<type_definition>> & temporary_vector_of_type_definitions, std::vector<std::shared_ptr<type_instance>> & temporary_vector_of_type_instances, std::vector<bool> & temporary_vector_of_flags_type_is_new);
 
+		std::vector<std::string> vector_of_chomik_string_values;
+
     public:
+		static constexpr int max_match_group_index = 10;
+		static constexpr int max_chomik_string_index = 10;
+
+		machine() = default;
+		machine(const std::vector<std::string> & new_vector_of_chomik_string_values);
+
         // these methods are useful for certain reflection-like capabilities
         int get_amount_of_variables_in_the_memory() const { return memory.size(); }
         int get_amount_of_items_in_the_memory_variables_signature(int i) const
@@ -3764,6 +3784,7 @@ namespace chomik
 
         // The machine should be prevented to create files in sandbox environments
         virtual bool get_can_create_files() const { return true; }
+        virtual bool get_can_change_directory() const { return true; }
         
         int get_max_enum_type_index(const std::string & tn) const;
         
@@ -3880,7 +3901,7 @@ namespace chomik
 
         int get_amount_of_ad_hoc_type_instances() const { return vector_of_ad_hoc_type_instances.size(); }
 
-        static std::ostream *current_compilation_error_stream, *current_runtime_warning_stream;
+		static std::ostream *current_error_stream;
     };
     
     /**
@@ -3922,6 +3943,8 @@ namespace chomik
             is_main = m;
             body->set_is_main(m);
         }
+
+        void clear();
         
         const list_of_statements& get_body() const { return *body; }
         
@@ -3969,7 +3992,10 @@ namespace chomik
         void report(std::ostream & s) const { my_code.report(s); }
         
         void add_statement(std::shared_ptr<statement> && s);
-                        
+
+		void clear();
+
+		void set_is_main(bool b) { my_code.set_is_main(b); }
     };
     
     
@@ -3984,16 +4010,31 @@ namespace chomik
 
         static parser * the_parser_pointer;
 
+		void * my_scanner;
+
+	private:
+		void remember_the_scanner(void * new_my_scanner);
+
+		void forget_the_scanner();
+
     public:
-        static void register_parser(parser * p) { the_parser_pointer = p; }
+        static void register_parser(parser * p) { the_parser_pointer = p; } // this is not necessay any more!
         static parser * get_parser_pointer() { return the_parser_pointer; }
 
         parser(program & p);
                 
         int parse(const char * filename);
-        int parse_string(const std::string & code, std::ostream & error_stream);
-                
+        int parse_string(const std::string & new_code, std::ostream * error_stream);
+		int parse_string(const std::string & new_code);
+
         void copy_list_of_statements_to_the_program(list_of_statements * const l);
+
+		// we want now the parser to be usable repeatable - therefore after each usage it is good to reset it
+		void reset();
+
+		int get_line_number();
+
+		static std::ostream *current_error_stream;
     };
     
 }

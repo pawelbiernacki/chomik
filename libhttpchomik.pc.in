@@ -4,8 +4,8 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: @PACKAGE_NAME@                            
-Description: HTTP server for Chomik
+Description: HTTP sandbox server for Chomik
 Version: @PACKAGE_VERSION@
-URL: https://www.perkun.org/chomik/index.html
+URL: https://www.chomik.tech
 Cflags: -I${includedir}
 Libs: -L${libdir} -lchomik -lhttpchomik

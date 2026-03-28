@@ -2,6 +2,10 @@
 
 chomik::parser * chomik::parser::the_parser_pointer = nullptr;
 
+extern "C" int chomik_get_current_yylineno(void * scanner, void * extra_chomik_parameter);
+
+
+
 extern "C" void * chomik_create_generic_type_named(const char * const type_name)
 {
     return new chomik::generic_type_named(type_name);
@@ -42,10 +46,16 @@ extern "C" void * chomik_create_complex_name_generic_type_definition(void * cons
     return new chomik::type_definition(static_cast<chomik::generic_name*>(complex_type_name), static_cast<chomik::type_definition_body*>(t));
 }
 
-extern "C" void chomik_copy_list_of_statements_to_the_program(void * const l)
+extern "C" void chomik_copy_list_of_statements_to_the_program(void * const l, void * scanner, void * extra_chomik_parameter)
 {
+	//std::cout << "we pass a list of statements to the program!\n";
+
     if (chomik::parser::get_parser_pointer() != nullptr)
         chomik::parser::get_parser_pointer()->copy_list_of_statements_to_the_program(static_cast<chomik::list_of_statements*>(l));
+	else
+	{
+		//std::cout << "but it is nullptr\n";
+	}
 }
 
 extern "C" void chomik_destroy_list_of_statements(void * const l)
@@ -129,8 +139,16 @@ extern "C" void * chomik_create_name_item_placeholder(const char * const placeho
     return new chomik::placeholder_name_item(placeholder, static_cast<chomik::generic_type*>(gt));
 }
 
-extern "C" void * chomik_create_name_item_identifier(const char * const identifier)
+extern "C" void * chomik_create_name_item_identifier(const char * const identifier, void * scanner, void *extra_chomik_parameter)
 {
+	if (identifier == nullptr)
+	{
+		std::stringstream s;
+		int line = chomik_get_current_yylineno(scanner, extra_chomik_parameter);
+
+		s << "code line: " << line << ": parser got an empty identifier";
+		throw std::runtime_error(s.str());
+	}
     return new chomik::identifier_name_item(identifier);
 }
 

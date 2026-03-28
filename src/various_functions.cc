@@ -2,6 +2,7 @@
 #include "config.h"
 #include <cstring>
 #include <algorithm>
+#include <string>
 
 //#define CHOMIK_DEBUG
 
@@ -11,7 +12,7 @@
 #define DEBUG(X)
 #endif
 
-#define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
+#define CHOMIK_MACHINE_STDERR(X) *chomik::machine::current_error_stream << X
 
 chomik::dictionary_of_identifiers chomik::base_class_with_dictionary::our_dictionary{"ALPHA"};
 
@@ -204,11 +205,6 @@ const std::string chomik::predefined_types::array_of_predefined_types[]=
     "integer", "float", "string", "code"
 };
 
-const std::string chomik::predefined_variables::array_of_predefined_variables[]=
-{
-    "print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "set", "getline", "execution", "match", "modulo", "cast"
-};
-
 const std::vector<std::unique_ptr<chomik::type_instance_enum_value>>::const_iterator chomik::type_instance::dummy;
 const std::vector<std::shared_ptr<chomik::type_definition>> chomik::statement::dummy;
 
@@ -392,19 +388,6 @@ bool chomik::predefined_types::get_type_is_predefined(const std::string & type_n
 }
 
 
-bool chomik::predefined_variables::get_variable_is_predefined(const std::string & prefix)
-{
-    for (auto & i: array_of_predefined_variables)
-    {
-        if (i == prefix)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-
 
 std::string chomik::generic_value_placeholder::get_actual_text_representation(const machine & m, const basic_generator & g) const
 {
@@ -428,57 +411,24 @@ std::string chomik::generic_literal_code::get_actual_text_representation(const m
     return s.str();
 }
 
-extern "C" void chomik_open_file(const char * f);
-extern "C" void chomik_close_file();
-extern "C" int yyparse();
-
-std::ostream *chomik::machine::current_compilation_error_stream=&std::cerr, *chomik::machine::current_runtime_warning_stream = &std::cerr;
-extern "C" int chomik_standard_yyerror_on;
-extern "C" void chomik_read_from_string(const char * b, int len);
-
-int chomik::parser::parse(const char * filename)
+void chomik::parser::remember_the_scanner(void * new_my_scanner)
 {
-    chomik_standard_yyerror_on = 1;
-    
-    chomik_open_file(filename);
-    
-    int i = yyparse();
+	my_scanner = new_my_scanner;
+}
 
-    if (i != 0)
-        std::cout << "error" << "\n";
-
-    //chomik_close_file(); no need to close it, it is going to be closed by the scanner
-
-    return i;
+void chomik::parser::forget_the_scanner()
+{
+	my_scanner = nullptr;
 }
 
 
-
-
-int chomik::parser::parse_string(const std::string & code, std::ostream & error_stream)
-{
-    chomik::machine::current_compilation_error_stream = &error_stream;
-    chomik_standard_yyerror_on = 0;
-    
-    chomik_read_from_string(code.c_str(), code.length());
-    
-    int i = yyparse();
-
-    if (i != 0)
-        error_stream << "error" << "\n";
-    
-    return i;
-}
-
-
-extern "C" void chomik_nonstandard_yyerror(unsigned line_number, const char * message)
-{
-    *chomik::machine::current_compilation_error_stream << "line " << line_number << ": " << message << "\n";    
-}
+std::ostream *chomik::parser::current_error_stream=&std::cerr,
+	*chomik::machine::current_error_stream = &std::cerr;
 
 
 
-chomik::parser::parser(program & p): my_program{p}
+
+chomik::parser::parser(program & p): my_program{p}, my_scanner{nullptr}
 {
     
 }
@@ -486,6 +436,9 @@ chomik::parser::parser(program & p): my_program{p}
 
 void chomik::parser::copy_list_of_statements_to_the_program(list_of_statements * const l)
 {
+	//std::cout << "the list of statements has " << l->get_vector_of_statements().size() << " items\n";
+
+
     for (auto & i: l->get_vector_of_statements())
     {
         std::shared_ptr<statement> x{i};
@@ -2355,7 +2308,7 @@ chomik::variable_with_value::actual_memory_representation_type chomik::generic_t
     }
     else
     {
-        CHOMIK_STDERR("type_instance " << simple_type_name << " is unknown\n");
+        CHOMIK_MACHINE_STDERR("type_instance " << simple_type_name << " is unknown\n");
     }
     
     return variable_with_value::actual_memory_representation_type::NONE;
@@ -3371,5 +3324,33 @@ std::string chomik::generic_literal_placeholder::get_actual_enum_value(const mac
     }
 
     return g.get_placeholder_value_enum(placeholder);
+}
+
+
+chomik::machine::machine(const std::vector<std::string> & new_vector_of_chomik_string_values)
+{
+	vector_of_chomik_string_values.resize(max_chomik_string_index);
+
+	for (int i=1; i<=max_chomik_string_index; i++)
+	{
+		// we cannot copy it to the machine - we can do it only in the create_predefined_variables
+		vector_of_chomik_string_values[i-1] = new_vector_of_chomik_string_values[i-1];
+
+		//std::cout << "the chomik \"string\" " << i << "=" << vector_of_chomik_string_values[i-1] << "\n";
+	}
+}
+
+
+void chomik::program::clear()
+{
+	my_code.clear();
+}
+
+void chomik::code::clear()
+{
+	if (body.get())
+	{
+		body->clear();
+	}
 }
 

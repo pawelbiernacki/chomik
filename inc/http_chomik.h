@@ -14,7 +14,9 @@ namespace http_chomik
     public:    
         virtual void create_predefined_streams() override;
         
-        virtual bool get_can_create_files() const override final { return false; }        
+        virtual bool get_can_create_files() const override final { return false; }
+
+        virtual bool get_can_change_directory() const override final { return false; }
     };    
 
     class server;

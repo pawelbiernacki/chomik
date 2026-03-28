@@ -1,4 +1,4 @@
 
 
-EXTRA_DIST = *.chomik *.txt
+EXTRA_DIST = *.chomik *.txt *.sh
 

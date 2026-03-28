@@ -1,20 +1,31 @@
 %{
-#include "parser.tab.h"
-#define YY_DECL int yylex( YYSTYPE * yylval_param, void * yyscanner )
+#define YYSTYPE         CHOMIK_PARSERSTYPE
+
+#define YY_DECL int chomik_scannerlex( CHOMIK_PARSERSTYPE * yylval_param, CHOMIK_PARSERLTYPE * yyloc_param, void * yyscanner, void * extra_chomik_parameter)
 #define YYLTYPE int
 
-void chomik_push_buffer_data(const char * const filename, unsigned line_number);
-void chomik_pop_buffer_data(const char ** filename_ptr, unsigned * line_number_ptr);
+#include "chomik_parser.tab.h"
 
-void chomik_open_file(const char * f);
-void chomik_close_file();
+
+void chomik_push_buffer_data_file(const char * const filename, unsigned line_number);
+void chomik_push_buffer_data_string();
+void chomik_pop_buffer_data(const char ** filename_ptr, unsigned * line_number_ptr, bool * it_is_a_file);
+
+void chomik_open_file(const char * f, void * scanner, void * extra_chomik_parameter);
+void chomik_open_file_by_include(const char * f, void * yyscanner, void * extra_chomik_parameter);
+void chomik_close_file_if_it_is_a_file(void * scanner);
 
 int chomik_standard_yyerror_on = 1;
 
-void chomik_nonstandard_yyerror(unsigned line_number, const char * message);
+void chomik_nonstandard_yyerror(unsigned line_number, const char * message, void * scanner);
+
+char chomik_current_file[1024] = "";
+bool chomik_it_is_a_file = true;
+bool chomik_scanner_can_open_files = true;
 
 %}
 
+%option reentrant bison-bridge
 
 %option noyywrap
 %option yylineno
@@ -36,9 +47,9 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 %%
 
 
-"#"                 yy_push_state( COMMENT);
+"#"                 yy_push_state( COMMENT, yyscanner);
      
-<COMMENT>\n          yy_pop_state();
+<COMMENT>\n          yy_pop_state(yyscanner);
 <COMMENT>[^\n]+      
 
 ".."                    return T_DOUBLE_POINT;
@@ -110,10 +121,10 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
                                 
                                 /*printf("including %s\n", name_of_file_to_include);*/
 
-                                chomik_open_file(name_of_file_to_include);
+                                chomik_open_file_by_include(name_of_file_to_include, yyscanner, extra_chomik_parameter);
                                 free(name_of_file_to_include);
                                 
-                                yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ));
+                                yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner ), yyscanner);
                                                                                                                                 
                                 yylineno = 1;
                                 
@@ -140,7 +151,8 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
                         }
                         
                         
-                        yylval_param->value_string = malloc(strlen(yytext+1)+1); 
+                        yylval_param->value_string = malloc(strlen(yytext+1)+1);
+
                         char * t = yylval_param->value_string;
                         while (*p != '\0')
                         {
@@ -176,8 +188,8 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
  <<EOF>>                {
                             if (chomik_standard_yyerror_on)
                             {
-                                chomik_close_file();
-                                yypop_buffer_state();                        
+								chomik_close_file_if_it_is_a_file(yyscanner);
+                                yypop_buffer_state(yyscanner);
                         
                                 if ( !YY_CURRENT_BUFFER )
                                 {
@@ -193,38 +205,67 @@ IDENTIFIER		{LETTER}({LETTER_OR_DIGIT})*
 %%
 
 
-void chomik_open_file(const char * f)
+void chomik_open_file_by_include(const char * f, void * yyscanner, void * extra_chomik_parameter)
 {
-    if (chomik_standard_yyerror_on)
-    {    
-        yyin = fopen( f, "r" );
-        if (yyin ==  NULL)
-        {
-            fprintf(stderr, "unable to open file %s\n", f);
-            exit(EXIT_FAILURE);
-        }
-        chomik_push_buffer_data(f, yylineno);
-    }
-    else
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+    if (!chomik_scanner_can_open_files)
     {
-        chomik_nonstandard_yyerror(0, "no include allowed here");
-    }
-	
+		return;
+	}
+
+	yyin = fopen( f, "r" );
+    if (yyin ==  NULL)
+    {
+		fprintf(stderr, "unable to open file %s\n", f);
+        exit(EXIT_FAILURE);
+	}
+    chomik_push_buffer_data_file(f, yylineno);
+    chomik_it_is_a_file = true;
+
+	/*printf("opening file %s\n", f);*/
+}
+
+
+
+void chomik_open_file(const char * f, void * yyscanner, void * extra_chomik_parameter)
+{
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+    if (!chomik_scanner_can_open_files)
+    {
+		return;
+	}
+
+	yyin = fopen( f, "r" );
+    if (yyin ==  NULL)
+    {
+		fprintf(stderr, "unable to open file %s\n", f);
+        exit(EXIT_FAILURE);
+	}
+    chomik_push_buffer_data_file(f, 1);
+    chomik_it_is_a_file = true;
+
 	/*printf("opening file %s\n", f);*/
 	
 }
 
-void chomik_close_file()
+void chomik_close_file_if_it_is_a_file(void * yyscanner)
 {
     const char * f = "unknown";
-        
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	unsigned line_number;
+
     if (chomik_standard_yyerror_on)
     {    
-        chomik_pop_buffer_data(&f,&yylineno);
-    
-    /*printf("closing file %s\n", f);*/
-    
-        fclose(yyin);
+		if (chomik_it_is_a_file)
+		{
+			fclose(yyin);
+		}
+
+        chomik_pop_buffer_data(&f, &line_number, &chomik_it_is_a_file);
+
+        yyset_lineno(line_number, yyscanner);
     }
     else
     {
@@ -232,29 +273,89 @@ void chomik_close_file()
     }
 }
 
-char chomik_current_file[1024] = "";
-
-void chomik_standard_yyerror(char const *s)
+void chomik_standard_yyerror(char const *s, void * yyscanner)
 {
-    fprintf (stderr, "file %s, line %i: %s\n", chomik_current_file, yylineno, s);
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+	if (chomik_it_is_a_file)
+	{
+		fprintf (stderr, "file %s, line %i: %s\n", chomik_current_file, yylineno, s);
+	}
+	else
+	{
+		fprintf (stderr, "string: %s\n", s);
+	}
 }
 
-void chomik_read_from_string(const char * b, int len)
-{    
-    if (yy_scan_string(b) == NULL)
+void chomik_read_from_string(const char * b, int len, void * yyscanner)
+{
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+	if (b == NULL)
+	{
+		if (chomik_standard_yyerror_on)
+		{
+			chomik_standard_yyerror("provided empty string for scanning", yyscanner);
+		}
+		else
+		{
+			chomik_nonstandard_yyerror(0, "provided empty string for scanning", yyscanner);
+		}
+        return;
+	}
+
+	if (yyscanner == NULL)
+	{
+		if (chomik_standard_yyerror_on)
+		{
+			chomik_standard_yyerror("provided empty scanner for scanning", yyscanner);
+		}
+		else
+		{
+			chomik_nonstandard_yyerror(0, "provided empty scanner for scanning", yyscanner);
+		}
+        return;
+	}
+
+	chomik_push_buffer_data_string();
+    chomik_it_is_a_file = false;
+
+    if (chomik_scanner_scan_string(b, yyscanner) == NULL)
     {
-        chomik_nonstandard_yyerror(0, "unable to read the buffer");    
+		if (chomik_standard_yyerror_on)
+		{
+			chomik_standard_yyerror("unable to read the buffer", yyscanner);
+		}
+		else
+		{
+			chomik_nonstandard_yyerror(1, "unable to read the buffer", yyscanner);
+		}
     }
 }
 
-void yyerror (char const *s) {
-   if (chomik_standard_yyerror_on)
-   {
-        chomik_standard_yyerror(s);
-   }
-   else
-   {
-        chomik_nonstandard_yyerror(yylineno, s);
-   }
+void chomik_scannererror (void *loc, void *yyscanner, void * extra_chomik_parameter, char const *message)
+{
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+	if (chomik_standard_yyerror_on)
+	{
+        chomik_standard_yyerror(message, yyscanner);
+	}
+	else
+	{
+        chomik_nonstandard_yyerror(yylineno, message, yyscanner);
+	}
+}
+
+void chomik_reset_scanner()
+{
+	yylex_destroy;
+}
+
+int chomik_get_current_yylineno(void * yyscanner, void * extra_chomik_parameter)
+{
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+
+	return yylineno;
 }
 

@@ -1,14 +1,25 @@
 #!/usr/local/bin/chomik
 
-# this test checks whether we properly read from a file
+# This test checks whether we properly read from a file
+# It has been slightly enhanced in the version 0.4.0
 
-<create new input filestream "../tests/test29_data.txt">;
+<print "Hi! A new feature has been added - we can pass string values to the command line.">;
+
+# We also have a new predefined symbol: 'change directory (DIR:string)'
+# Unfortunately it is not usable here, because the test framework does not like changing the directory
+
+let the print target stream index = value integer 2; # we write to the standard error now
+
+# We use concatenate instead - it has been introduced in 0.4.0 (see test56.chomik and test57.chomik)
+
+let the concatenate separator = value string "/";
+<concatenate <the chomik "string" 1> "test29_data.txt">;
+
+<print "the actual filename we read is" <the concatenate result>>;
+<create new input filestream <the concatenate result>>;
 variable my test filestream index:integer;
 
 let my test filestream index = <the created stream index>;
-
-
-
 
 # now we read from the file
 

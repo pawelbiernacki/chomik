@@ -30,7 +30,7 @@ add_test(NAME test25 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test25.chomik)
 add_test(NAME test26 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test26.chomik)
 add_test(NAME test27 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test27.chomik)
 add_test(NAME test28 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test28.chomik)
-add_test(NAME test29 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test29.chomik)
+add_test(NAME test29 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test29.sh)		# This test needs a wrapper!
 add_test(NAME test30 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test30.chomik)
 
 add_test(NAME test31 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test31.chomik)
@@ -59,6 +59,8 @@ add_test(NAME test52 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test52.chomik)
 add_test(NAME test53 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test53.chomik)
 add_test(NAME test54 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test54.chomik)
 add_test(NAME test55 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test55.chomik)
+add_test(NAME test56 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test56.chomik)
+add_test(NAME test57 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test57.chomik)
 
 # set WORKING_DIRECTORY for test with files
 set_tests_properties(test29 test30 test36

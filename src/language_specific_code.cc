@@ -2,6 +2,8 @@
 #include "config.h"
 #include <cstring>
 #include <algorithm>
+#include <unistd.h>
+#include <string>
 
 //#define CHOMIK_DEBUG
 
@@ -11,7 +13,7 @@
 #define DEBUG(X)
 #endif
 
-#define CHOMIK_STDERR(X) *chomik::machine::current_runtime_warning_stream << X
+#define CHOMIK_MACHINE_STDERR(X) *chomik::machine::current_error_stream << X
 
 
 void chomik::machine::create_predefined_variables()
@@ -376,6 +378,35 @@ void chomik::machine::create_predefined_variables()
     gn38.add_generic_name_item(std::make_shared<name_item_string>("float"));
     std::shared_ptr<signature> the_subtract_result_float=std::make_shared<signature>(gn38);
     add_variable_with_value(std::make_shared<simple_variable_with_value_float>(std::move(the_subtract_result_float), 0.0));
+
+	if (vector_of_chomik_string_values.size() >= max_chomik_string_index)
+	{
+		for (int i = 1; i<=max_chomik_string_index; i++)
+		{
+			generic_name gn39;
+			gn39.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+			gn39.add_generic_name_item(std::make_shared<identifier_name_item>("chomik"));
+			gn39.add_generic_name_item(std::make_shared<name_item_string>("string"));
+			gn39.add_generic_name_item(std::make_shared<name_item_integer>(i));
+
+			std::shared_ptr<signature> the_chomik_string_x=std::make_shared<signature>(gn39);
+			add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_chomik_string_x), vector_of_chomik_string_values[i-1]));
+		}
+	}
+
+	generic_name gn40;
+	gn40.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+	gn40.add_generic_name_item(std::make_shared<identifier_name_item>("concatenate"));
+	gn40.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+	std::shared_ptr<signature> the_concatenate_result=std::make_shared<signature>(gn40);
+	add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_concatenate_result), ""));
+
+	generic_name gn41;
+	gn41.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+	gn41.add_generic_name_item(std::make_shared<identifier_name_item>("concatenate"));
+	gn41.add_generic_name_item(std::make_shared<identifier_name_item>("separator"));
+	std::shared_ptr<signature> the_concatenate_separator=std::make_shared<signature>(gn41);
+	add_variable_with_value(std::make_shared<simple_variable_with_value_string>(std::move(the_concatenate_separator), ""));
 }
 
 void chomik::machine::create_predefined_types()
@@ -646,6 +677,14 @@ chomik::signature_common_data::signature_common_data()
     generic_name_the_subtract_result_float.add_generic_name_item(std::make_shared<name_item_string>("float"));
 
 
+	generic_name_the_concatenate_result.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+	generic_name_the_concatenate_result.add_generic_name_item(std::make_shared<identifier_name_item>("concatenate"));
+	generic_name_the_concatenate_result.add_generic_name_item(std::make_shared<identifier_name_item>("result"));
+
+	generic_name_the_concatenate_separator.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+	generic_name_the_concatenate_separator.add_generic_name_item(std::make_shared<identifier_name_item>("concatenate"));
+	generic_name_the_concatenate_separator.add_generic_name_item(std::make_shared<identifier_name_item>("separator"));
+
     signature_the_print_target_stream_index = std::make_unique<signature>(generic_name_the_print_target_stream_index);
     signature_the_print_separator = std::make_unique<signature>(generic_name_the_print_separator);
     signature_the_print_end_of_line = std::make_unique<signature>(generic_name_the_print_end_of_line);
@@ -702,6 +741,22 @@ chomik::signature_common_data::signature_common_data()
         std::unique_ptr<signature> the_match_group_boolean_x=std::make_unique<signature>(gn2);
         signature_the_match_group_boolean_x.push_back(std::move(the_match_group_boolean_x));
     }
+
+    for (int i=1; i<=machine::max_chomik_string_index; i++)
+	{
+		generic_name gn;
+		gn.add_generic_name_item(std::make_shared<identifier_name_item>("the"));
+		gn.add_generic_name_item(std::make_shared<identifier_name_item>("chomik"));
+		gn.add_generic_name_item(std::make_shared<name_item_string>("string"));
+		gn.add_generic_name_item(std::make_shared<name_item_integer>(i));
+
+		std::unique_ptr<signature> the_chomik_string_x=std::make_unique<signature>(gn);
+		signature_the_chomik_string_x.push_back(std::move(the_chomik_string_x));
+	}
+
+	signature_the_concatenate_result = std::make_unique<signature>(generic_name_the_concatenate_result);
+	signature_the_concatenate_separator = std::make_unique<signature>(generic_name_the_concatenate_separator);
+
 }
 
 void chomik::signature::execute_predefined_print(machine & m) const
@@ -904,12 +959,12 @@ void chomik::signature::execute_predefined_create(machine & m) const
                         }
                     }
 
-                    CHOMIK_STDERR("line " << line_number << " : unknown create variable\n");
+                    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown create variable\n");
                     for (auto & i: vector_of_items)
                     {
-                        CHOMIK_STDERR(*i << ' ');
+                        CHOMIK_MACHINE_STDERR(*i << ' ');
                     }
-                    CHOMIK_STDERR('\n');
+                    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -943,12 +998,12 @@ void chomik::signature::execute_predefined_set(machine & m) const
         }
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown set variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown set variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -979,12 +1034,12 @@ void chomik::signature::execute_predefined_getline(machine & m) const
         return;
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown getline variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown getline variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 
 }
 
@@ -1124,12 +1179,12 @@ void chomik::signature::execute_predefined_get(machine & m) const
         }
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown get variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown get variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 void chomik::signature::execute_predefined_read(machine & m) const
@@ -1213,12 +1268,12 @@ void chomik::signature::execute_predefined_read(machine & m) const
                 return;
         }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown read variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown read variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 void chomik::signature::execute_predefined_compare(machine & m) const
@@ -1346,12 +1401,12 @@ void chomik::signature::execute_predefined_compare(machine & m) const
                         return;
                     }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown compare variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown compare variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -1395,12 +1450,12 @@ void chomik::signature::execute_predefined_multiply(machine & m) const
                 }
             }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown multiply variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown multiply variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -1429,12 +1484,12 @@ void chomik::signature::execute_predefined_modulo(machine & m) const
             }
         }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown modulo variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown modulo variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 
 }
 
@@ -1487,12 +1542,12 @@ void chomik::signature::execute_predefined_divide(machine & m) const
                 }
             }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown divide variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown divide variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 
 }
 
@@ -1537,12 +1592,12 @@ void chomik::signature::execute_predefined_add(machine & m) const
                 }
             }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown add variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown add variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 void chomik::signature::execute_predefined_subtract(machine & m) const
@@ -1585,12 +1640,12 @@ void chomik::signature::execute_predefined_subtract(machine & m) const
                 }
             }
     }
-    CHOMIK_STDERR("line " << line_number << " : unknown subtract variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown subtract variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 void chomik::signature::execute_predefined_execution(machine & m) const
@@ -1618,12 +1673,12 @@ void chomik::signature::execute_predefined_execution(machine & m) const
         }
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown execution variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown execution variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -1669,7 +1724,7 @@ void chomik::signature::execute_predefined_match(machine & m) const
                         }
                         catch (...)
                         {
-                            CHOMIK_STDERR("error on " << my_smatch[i] << '\n');
+                            CHOMIK_MACHINE_STDERR("error on " << my_smatch[i] << '\n');
                         }
                     }
                 }
@@ -1679,12 +1734,12 @@ void chomik::signature::execute_predefined_match(machine & m) const
         return;
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown match variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown match variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
 
 
@@ -1729,13 +1784,89 @@ void chomik::signature::execute_predefined_cast(machine & m) const
 
     }
 
-    CHOMIK_STDERR("line " << line_number << " : unknown cast variable\n");
+    CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown cast variable\n");
     for (auto & i: vector_of_items)
     {
-        CHOMIK_STDERR(*i << ' ');
+        CHOMIK_MACHINE_STDERR(*i << ' ');
     }
-    CHOMIK_STDERR('\n');
+    CHOMIK_MACHINE_STDERR('\n');
 }
+
+
+void chomik::signature::execute_predefined_change(machine & m) const
+{
+	if (vector_of_items.size() == 3)
+	{
+		if (vector_of_items[1]->get_it_is_identifier("directory")
+			&& vector_of_items[2]->get_it_is_string())
+		{
+			std::string target_directory = vector_of_items[2]->get_value_string();
+
+			DEBUG("change directory to " << target_directory);
+
+			//std::cout << "change directory to " << target_directory << "??\n";
+
+			if (m.get_can_change_directory())
+			{
+					DEBUG("and we can do it! " << target_directory);
+
+					//std::cout << "change directory to " << target_directory << "\n";
+
+					chdir(target_directory.c_str());
+			}
+			else
+			{
+				DEBUG("no, we cannot do it!");
+				//std::cout << "we cannot change directory to " << target_directory << "\n";
+			}
+			return;
+		}
+	}
+
+	CHOMIK_MACHINE_STDERR("line " << line_number << " : unknown change variable\n");
+	for (auto & i: vector_of_items)
+	{
+		CHOMIK_MACHINE_STDERR(*i << ' ');
+	}
+	CHOMIK_MACHINE_STDERR('\n');
+}
+
+
+void chomik::signature::execute_predefined_concatenate(machine & m) const
+{
+		std::stringstream s;
+
+		std::string separator = m.get_variable_with_value(*our_common_data->signature_the_concatenate_separator).get_value_string();
+
+		DEBUG("the concatenate separator is \"" << separator << "\"");
+
+		bool first = true, second = true;
+		for (auto & i: vector_of_items)
+		{
+			if (first)
+			{
+				first = false;
+				continue; // we omit 'concatenate'
+			}
+			else
+			{
+				if (second)
+				{
+					second = false;
+				}
+				else
+				{
+					s << separator;
+				}
+			}
+			i->print(s);
+		}
+
+		DEBUG("concatenate produced " << s.str());
+
+		m.get_variable_with_value(*our_common_data->signature_the_concatenate_result).assign_value_string(s.str());
+}
+
 
 void chomik::signature::execute_predefined(machine & m) const
 {
@@ -1818,4 +1949,33 @@ void chomik::signature::execute_predefined(machine & m) const
     {
         execute_predefined_cast(m);
     }
+    else
+	if (get_it_has_prefix("change"))
+	{
+		execute_predefined_change(m);
+	}
+	else
+	if (get_it_has_prefix("concatenate"))
+	{
+		execute_predefined_concatenate(m);
+	}
 }
+
+const std::string chomik::predefined_variables::array_of_predefined_variables[]=
+{
+	"print", "create", "get", "read", "compare", "add", "subtract", "multiply", "divide", "set", "getline", "execution", "match", "modulo", "cast", "change",
+	"concatenate"
+};
+
+bool chomik::predefined_variables::get_variable_is_predefined(const std::string & prefix)
+{
+	for (auto & i: predefined_variables::array_of_predefined_variables)
+	{
+		if (i == prefix)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+

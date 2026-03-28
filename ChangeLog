@@ -18,4 +18,18 @@ YYYY-MM-DD
 2026-03-17  release 0.2.3
 2026-03-18  release 0.2.4, improved error handling, release 0.2.5
 2026-03-19  expanding types with placeholders in names, improved error handling, release 0.3.0
+2026-03-27	changes:
+			now predefined symbol of type code: change directory (DIR:string)
+			new predefined symbol of type code: concatenate ... . Concatenates everything apart from the first identifier (concatenate) and stores the result in 'the concatenate result "string"'
+			a new test has been introduced for concatenate - test56.chomik
+			the test29.chomik has been modified to use concatenate as well - it was necessary for this to work in Github CI
+			new predefined symbols of the type string: the chomik "string" (INDEX:range 1..10)
+			it is possible to assign them in main from the command line (-s <index> <value>) or (--set-the-chomik-string <index> <value>)
+			new command line option: (-e <value>) or (--execute <value>)
+			making both the parser and scanner reentrant
+			using "chomik_scanner" as prefix for the scanner code (instead of "yy")
+			using "chomik_parser" as prefix for the parser code (instead of "yy")
+			internals: new optional constuctor for chomik::machine - requires a vector of strings, they are used in chomik::machine::create_predefined_variables
+			internals: additional method chomik::parser::parse_string - without error_stream, used in main, for standard error handling
+			release 0.4.0
 
