@@ -317,6 +317,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = chomik.h sdl_chomik.h http_chomik.h fancy_http_chomik.h
 include_HEADERS = chomik.h sdl_chomik.h http_chomik.h fancy_http_chomik.h
 all: all-am
 
