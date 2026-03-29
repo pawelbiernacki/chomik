@@ -1,7 +1,9 @@
 #!/usr/local/bin/chomik
 
+let the concatenate separator = value string "/";
+<concatenate <the chomik "string" 1> "test36_data.txt">;
 
-<create new input filestream "../tests/test36_data.txt">;
+<create new input filestream <the concatenate result>>;
 let my stream index = <the created stream index>;
 
 let the getline stream index = <my stream index>;

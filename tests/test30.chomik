@@ -2,7 +2,13 @@
 
 # this test checks whether we properly read from a file
 
-<create new input filestream "../tests/test30_data.txt">;
+# We use concatenate - it has been introduced in 0.4.0 (see test56.chomik and test57.chomik)
+# we also use the predefined variable 'the chomik "string" 1', which is set by the wrapper as well.
+
+let the concatenate separator = value string "/";
+<concatenate <the chomik "string" 1> "test30_data.txt">;
+
+<create new input filestream <the concatenate result>>;
 variable my test filestream index:integer;
 
 let my test filestream index = <the created stream index>;
