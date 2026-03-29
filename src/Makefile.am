@@ -25,9 +25,9 @@ TESTS = ../tests/test1.chomik ../tests/test2.chomik ../tests/test3.chomik ../tes
         ../tests/test37.chomik ../tests/test38.chomik ../tests/test39.chomik ../tests/test40.chomik ../tests/test41.chomik ../tests/test42.chomik \
         ../tests/test43.chomik ../tests/test44.chomik ../tests/test45.chomik ../tests/test46.chomik ../tests/test47.chomik ../tests/test48.chomik \
         ../tests/test49.chomik ../tests/test50.chomik ../tests/test51.chomik ../tests/test52.chomik ../tests/test53.chomik ../tests/test54.chomik \
-        ../tests/test55.chomik ../tests/test56.chomik ../tests/test57.chomik
+        ../tests/test55.chomik ../tests/test56.chomik ../tests/test57.chomik ../tests/test58.sh ../tests/test59.sh ../tests/test60.sh ../tests/test61.sh
 
-XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
+XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik ../tests/test59.sh
 
 
 # here we use a new cool chomik feature (version 3.0.1) - the command line option --set-the-chomik-string (there are chomik string variables 1 to 10)
@@ -38,9 +38,9 @@ XFAIL_TESTS = ../tests/test3.chomik ../tests/test6.chomik ../tests/test8.chomik
 
 #TESTS_ENVIRONMENT = $(top_builddir)/src/chomik --set-the-chomik-string 1 "$(top_builddir)/tests" --set-the-chomik-string 2 "$$f" --set-the-chomik-string 3 "$(top_builddir)/src" --execute "let the print target stream index = value integer 2; <print \"Running\" <the chomik \"string\" 2>>;"
 
-lex.chomik_scanner.c: scanner.l
-	flex -Pchomik_scanner $^
-	
+lex.chomik_scanner.c: scanner.l chomik_parser.tab.h
+	flex -Pchomik_scanner $<
+
 scanner.c: lex.chomik_scanner.c
 	cp $^ $@
 

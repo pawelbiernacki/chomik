@@ -1,0 +1,36 @@
+#!/usr/local/bin/chomik
+
+
+<print "The perform test ... has been loaded">;
+
+# This is not really a test - it always succeeds. But it is used by the test59.sh wrapper
+# in order to check a value
+
+let assign the result depending on lower = value code
+{
+	let the program return = value integer 1;
+};
+
+let assign the result depending on greater = value code
+{
+	let the program return = value integer 1;
+};
+
+let assign the result depending on equal = value code
+{
+	let the program return = value integer 0;
+};
+
+let perform test (VALUE1: integer) and (VALUE2: integer) = value code
+{
+	let v 1 = value integer [(VALUE1:integer)];
+	let v 2 = value integer [(VALUE2:integer)];
+
+	<print "value" (NUMBER:range 1..2) " is equal " <v (NUMBER:range 1..2)>>;
+
+	<compare "integer" <v 1> <v 2>>;
+
+	<assign the result depending on <the compare result>>;
+};
+
+

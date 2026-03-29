@@ -62,6 +62,12 @@ add_test(NAME test55 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test55.chomik)
 add_test(NAME test56 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test56.chomik)
 add_test(NAME test57 COMMAND chomik ${CMAKE_CURRENT_SOURCE_DIR}/test57.chomik)
 
+add_test(NAME test58 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test58.sh)
+add_test(NAME test59 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test59.sh)
+set_property(TEST test59 PROPERTY WILL_FAIL true)
+add_test(NAME test60 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test60.sh)
+add_test(NAME test61 COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test61.sh)
+
 # set WORKING_DIRECTORY for test with files
 set_tests_properties(test29 test30 test36
     PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
