@@ -574,7 +574,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libchomik.la
-libchomik_la_SOURCES = lex.chomik_scanner.c chomik_parser.tab.cc parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc \
+libchomik_la_SOURCES = lex.chomik_scanner.c chomik_parser.tab.c parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc \
 		execute.cc get_actual_code_value.cc get_result_replacing_placeholders.cc various_functions.cc generators.cc language_specific_code.cc bridge.cc
 
 chomik_SOURCES = chomik.cc
@@ -1662,6 +1662,8 @@ chomik_parser.tab.hh: parser.y
 
 chomik_parser.tab.h: parser.y
 	bison --language="C" --file-prefix="chomik_parser" -Dapi.prefix={chomik_parser} -d $^
+
+chomik_parser.tab.c: chomik_parser.tab.h
 
 clean-local:
 	rm -f chomik_parser.tab.h chomik_parser.tab.c chomik_parser.tab.hh chomik_parser.tab.cc lex.chomik_scanner.c location.hh position.hh stack.hh parser.c
