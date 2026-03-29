@@ -1,5 +1,7 @@
 
 
+EXTRA_DIST = parser.y scanner.l
+
 bin_PROGRAMS = chomik
 
 lib_LTLIBRARIES = libchomik.la

@@ -573,6 +573,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = parser.y scanner.l
 lib_LTLIBRARIES = libchomik.la
 libchomik_la_SOURCES = lex.chomik_scanner.c chomik_parser.tab.c parser_functions.cc scanner_functions.cc report.cc make_copy_with_replacements.cc \
 		execute.cc get_actual_code_value.cc get_result_replacing_placeholders.cc various_functions.cc generators.cc language_specific_code.cc bridge.cc
