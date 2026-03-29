@@ -1,5 +1,5 @@
 
 
-inc_HEADERS = chomik.h sdl_chomik.h http_chomik.h fancy_http_chomik.h
+include_HEADERS = chomik.h sdl_chomik.h http_chomik.h fancy_http_chomik.h
 
-incdir = /usr/local/include
+includedir = /usr/local/include
