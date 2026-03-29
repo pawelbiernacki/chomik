@@ -5,7 +5,7 @@
 #define YYLTYPE int
 
 #include "chomik_parser.tab.h"
-
+#include <stdbool.h>
 
 void chomik_push_buffer_data_file(const char * const filename, unsigned line_number);
 void chomik_push_buffer_data_string();
