@@ -45,6 +45,9 @@ jobs:
         name: test-suite-logs
         path: src/test-suite.log
         retention-days: 30
-
+        
+    - name: Uninstall previous build
+      run: sudo make uninstall
+      
     - name: Run distcheck
       run: make distcheck
